@@ -1,0 +1,7 @@
+{
+  "extends": "../.nuxt/tsconfig.server.json",
+  "compilerOptions": {
+    // Diğer ayarlar...
+    "types": ["@prisma/nuxt", "node", "@nuxtjs/sitemap"]
+  }
+}

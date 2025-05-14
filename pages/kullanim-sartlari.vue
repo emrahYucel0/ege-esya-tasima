@@ -1,0 +1,3 @@
+<template>
+  <policy-term />
+</template>
