@@ -1,0 +1,83 @@
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
+
+interface QuoteRequestInput {
+  sectionName?: string;
+  subtitle: string;
+  title: string;
+  description: string;
+  phoneLabel: string;
+  phone: string;
+}
+
+export default defineEventHandler(async (event) => {
+  const method = event.node.req.method;
+
+  if (method === 'GET') {
+    // "quotes" sectionName'ine sahip ilk kaydı getir
+    const quoteData = await prisma.quoteRequest.findFirst({
+      where: { sectionName: "quotes" },
+    });
+    return quoteData;
+  } 
+  
+  else if (method === 'POST') {
+    // Yeni bir QuoteRequest kaydı oluştur
+    const body = (await readBody(event)) as QuoteRequestInput;
+
+    const newQuote = await prisma.quoteRequest.create({
+      data: {
+        sectionName: body.sectionName || "quotes",
+        subtitle: body.subtitle,
+        title: body.title,
+        description: body.description,
+        phoneLabel: body.phoneLabel,
+        phone: body.phone,
+      },
+    });
+
+    return newQuote;
+  } 
+  
+  else if (method === 'PUT') {
+    // Mevcut QuoteRequest kaydını güncelle
+    const body = (await readBody(event)) as QuoteRequestInput;
+
+    try {
+      const updatedQuote = await prisma.quoteRequest.update({
+        where: { sectionName: body.sectionName || "quotes" },
+        data: {
+          subtitle: body.subtitle,
+          title: body.title,
+          description: body.description,
+          phoneLabel: body.phoneLabel,
+          phone: body.phone,
+        },
+      });
+
+      return { success: true, data: updatedQuote };
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : String(error) };
+    }
+  } 
+  
+  else if (method === 'DELETE') {
+    // sectionName = "quotes" olan kaydı sil
+    const body = (await readBody(event)) as { sectionName?: string };
+
+    try {
+      const deletedQuote = await prisma.quoteRequest.delete({
+        where: { sectionName: body.sectionName || "quotes" },
+      });
+
+      return deletedQuote;
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : String(error) };
+    }
+  } 
+  
+  else {
+    return { error: `HTTP ${method} yöntemi desteklenmiyor.` };
+  }
+});

@@ -1,0 +1,20 @@
+{
+  "extends": "./.nuxt/tsconfig.json",
+
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "Node",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "outDir": "./dist",
+    "rootDir": "./",
+    "types": ["node"]
+  },
+"include": ["composables/**/*.ts", "server/**/*.ts", "pages/**/*.vue", "*.ts"],  
+"ts-node": {
+    "esm": true // ESM desteği için
+  }
+}

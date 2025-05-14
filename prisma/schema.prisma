@@ -1,0 +1,377 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-1.1.x"]
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+//--------------------- NAVBAR-----------------------
+
+model Navbar {
+  id          Int      @id @default(autoincrement())
+  sectionName String   @unique @default("navbars")
+  title       String
+  subtitle    String
+  phone       String
+  createdAt   DateTime @default(now())
+}
+
+//--------------------- HERO-----------------------
+
+model HeroPage {
+  id              Int      @id @default(autoincrement())
+  sectionName     String   @unique @default("heros")
+  title           String
+  subtitle        String
+  description     String   @db.Text
+  primaryButton   String
+  primaryLink     String
+  secondaryButton String
+  secondaryLink   String
+  image           String
+  createdAt       DateTime @default(now())
+}
+
+//--------------------- FOOTER-----------------------
+
+model Footer {
+  id          Int      @id @default(autoincrement())
+  sectionName String   @unique @default("footers")
+  address     String
+  phone       String
+  email       String
+  copyright   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  socialLinks FooterSocialLink[]
+  regionLinks FooterRegionLink[]
+  quickLinks  QuickLink[]
+  blogLinks   FooterBlogLink[]
+}
+
+model FooterSocialLink {
+  id       Int    @id @default(autoincrement())
+  name     String
+  url      String
+  footer   Footer @relation(fields: [footerId], references: [id])
+  footerId Int
+}
+
+model FooterBlogLink {
+  id       Int    @id @default(autoincrement())
+  name     String
+  url      String
+  footer   Footer @relation(fields: [footerId], references: [id])
+  footerId Int
+}
+
+model QuickLink {
+  id       Int    @id @default(autoincrement())
+  name     String
+  url      String
+  footer   Footer @relation(fields: [footerId], references: [id])
+  footerId Int
+}
+
+model FooterRegionLink {
+  id       Int    @id @default(autoincrement())
+  name     String
+  url      String
+  footer   Footer @relation(fields: [footerId], references: [id])
+  footerId Int
+}
+
+//--------------------- FACT-----------------------
+
+model Fact {
+  id          Int             @id @default(autoincrement())
+  sectionName String          @unique @default("facts")
+  subtitle    String
+  title       String
+  description String          @db.Text
+  phoneLabel  String
+  phone       String
+  statistics  FactStatistic[]
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+}
+
+model FactStatistic {
+  id        Int      @id @default(autoincrement())
+  title     String
+  fact      Fact     @relation(fields: [factId], references: [id])
+  factId    Int
+  createdAt DateTime @default(now())
+}
+
+//--------------------- FEATURE-----------------------
+
+model Feature {
+  id           Int           @id @default(autoincrement())
+  sectionName  String        @unique @default("features")
+  subtitle     String
+  title        String
+  image        String
+  featureTypes FeatureType[]
+  createdAt    DateTime      @default(now())
+}
+
+model FeatureType {
+  id          Int     @id @default(autoincrement())
+  title       String
+  description String  @db.Text
+  feature     Feature @relation(fields: [featureId], references: [id])
+  featureId   Int
+}
+
+//--------------------- PRICINGPLAN-----------------------
+
+model PricingPlan {
+  id               Int            @id @default(autoincrement())
+  sectionName      String         @unique @default("pricings")
+  subtitle         String
+  title            String
+  basicFeatures    BasicPlan[]
+  standardFeatures StandardPlan[]
+  advancedFeatures AdvancedPlan[]
+}
+
+model BasicPlan {
+  id             Int             @id @default(autoincrement())
+  planName       String
+  price          String
+  basicPlanTypes BasicPlanType[]
+  pricingPlan    PricingPlan     @relation(fields: [pricingPlanId], references: [id])
+  pricingPlanId  Int
+}
+
+model StandardPlan {
+  id                Int                @id @default(autoincrement())
+  planName          String
+  price             String
+  standardPlanTypes StandardPlanType[]
+  pricingPlan       PricingPlan        @relation(fields: [pricingPlanId], references: [id])
+  pricingPlanId     Int
+}
+
+model AdvancedPlan {
+  id                Int                @id @default(autoincrement())
+  planName          String
+  price             String
+  advancedPlanTypes AdvancedPlanType[]
+  pricingPlan       PricingPlan        @relation(fields: [pricingPlanId], references: [id])
+  pricingPlanId     Int
+}
+
+model BasicPlanType {
+  id          Int       @id @default(autoincrement())
+  description String    @db.Text
+  basicPlan   BasicPlan @relation(fields: [basicPlanId], references: [id], onDelete: Cascade)
+  basicPlanId Int
+}
+
+model StandardPlanType {
+  id             Int          @id @default(autoincrement())
+  description    String       @db.Text
+  standardPlan   StandardPlan @relation(fields: [standardPlanId], references: [id], onDelete: Cascade)
+  standardPlanId Int
+}
+
+model AdvancedPlanType {
+  id             Int          @id @default(autoincrement())
+  description    String       @db.Text
+  advancedPlan   AdvancedPlan @relation(fields: [advancedPlanId], references: [id], onDelete: Cascade)
+  advancedPlanId Int
+}
+
+//--------------------- Service-----------------------
+
+model Service {
+  id          Int           @id @default(autoincrement())
+  sectionName String        @unique @default("services")
+  title       String
+  subtitle    String
+  blockquote  String        @db.Text
+  features    ServiceCard[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+model ServiceCard {
+  id              Int      @id @default(autoincrement())
+  content         String   @db.Text
+  cardTitle       String
+  cardDescription String   @db.Text
+  serviceId       Int
+  service         Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+//--------------------- Card-----------------------
+
+model Card {
+  id          Int        @id @default(autoincrement())
+  sectionName String     @unique @default("cards")
+  title       String
+  subtitle    String
+  blockquote  String     @db.Text
+  image       String
+  cards       CardItem[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+model CardItem {
+  id          Int      @id @default(autoincrement())
+  iconPath    String
+  title       String
+  description String   @db.Text
+  order       Int
+  cardId      Int
+  card        Card     @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+//--------------------- FAQ-----------------------
+
+model Faq {
+  id          Int       @id @default(autoincrement())
+  sectionName String    @unique @default("faqs")
+  title       String
+  subtitle    String
+  faqItems    FaqItem[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model FaqItem {
+  id        Int      @id @default(autoincrement())
+  question  String
+  answer    String   @db.Text
+  open      Boolean  @default(false)
+  faqId     Int
+  faq       Faq      @relation(fields: [faqId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+//--------------------- QUOTE-----------------------
+
+model QuoteRequest {
+  id          Int      @id @default(autoincrement())
+  sectionName String   @unique @default("quotes")
+  subtitle    String
+  title       String
+  description String   @db.Text
+  phoneLabel  String
+  phone       String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+//--------------------- TESTIMONIAL-----------------------
+
+model Testimonial {
+  id                 Int                 @id @default(autoincrement())
+  sectionName        String              @unique @default("testimonials")
+  title              String
+  subtitle           String
+  testimonialDetails TestimonialDetail[]
+  createdAt          DateTime            @default(now())
+}
+
+model TestimonialDetail {
+  id            Int         @id @default(autoincrement())
+  name          String
+  profession    String
+  description   String      @db.Text
+  testimonial   Testimonial @relation(fields: [testimonialId], references: [id])
+  testimonialId Int
+}
+
+//--------------------- ABOUT-----------------------
+
+model About {
+  id          Int      @id @default(autoincrement())
+  sectionName String   @unique @default("abouts")
+  title       String
+  subtitle    String
+  content     String   @db.Text
+  image       String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+//--------------------- POST-----------------------
+
+model Post {
+  id         Int      @id @default(autoincrement())
+  title      String?
+  subtitle   String?
+  shortTitle String?
+  author     String
+  slug       String   @unique
+  content    String   @db.Text
+  excerpt    String   @db.Text
+  image      String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+//--------------------- Region-----------------------
+
+model Region {
+  id         Int      @id @default(autoincrement())
+  title      String?
+  subtitle   String?
+  shortTitle String?
+  slug       String   @unique
+  content    String   @db.Text
+  excerpt    String   @db.Text
+  image      String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+//--------------------- Image-----------------------
+
+model StoredFile {
+  id           String   @id @default(uuid())
+  originalName String
+  storedName   String   @unique
+  mimeType     String
+  size         Int
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+//--------------------- User-----------------------
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  role      String   @default("user")
+  createdAt DateTime @default(now())
+}
+
+//--------------------- Meta-----------------------
+
+model Meta {
+  id          Int      @id @default(autoincrement())
+  sectionName String   @default("metas")
+  page        String   @unique
+  title       String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
