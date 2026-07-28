@@ -1,5 +1,5 @@
-import { PrismaClient } from '@prisma/client';
-const prisma = new PrismaClient();
+import * as yup from 'yup';
+import prisma from '~/lib/prisma';
 
 interface ServiceCardInput {
   content: string;
@@ -15,8 +15,30 @@ interface ServiceInput {
   features?: ServiceCardInput[];
 }
 
+const serviceCardSchema = yup.object({
+  content: yup.string().trim().required(),
+  cardTitle: yup.string().trim().required(),
+  cardDescription: yup.string().trim().required(),
+});
+
+const serviceSchema = yup.object({
+  sectionName: yup.string().trim().notRequired(),
+  title: yup.string().trim().required(),
+  subtitle: yup.string().trim().required(),
+  blockquote: yup.string().trim().required(),
+  features: yup.array().of(serviceCardSchema).notRequired(),
+});
+
+const serviceDeleteSchema = yup.object({
+  sectionName: yup.string().trim().notRequired(),
+});
+
 export default defineEventHandler(async (event) => {
   const method = event.node.req.method;
+
+  if (method !== 'GET') {
+    requireAdmin(event);
+  }
 
   if (method === 'GET') {
     // "services" sectionName'ine sahip ilk Service kaydını ilişkili ServiceCard'larıyla getirir
@@ -28,8 +50,11 @@ export default defineEventHandler(async (event) => {
     
   } else if (method === 'POST') {
     // Yeni bir Service kaydı oluşturur
-    const body = (await readBody(event)) as ServiceInput;
-    
+    const rawBody = await readBody(event);
+    const validation = await validateOrError<ServiceInput>(serviceSchema, rawBody);
+    if (!validation.success) return validation;
+    const body = validation.data;
+
     const serviceCardsData = Array.isArray(body.features)
       ? body.features.map(card => ({ 
           content: card.content,
@@ -52,8 +77,11 @@ export default defineEventHandler(async (event) => {
 
   } else if (method === 'PUT') {
     // Mevcut Service kaydını günceller
-    const body = (await readBody(event)) as ServiceInput;
-    
+    const rawBody = await readBody(event);
+    const validation = await validateOrError<ServiceInput>(serviceSchema, rawBody);
+    if (!validation.success) return validation;
+    const body = validation.data;
+
     try {
       const updatedService = await prisma.service.update({
         where: { sectionName: body.sectionName || "services" },
@@ -83,8 +111,11 @@ export default defineEventHandler(async (event) => {
 
   } else if (method === 'DELETE') {
     // Service kaydını ve ilişkili ServiceCard'ları siler
-    const body = (await readBody(event)) as { sectionName?: string };
-    
+    const rawBody = await readBody(event);
+    const validation = await validateOrError<{ sectionName?: string }>(serviceDeleteSchema, rawBody);
+    if (!validation.success) return validation;
+    const body = validation.data;
+
     try {
       const deletedService = await prisma.service.delete({
         where: { sectionName: body.sectionName || "services" }

@@ -14,10 +14,10 @@ export default defineNuxtConfig({
   ],
 
   routeRules: {
-    '/admin': { robots: 'noindex, nofollow' }, 
-    '/admin/**': { robots: 'noindex, nofollow' },
-    '/egeyonetim': { robots: 'noindex, nofollow' },
-    '/egeyonetim/**': { robots: 'noindex, nofollow' },
+    "/admin": { robots: "noindex, nofollow" },
+    "/admin/**": { robots: "noindex, nofollow" },
+    "/evdeneveyonetim": { robots: "noindex, nofollow" },
+    "/evdeneveyonetim/**": { robots: "noindex, nofollow" },
   },
 
   vite: {
@@ -59,20 +59,41 @@ export default defineNuxtConfig({
 
   plugins: ["~/plugins/gsap.client.js"],
 
+  // app: {
+  //   head: {
+  //     htmlAttrs: { lang: "tr" },
+  //     link: [
+  //       {
+  //         rel: "preconnect",
+  //         href: "https://fonts.googleapis.com",
+  //         crossorigin: "anonymous",
+  //       },
+  //       {
+  //         rel: "stylesheet",
+  //         href: "/css/style.css",
+  //       },
+  //     ],
+  //   },
+  // },
+
   app: {
     head: {
       htmlAttrs: { lang: "tr" },
+
       link: [
         {
-          rel: "preconnect",
-          href: "https://fonts.googleapis.com",
-          crossorigin: "anonymous",
-        },
-        {
           rel: "stylesheet",
-          href: "/css/style.css",
+          href: "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css",
         },
       ],
+    },
+  },
+
+  css: ["~/assets/css/main.css"],
+  postcss: {
+    plugins: {
+      tailwindcss: {},
+      autoprefixer: {},
     },
   },
 
@@ -100,6 +121,7 @@ export default defineNuxtConfig({
   },
 
   runtimeConfig: {
+    authSecret: process.env.AUTH_SECRET || "",
     mail: {
       smtp: {
         host: process.env.MAIL_HOST || "mail.egeesya.com",
@@ -118,9 +140,8 @@ export default defineNuxtConfig({
   },
 
   hooks: {
-    'app:error': (err: any) => {
-      if ([500, 503].includes(err.statusCode)) return false
-    }
-  }
+    "app:error": (err: any) => {
+      if ([500, 503].includes(err.statusCode)) return false;
+    },
+  },
 });
-

@@ -1,209 +1,201 @@
-<script setup>
-import { gsap } from "gsap";
-
-const { data: heroContent } = await useFetch("/api/hero", {
-  key: "hero-data",
-});
-
-const titleText = ref(null);
-const isMobile = ref(false);
-
-onMounted(() => {
-  isMobile.value = window.innerWidth < 1024;
-
-  if (!isMobile.value) {
-    gsap.from(titleText.value, {
-      duration: 1.2,
-      y: -200,
-      opacity: 0,
-      ease: "slow(0.7, 0.7, false)",
-      delay: 0.5,
-      onStart: () => {
-        gsap.set(titleText.value, { opacity: 1 });
-      },
-    });
-  }
-});
-</script>
-
 <template>
   <section
-    id="ycl-hero"
-    class="ycl-hero relative min-h-screen lg:overflow-hidden"
+    class="hero relative overflow-hidden pt-[calc(4rem-30px)] md:pt-[calc(4rem-30px)] md:pb-16 lg:pt-[calc(8rem-30px)] lg:pb-0"
   >
-    <div
-      class="relative z-10 container mx-auto px-4 lg:h-screen flex items-center py-16 lg:py-0"
-    >
-      <div
-        class="flex flex-col lg:grid lg:grid-cols-2 gap-8 lg:gap-12 xl:gap-16 items-center"
-      >
-        <div class="relative w-full lg:order-2">
-          <div class="relative max-w-2xl mx-auto group">
-            <div
-              class="absolute w-[110%] h-[110%] -inset-[5%] bg-gradient-to-br from-stone-500/40 to-transparent rounded-3xl shadow-2xl blur-md transform transition-all duration-500 group-hover:scale-105 lg:block hidden"
-              aria-hidden="true"
-            ></div>
+    <!-- Background Image -->
+    <div class="absolute inset-0 z-0">
+      <NuxtImg
+        v-if="heroData.backgroundImage"
+        :src="heroData.backgroundImage"
+        alt="Evden eve nakliyat arka plan görseli"
+        class="w-full h-full object-cover object-center"
+        provider="imgix"
+        format="webp"
+        quality="60"
+        loading="lazy"
+        sizes="sm:100vw md:100vw lg:100vw xl:100vw 2xl:1536px"
+        decoding="async"
+        fetchpriority="high"
+      />
+      <div v-else class="w-full h-full bg-gray-300"></div>
+      <div class="absolute inset-0 bg-primary/50 backdrop-blur-sm"></div>
+    </div>
+
+    <div class="container mx-auto px-4 relative z-10">
+      <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center min-h-[600px] lg:min-h-[700px]">
+        <!-- Text Content -->
+        <div class="lg:w-5/12 mb-10 lg:mb-0 text-center lg:text-left lg:self-center">
+          <div class="intro-excerpt">
+            <h1
+              class="text-white font-bold text-4xl xl:text-[54px] mb-8 leading-tight"
+            >
+              {{ heroData.title || "Evden Eve Nakliyat:" }}<br />
+              <span class="block">{{
+                heroData.subtitle ||
+                "Hızlı, Güvenilir ve Profesyonel Taşımacılık"
+              }}</span>
+            </h1>
+            <p class="text-white/90 mb-6 lg:mb-8 text-base lg:text-lg leading-relaxed max-w-2xl mx-auto lg:mx-0">
+              {{
+                heroData.description ||
+                "Yeni bir eve taşınmanın heyecanını yaşarken, eşyalarınızın güvenliği ve taşınma sürecinin stresi gözünüzü korkutmasın. Firmamız, İstanbul evden eve nakliyat sektöründeki köklü deneyimiyle, bu zorlu süreci sizler için başından sona kadar kolay ve sorunsuz bir deneyime dönüştürüyor. Alanında uzman ekibimiz ve modern taşıma tekniklerimizle, güvenilir evden eve nakliyat hizmetinin kapılarını aralıyoruz. Sunduğumuz sigortalı nakliyat güvencesi ile tüm eşyalarınızı titizlikle paketliyor, potansiyel hasarlara karşı koruma altına alıyoruz. Yüksek katlarda bile hızlı ve emniyetli çözümler sunan asansörlü nakliyat seçeneğimizle, taşınma işlemini maksimum verimlilikle gerçekleştiriyoruz. Sadece İstanbul içi değil, şehirler arası nakliyat hizmetimizle de Türkiye'nin dört bir yanına güvenle taşınmanızı sağlıyoruz. Şeffaf fiyat politikamız gereği, evden eve nakliyat fiyatları hakkında bilgi almak ve size özel ücretsiz ekspertiz hizmetimizden yararlanmak için bizimle hemen iletişime geçin. Profesyonel, hızlı ve stressiz bir taşınma deneyimi için doğru adrestesiniz."
+              }}
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+              <NuxtLink
+                v-if="heroData.primaryLink && heroData.primaryButton"
+                :to="heroData.primaryLink"
+                class="btn btn-secondary"
+              >
+                {{ heroData.primaryButton }}
+              </NuxtLink>
+              <NuxtLink
+                v-if="heroData.secondaryLink && heroData.secondaryButton"
+                :to="heroData.secondaryLink"
+                class="btn btn-white-outline"
+              >
+                {{ heroData.secondaryButton }}
+              </NuxtLink>
+            </div>
+          </div>
+        </div>
+
+        <!-- Hero Image -->
+        <div class="lg:w-7/12 relative mt-8 lg:mt-0 lg:self-end">
+          <div class="hero-img-wrap">
             <NuxtImg
-              v-if="heroContent.data.image"
-              :src="
-                heroContent.data?.image ||
-                '/img/ege-esya-tasima-genel-anasayfa.jpg'
-              "
-              alt="Ege Eşya Taşıma Ana Sayfa Paketlenmiş Eşyalar Görseli"
-              title="Ege Eşya Taşıma Ana Sayfa Paketlenmiş Eşyalar"
+              v-if="heroData.image"
+              :src="heroData.image"
+              alt="Evden eve nakliyat kamyonu ve hizmet görseli"
+              class="hero-image"
               provider="imgix"
               format="webp"
               quality="70"
-              sizes="sm:100vw md:100vw lg:100vw xl:100vw 2xl:1536px"
+              loading="lazy"
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 100vw, 780px"
               decoding="async"
               fetchpriority="high"
-              class="relative z-10 w-full h-full object-cover object-center hero-image rounded-3xl shadow-lg lg:shadow-xl transform transition-all duration-700 ease-out lg:-rotate-6 lg:group-hover:rotate-0 lg:group-hover:scale-105"
-              :data-src="heroContent.data.image"
             />
+            <div v-else class="w-full h-64 bg-gray-200 rounded-lg"></div>
           </div>
         </div>
-
-        <div
-          class="hero-content space-y-4 md:space-y-6 lg:space-y-8 text-center lg:text-left lg:order-1"
-        >
-          <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-light">
-            <span
-              ref="titleText"
-              class="font-serif italic text-stone-900 block mb-2 lg:-skew-y-6"
-              >{{ heroContent.data.title }}</span
-            >
-          </h1>
-          <h2
-            class="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-semibold text-stone-700"
-          >
-            {{ heroContent.data.subtitle }}
-          </h2>
-
-          <p
-            v-if="heroContent.data.description"
-            class="text-stone-600 contrast-more:text-stone-800 text-base sm:text-lg lg:text-xl leading-relaxed max-w-prose mx-auto lg:mx-0"
-          >
-            {{ heroContent.data.description }}
-          </p>
-
-          <div
-            class="hero-btns flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start"
-            aria-label="Yönlendirme Butonları"
-          >
-            <NuxtLink
-              v-if="heroContent.data.primaryButton"
-              :to="heroContent.data.primaryLink"
-              :aria-label="heroContent.data.primaryButton + ' butonu'"
-              prefetch
-              tabindex="0"
-              class="px-5 py-2.5 sm:px-6 sm:py-3 lg:px-8 lg:py-4 text-sm sm:text-base lg:text-lg font-medium rounded-full bg-stone-800 text-white hover:bg-primary transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-0.5 flex items-center justify-center"
-            >
-              {{ heroContent.data.primaryButton }}
-              <svg
-                class="w-4 h-4 sm:w-5 sm:h-5 inline-block ml-2 -mr-1"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                aria-label="sağ yön ok ikonu"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M17 8l4 4m0 0l-4 4m4-4H3"
-                />
-              </svg>
-            </NuxtLink>
-
-            <NuxtLink
-              v-if="heroContent.data.secondaryButton"
-              :to="heroContent.data.secondaryLink"
-              :aria-label="heroContent.data.secondaryButton + ' butonu'"
-              prefetch
-              tabindex="0"
-              class="px-5 py-2.5 sm:px-6 sm:py-3 lg:px-8 lg:py-4 text-sm sm:text-base lg:text-lg font-medium rounded-full border-2 border-stone-300 hover:border-stone-400 text-stone-700 hover:text-stone-900 transition-all duration-300 flex items-center justify-center"
-            >
-              {{ heroContent.data.secondaryButton }}
-            </NuxtLink>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div
-      class="bounce absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce hidden lg:block"
-    >
-      <div
-        class="w-8 h-14 rounded-3xl border-2 border-stone-400 flex items-start justify-center p-1"
-      >
-        <div class="w-2 h-2 bg-stone-500 rounded-full animate-scroll"></div>
       </div>
     </div>
   </section>
 </template>
 
+<script setup>
+// Fetch hero data from API
+const { data: heroResponse } = await useFetch("/api/hero");
+
+// Set default values if no data exists
+const heroData = ref({
+  title: "",
+  subtitle: "",
+  description: "",
+  primaryButton: "",
+  primaryLink: "",
+  secondaryButton: "",
+  secondaryLink: "",
+  image: "",
+  backgroundImage: "",
+  ...heroResponse.value?.data,
+});
+
+// Fallback to default values if API returns null
+if (!heroResponse.value?.data) {
+  heroData.value = {
+    title: "Evenakliye.com İle",
+    subtitle: "Güvenli ve Profesyonel Nakliyat",
+    description:
+      "Evden eve taşınma süreci gözünüzde büyümesin. Eşyalarınızı sigortalı, ambalajlı ve uzman ekibimizle yeni adresinize güvenle taşıyoruz.",
+    primaryButton: "Ücretsiz Teklif Al",
+    primaryLink: "/iletisim",
+    secondaryButton: "Hizmetlerimizi Keşfet",
+    secondaryLink: "/blog",
+    image: "/images/nakliye3.png",
+    backgroundImage: "/images/nakliye2.jpg",
+  };
+}
+</script>
+
 <style scoped>
-.ycl-hero {
-  min-height: calc(100vh - 80px);
+.hero {
+  min-height: 600px;
 }
 
-@keyframes scroll {
-  0% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(10px);
-  }
-  100% {
-    transform: translateY(0);
-  }
+.hero-image {
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+  box-shadow: -5px  rgba(0, 0, 0, 0.25);
+  position: relative;
+  z-index: 5;
 }
 
-.animate-scroll {
-  animation: scroll 1.5s infinite;
-}
-
-@media (max-width: 1023px) {
-  .hero-content {
-    padding-top: 1rem;
-  }
-
-  .hero-content h1 {
-    line-height: 1.2;
-  }
-
-  .hero-content h2 {
-    line-height: 1.3;
-    margin-bottom: 0.5rem;
-  }
-
-  .hero-btns {
-    margin-top: 1.5rem;
-  }
-
-  .hero-image {
-    margin-top: 5rem;
-    margin-bottom: 1.5rem;
-    max-height: 350px;
-    object-position: center top;
-  }
-}
-
+/* Mobile: Görsel sağ alt köşede, küçük boyut */
 @media (max-width: 640px) {
-  .hero-content h1 {
-    font-size: 2.25rem;
-  }
-
-  .hero-content h2 {
-    font-size: 1.75rem;
-  }
-
-  .hero-btns a {
-    padding: 0.75rem 1.5rem;
-  }
-
   .hero-image {
-    max-height: 280px;
+    max-width: 280px;
+    margin-left: auto;
+    margin-right: -20px;
+    margin-bottom: -30px;
   }
+}
+
+/* Tablet: Görsel sağ alt köşede, orta boyut */
+@media (min-width: 641px) and (max-width: 1023px) {
+  .hero-image {
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: -40px;
+    margin-bottom: -60px;
+  }
+}
+
+/* Desktop: Görsel sağ alt köşeye konumlandırılmış */
+@media (min-width: 1024px) {
+  .hero {
+    min-height: 700px;
+  }
+  
+  .hero-image {
+    max-width: 580px;
+    margin-left: auto;
+    margin-right: -80px;
+    /* margin-bottom: -120px; */
+  }
+}
+
+/* Large Desktop: Daha fazla sağa kaydırma */
+@media (min-width: 1280px) {
+  .hero-image {
+    max-width: 680px;
+    margin-right: -120px;
+    /* margin-bottom: -150px; */
+  }
+}
+
+/* Extra Large Desktop: Maksimum sağa kaydırma */
+@media (min-width: 1536px) {
+  .hero-image {
+    max-width: 780px;
+    margin-right: -150px;
+    /* margin-bottom: -180px; */
+  }
+}
+
+/* Ultra Wide Desktop */
+@media (min-width: 1920px) {
+  .hero-image {
+    margin-right: -200px;
+    /* margin-bottom: -220px; */
+  }
+}
+
+/* Fallback styles when Tailwind not available */
+.hero-img-wrap img {
+  max-width: 100%;
+  height: auto;
 }
 </style>

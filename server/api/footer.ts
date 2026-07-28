@@ -1,118 +1,178 @@
-import { PrismaClient } from '@prisma/client';
-const prisma = new PrismaClient();
+// server/api/footer.ts
+import * as yup from 'yup'
+import prisma from '~/lib/prisma'
 
-interface FooterLinkInput {
-  name: string;
-  url: string;
+// ---------------------------------
+// TİP TANIMLARI
+// ---------------------------------
+
+interface SocialLinkInput {
+  name?: string
+  url?: string
+}
+
+interface RegionLinkInput {
+  name?: string
+  url?: string
+}
+
+interface QuickLinkInput {
+  name?: string
+  url?: string
+}
+
+interface BlogLinkInput {
+  name?: string
+  url?: string
 }
 
 interface FooterInput {
-  sectionName?: string;
-  address: string;
-  phone: string;
-  email: string;
-  copyright: string;
-  socialLinks?: FooterLinkInput[];
-  regionLinks?: FooterLinkInput[];
-  quickLinks?: FooterLinkInput[];
-  blogLinks?: FooterLinkInput[];
+  sectionName?: string
+  address?: string
+  phone?: string
+  email?: string
+  copyright?: string
+  socialLinks?: SocialLinkInput[]
+  regionLinks?: RegionLinkInput[]
+  quickLinks?: QuickLinkInput[]
+  blogLinks?: BlogLinkInput[]
 }
 
+const linkSchema = yup.object({
+  name: yup.string().trim().notRequired(),
+  url: yup.string().trim().notRequired(),
+})
+
+const footerSchema = yup.object({
+  sectionName: yup.string().trim().notRequired(),
+  address: yup.string().trim().notRequired(),
+  phone: yup.string().trim().notRequired(),
+  email: yup.string().trim().notRequired(),
+  copyright: yup.string().trim().notRequired(),
+  socialLinks: yup.array().of(linkSchema).notRequired(),
+  regionLinks: yup.array().of(linkSchema).notRequired(),
+  quickLinks: yup.array().of(linkSchema).notRequired(),
+  blogLinks: yup.array().of(linkSchema).notRequired(),
+})
+
+const footerDeleteSchema = yup.object({
+  sectionName: yup.string().trim().notRequired(),
+})
+
+// ---------------------------------
+// SUNUCU ROTASI
+// ---------------------------------
+
 export default defineEventHandler(async (event) => {
-  const method = event.node.req.method;
+  const method = event.node.req.method
+  const defaultSectionName = 'footers' // Modeldeki varsayılan değer
 
+  if (method !== 'GET') {
+    requireAdmin(event)
+  }
+
+  // GET: Footer verisini ilişkileriyle birlikte getir
   if (method === 'GET') {
-    // "footers" sectionName'ine sahip ilk Footer kaydını ilişkili tüm link verileriyle birlikte getirir.
-    const footerData = await prisma.footer.findFirst({
-      where: { sectionName: "footers" },
-      include: {
-        socialLinks: true,
-        regionLinks: true,
-        quickLinks: true,
-        blogLinks: true,
-      },
-    });
-    return footerData;
-  } else if (method === 'POST') {
-    // Yeni bir Footer kaydı oluşturur.
-    const body = (await readBody(event)) as FooterInput;
-
-    const socialLinksData = Array.isArray(body.socialLinks)
-      ? body.socialLinks.map(link => ({ name: link.name, url: link.url }))
-      : [];
-    const regionLinksData = Array.isArray(body.regionLinks)
-      ? body.regionLinks.map(link => ({ name: link.name, url: link.url }))
-      : [];
-    const quickLinksData = Array.isArray(body.quickLinks)
-      ? body.quickLinks.map(link => ({ name: link.name, url: link.url }))
-      : [];
-    const blogLinksData = Array.isArray(body.blogLinks)
-      ? body.blogLinks.map(link => ({ name: link.name, url: link.url }))
-      : [];
-
-    const newFooter = await prisma.footer.create({
-      data: {
-        sectionName: body.sectionName || "footers",
-        address: body.address,
-        phone: body.phone,
-        email: body.email,
-        copyright: body.copyright,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        socialLinks: { create: socialLinksData },
-        regionLinks: { create: regionLinksData },
-        quickLinks: { create: quickLinksData },
-        blogLinks: { create: blogLinksData },
-      },
-      include: {
-        socialLinks: true,
-        regionLinks: true,
-        quickLinks: true,
-        blogLinks: true,
-      },
-    });
-    return newFooter;
-  } else if (method === 'PUT') {
-    // Belirtilen sectionName'e sahip Footer kaydını günceller.
-    const body = (await readBody(event)) as FooterInput;
     try {
-      const socialLinksData = Array.isArray(body.socialLinks)
-        ? body.socialLinks.map(link => ({ name: link.name, url: link.url }))
-        : [];
-      const regionLinksData = Array.isArray(body.regionLinks)
-        ? body.regionLinks.map(link => ({ name: link.name, url: link.url }))
-        : [];
-      const quickLinksData = Array.isArray(body.quickLinks)
-        ? body.quickLinks.map(link => ({ name: link.name, url: link.url }))
-        : [];
-      const blogLinksData = Array.isArray(body.blogLinks)
-        ? body.blogLinks.map(link => ({ name: link.name, url: link.url }))
-        : [];
+      const footer = await prisma.footer.findFirst({
+        where: { sectionName: defaultSectionName },
+        include: {
+          socialLinks: true,
+          regionLinks: true,
+          quickLinks: true,
+          blogLinks: true,
+        },
+      })
+      return footer
+    } catch (error) {
+      console.error('GET /api/footer hatası:', error)
+      return { success: false, error: 'Veri getirilirken bir hata oluştu.' }
+    }
+  }
 
+  // POST: Yeni footer oluştur
+  else if (method === 'POST') {
+    const rawBody = await readBody(event)
+    const validation = await validateOrError<FooterInput>(footerSchema, rawBody)
+    if (!validation.success) return validation
+    const body = validation.data
+
+    // İlişkili verileri hazırla
+    const socialData = body.socialLinks?.map((s) => ({ name: s.name, url: s.url })) || []
+    const regionData = body.regionLinks?.map((r) => ({ name: r.name, url: r.url })) || []
+    const quickData = body.quickLinks?.map((q) => ({ name: q.name, url: q.url })) || []
+    const blogData = body.blogLinks?.map((b) => ({ name: b.name, url: b.url })) || []
+
+    try {
+      const newFooter = await prisma.footer.create({
+        data: {
+          sectionName: body.sectionName || defaultSectionName,
+          address: body.address,
+          phone: body.phone,
+          email: body.email,
+          copyright: body.copyright,
+          socialLinks: { create: socialData },
+          regionLinks: { create: regionData },
+          quickLinks: { create: quickData },
+          blogLinks: { create: blogData },
+        },
+        include: {
+          socialLinks: true,
+          regionLinks: true,
+          quickLinks: true,
+          blogLinks: true,
+        },
+      })
+      return { success: true, data: newFooter }
+    } catch (error: any) {
+      // Benzersiz sectionName kontrolü
+      if (isUniqueConstraintError(error)) {
+        return {
+          success: false,
+          error: `'${defaultSectionName}' adında bir kayıt zaten var. Güncelleme için PUT metodunu kullanın.`,
+        }
+      }
+      return { success: false, error: error.message }
+    }
+  }
+
+  // PUT: Footer güncelle (ilişkili veriler silinip yeniden oluşturulur)
+  else if (method === 'PUT') {
+    const rawBody = await readBody(event)
+    const validation = await validateOrError<FooterInput>(footerSchema, rawBody)
+    if (!validation.success) return validation
+    const body = validation.data
+    const targetSection = body.sectionName || defaultSectionName
+
+    const socialData = body.socialLinks?.map((s) => ({ name: s.name, url: s.url })) || []
+    const regionData = body.regionLinks?.map((r) => ({ name: r.name, url: r.url })) || []
+    const quickData = body.quickLinks?.map((q) => ({ name: q.name, url: q.url })) || []
+    const blogData = body.blogLinks?.map((b) => ({ name: b.name, url: b.url })) || []
+
+    try {
       const updatedFooter = await prisma.footer.update({
-        where: { sectionName: body.sectionName || "footers" },
+        where: { sectionName: targetSection },
         data: {
           address: body.address,
           phone: body.phone,
           email: body.email,
           copyright: body.copyright,
-          updatedAt: new Date(),
-          // İlişkili verileri güncelleme: önce mevcut olanları sil, sonra yenilerini ekle
+          // İlişkili verileri tamamen yenile
           socialLinks: {
             deleteMany: {},
-            create: socialLinksData,
+            create: socialData,
           },
           regionLinks: {
             deleteMany: {},
-            create: regionLinksData,
+            create: regionData,
           },
           quickLinks: {
             deleteMany: {},
-            create: quickLinksData,
+            create: quickData,
           },
           blogLinks: {
             deleteMany: {},
-            create: blogLinksData,
+            create: blogData,
           },
         },
         include: {
@@ -121,20 +181,60 @@ export default defineEventHandler(async (event) => {
           quickLinks: true,
           blogLinks: true,
         },
-      });
-      return { success: true, data: updatedFooter };
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      return { success: false, error: errorMessage };
+      })
+      return { success: true, data: updatedFooter }
+    } catch (error: any) {
+      if (isRecordNotFoundError(error)) {
+        return {
+          success: false,
+          error: `'${targetSection}' adında bir kayıt bulunamadı. Önce POST ile oluşturun.`,
+        }
+      }
+      return { success: false, error: error.message }
     }
-  } else if (method === 'DELETE') {
-    // Belirtilen sectionName'e sahip Footer kaydını siler.
-    const body = (await readBody(event)) as { sectionName?: string };
-    const deletedFooter = await prisma.footer.delete({
-      where: { sectionName: body.sectionName || "footers" },
-    });
-    return deletedFooter;
-  } else {
-    return { error: `HTTP ${method} yöntemi desteklenmiyor.` };
   }
-});
+
+  // DELETE: Footer ve ilişkili tüm verileri sil
+  else if (method === 'DELETE') {
+    const rawBody = await readBody(event)
+    const validation = await validateOrError<{ sectionName?: string }>(footerDeleteSchema, rawBody)
+    if (!validation.success) return validation
+    const body = validation.data
+    const targetSection = body.sectionName || defaultSectionName
+
+    try {
+      // Önce ilişkili verileri manuel sil (CASCADE yoksa)
+      await prisma.footerSocialLink.deleteMany({
+        where: { footer: { sectionName: targetSection } },
+      })
+      await prisma.footerRegionLink.deleteMany({
+        where: { footer: { sectionName: targetSection } },
+      })
+      await prisma.quickLink.deleteMany({
+        where: { footer: { sectionName: targetSection } },
+      })
+      await prisma.footerBlogLink.deleteMany({
+        where: { footer: { sectionName: targetSection } },
+      })
+
+      // Ana kaydı sil
+      const deleted = await prisma.footer.delete({
+        where: { sectionName: targetSection },
+      })
+      return { success: true, data: deleted }
+    } catch (error: any) {
+      if (isRecordNotFoundError(error)) {
+        return {
+          success: false,
+          error: `'${targetSection}' adında silinecek kayıt bulunamadı.`,
+        }
+      }
+      return { success: false, error: error.message }
+    }
+  }
+
+  // Desteklenmeyen metod
+  else {
+    return { error: `HTTP ${method} metodu desteklenmemektedir.` }
+  }
+})

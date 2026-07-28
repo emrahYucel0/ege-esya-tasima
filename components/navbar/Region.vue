@@ -1,14 +1,18 @@
 <script setup>
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { ref, computed, watch, onMounted } from 'vue'
+import { useRoute, navigateTo } from '#app'
 
 gsap.registerPlugin(ScrollTrigger);
 
 const route = useRoute();
 const currentPage = ref(Number(route.query.sayfa) || 1);
 const itemsPerPage = 9;
+const pageGroupSize = 10; // 10'ar 10'ar ilerleme için
 
-const { data: rawData, error, pending } = useFetch("/api/regions");
+// API'yi active=true parametresiyle çağırın
+const { data: rawData, error, pending } = useFetch("/api/regions?active=true");
 
 const regions = computed(() => {
   return rawData.value?.success ? rawData.value.data : [];
@@ -32,13 +36,80 @@ const totalPages = computed(() =>
   Math.ceil(filteredRegions.value.length / itemsPerPage)
 );
 
-const navigatePage = (direction) => {
-  const newPage = currentPage.value + direction;
-  if (newPage > 0 && newPage <= totalPages.value) {
-    currentPage.value = newPage;
-    navigateTo({ query: { sayfa: newPage } });
+// --- Sayfa Gruplama Hesaplamaları ---
+const currentPageGroup = computed(() => {
+  return Math.ceil(currentPage.value / pageGroupSize)
+})
+
+const totalPageGroups = computed(() => {
+  return Math.ceil(totalPages.value / pageGroupSize)
+})
+
+const pageGroupStart = computed(() => {
+  return (currentPageGroup.value - 1) * pageGroupSize + 1
+})
+
+const pageGroupEnd = computed(() => {
+  const end = currentPageGroup.value * pageGroupSize
+  return end > totalPages.value ? totalPages.value : end
+})
+
+const visiblePages = computed(() => {
+  const pages = []
+  for (let i = pageGroupStart.value; i <= pageGroupEnd.value; i++) {
+    pages.push(i)
   }
-};
+  return pages
+})
+
+// --- Sayfa Navigasyon Fonksiyonları ---
+const navigatePage = (page) => {
+  if (page < 1 || page > totalPages.value) return
+  currentPage.value = page
+  navigateTo({ query: { sayfa: page } })
+}
+
+const navigateFirstPage = () => {
+  navigatePage(1)
+}
+
+const navigateLastPage = () => {
+  navigatePage(totalPages.value)
+}
+
+const navigatePreviousPage = () => {
+  navigatePage(currentPage.value - 1)
+}
+
+const navigateNextPage = () => {
+  navigatePage(currentPage.value + 1)
+}
+
+const navigatePreviousGroup = () => {
+  const newPage = pageGroupStart.value - pageGroupSize
+  if (newPage >= 1) {
+    navigatePage(newPage)
+  } else {
+    navigateFirstPage()
+  }
+}
+
+const navigateNextGroup = () => {
+  const newPage = pageGroupEnd.value + 1
+  if (newPage <= totalPages.value) {
+    navigatePage(newPage)
+  } else {
+    navigateLastPage()
+  }
+}
+
+// Direk sayfa numarası ile gitme
+const goToPage = (event) => {
+  const page = parseInt(event.target.value)
+  if (!isNaN(page) && page >= 1 && page <= totalPages.value) {
+    navigatePage(page)
+  }
+}
 
 watch(searchQuery, () => {
   currentPage.value = 1;
@@ -107,8 +178,6 @@ useHead({
           adresinize ulaştırıyor.
         </p>
       </div>
-
-
 
       <div class="bg-stone-50 p-8 rounded-xl mb-12 border border-stone-100">
         <div class="grid sm:grid-cols-2 md:grid-cols-4 gap-4 mt-6">
@@ -238,7 +307,21 @@ useHead({
       Hata: {{ error.message }}
     </div>
     <div v-else>
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      <!-- Aktif bölge yoksa mesaj göster -->
+      <div v-if="paginatedRegions.length === 0" class="text-center py-20">
+        <h3 class="text-2xl font-semibold text-stone-600 mb-4">
+          Aktif Bölge Bulunamadı
+        </h3>
+        <p class="text-stone-500 mb-6">
+          Şu anda aktif hizmet verdiğimiz bölge bulunmuyor. Lütfen daha sonra tekrar kontrol edin.
+        </p>
+        <p class="text-sm text-stone-400">
+          (Admin panelinden bölgeleri aktif etmek için "Aktif Yap" butonunu kullanabilirsiniz)
+        </p>
+      </div>
+      
+      <!-- Aktif bölgeler varsa göster -->
+      <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         <div
           v-for="region in paginatedRegions"
           :key="region.id"
@@ -275,9 +358,178 @@ useHead({
         </div>
       </div>
 
-      <div class="flex justify-center mt-12 space-x-4">
+      <!-- Gelişmiş Sayfalama - Aktif bölgeler varsa göster -->
+      <div v-if="paginatedRegions.length > 0 && totalPages > 1" class="mt-12">
+        <div class="flex flex-col items-center space-y-4">
+          <!-- Üst Sayfalama -->
+          <div class="flex flex-wrap items-center justify-center gap-2">
+            <!-- İlk Sayfa -->
+            <button
+              @click="navigateFirstPage"
+              :disabled="currentPage === 1"
+              class="px-4 py-2 bg-stone-100 text-stone-700 rounded-full hover:bg-primary hover:text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+              aria-label="İlk sayfaya git"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+              </svg>
+              İlk
+            </button>
+            
+            <!-- Önceki 10 Sayfa -->
+            <button
+              @click="navigatePreviousGroup"
+              :disabled="currentPageGroup === 1"
+              class="px-4 py-2 bg-stone-100 text-stone-700 rounded-full hover:bg-primary hover:text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              aria-label="Önceki 10 sayfa"
+            >
+              -10
+            </button>
+            
+            <!-- Önceki Sayfa -->
+            <button
+              @click="navigatePreviousPage"
+              :disabled="currentPage === 1"
+              class="px-4 py-2 bg-stone-100 text-stone-700 rounded-full hover:bg-primary hover:text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+              aria-label="Önceki sayfa"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+              </svg>
+              Önceki
+            </button>
+
+            <!-- Sayfa Numaraları -->
+            <div class="flex items-center space-x-1">
+              <button
+                v-for="page in visiblePages"
+                :key="page"
+                @click="navigatePage(page)"
+                :class="[
+                  'w-10 h-10 flex items-center justify-center rounded-full text-sm font-medium transition-all',
+                  page === currentPage
+                    ? 'bg-primary text-white hover:bg-primary-dark'
+                    : 'bg-stone-100 text-stone-700 hover:bg-stone-200'
+                ]"
+                :aria-label="`${page}. sayfaya git`"
+              >
+                {{ page }}
+              </button>
+            </div>
+
+            <!-- Sonraki Sayfa -->
+            <button
+              @click="navigateNextPage"
+              :disabled="currentPage === totalPages"
+              class="px-4 py-2 bg-stone-100 text-stone-700 rounded-full hover:bg-primary hover:text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+              aria-label="Sonraki sayfa"
+            >
+              Sonraki
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+            
+            <!-- Sonraki 10 Sayfa -->
+            <button
+              @click="navigateNextGroup"
+              :disabled="currentPageGroup === totalPageGroups"
+              class="px-4 py-2 bg-stone-100 text-stone-700 rounded-full hover:bg-primary hover:text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              aria-label="Sonraki 10 sayfa"
+            >
+              +10
+            </button>
+            
+            <!-- Son Sayfa -->
+            <button
+              @click="navigateLastPage"
+              :disabled="currentPage === totalPages"
+              class="px-4 py-2 bg-stone-100 text-stone-700 rounded-full hover:bg-primary hover:text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+              aria-label="Son sayfaya git"
+            >
+              Son
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+              </svg>
+            </button>
+          </div>
+
+          <!-- Sayfa Bilgisi ve Direk Git -->
+          <div class="flex flex-col sm:flex-row items-center gap-4 mt-4">
+            <div class="flex items-center space-x-2">
+              <span class="text-stone-600">Sayfa:</span>
+              <input
+                type="number"
+                :value="currentPage"
+                @input="goToPage"
+                @keyup.enter="$event.target.blur()"
+                min="1"
+                :max="totalPages"
+                class="w-16 px-2 py-1 border border-stone-300 rounded-full text-center focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+              />
+              <span class="text-stone-600">/ {{ totalPages }}</span>
+            </div>
+            
+            <div class="text-sm text-stone-500">
+              <span v-if="totalPageGroups > 1">
+                Grup {{ currentPageGroup }} / {{ totalPageGroups }}
+                <span class="mx-2">•</span>
+              </span>
+              Sayfalar {{ pageGroupStart }}-{{ pageGroupEnd }}
+              <span class="mx-2">•</span>
+              Toplam {{ filteredRegions.length }} bölge
+            </div>
+          </div>
+
+          <!-- Alt Sayfalama (Mobil için) -->
+          <div class="flex flex-wrap items-center justify-center gap-2 mt-4 sm:hidden">
+            <button
+              @click="navigateFirstPage"
+              :disabled="currentPage === 1"
+              class="px-3 py-1.5 bg-stone-100 text-stone-700 rounded-full hover:bg-primary hover:text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+              aria-label="İlk sayfa"
+            >
+              İlk
+            </button>
+            
+            <button
+              @click="navigatePreviousPage"
+              :disabled="currentPage === 1"
+              class="px-3 py-1.5 bg-stone-100 text-stone-700 rounded-full hover:bg-primary hover:text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+              aria-label="Önceki"
+            >
+              ←
+            </button>
+            
+            <span class="px-3 py-1.5 text-stone-700 font-medium">
+              {{ currentPage }} / {{ totalPages }}
+            </span>
+            
+            <button
+              @click="navigateNextPage"
+              :disabled="currentPage === totalPages"
+              class="px-3 py-1.5 bg-stone-100 text-stone-700 rounded-full hover:bg-primary hover:text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+              aria-label="Sonraki"
+            >
+              →
+            </button>
+            
+            <button
+              @click="navigateLastPage"
+              :disabled="currentPage === totalPages"
+              class="px-3 py-1.5 bg-stone-100 text-stone-700 rounded-full hover:bg-primary hover:text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+              aria-label="Son sayfa"
+            >
+              Son
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Basit Sayfalama (Eski) - Sadece çok az sayfa varsa -->
+      <div v-else-if="paginatedRegions.length > 0 && totalPages <= 5" class="flex justify-center mt-12 space-x-4">
         <button
-          @click="navigatePage(-1)"
+          @click="navigatePreviousPage"
           :disabled="currentPage === 1"
           class="px-6 py-2 bg-stone-100 text-stone-700 rounded-full hover:bg-primary hover:text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           aria-label="Önceki sayfa"
@@ -288,7 +540,7 @@ useHead({
           Sayfa {{ currentPage }} / {{ totalPages }}
         </span>
         <button
-          @click="navigatePage(1)"
+          @click="navigateNextPage"
           :disabled="currentPage === totalPages"
           class="px-6 py-2 bg-stone-100 text-stone-700 rounded-full hover:bg-primary hover:text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           aria-label="Sonraki sayfa"
@@ -332,6 +584,13 @@ useHead({
   }
   to {
     transform: rotate(360deg);
+  }
+}
+
+/* Sayfalama butonları için responsive tasarım */
+@media (max-width: 640px) {
+  .hidden-mobile {
+    display: none;
   }
 }
 </style>

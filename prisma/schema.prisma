@@ -2,8 +2,8 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider      = "prisma-client-js"
-  binaryTargets = ["native", "debian-openssl-1.1.x"]
+  provider = "prisma-client-js"
+  // binaryTargets = ["native", "debian-openssl-1.1.x"]
 }
 
 datasource db {
@@ -11,42 +11,105 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model SiteSettings {
+  id                  Int       @id @default(autoincrement())
+  sectionName         String    @unique @default("site-settings")
+
+  brandName           String?
+  siteName            String?
+  siteDescription     String?   @db.Text
+
+  logo                String?
+  favicon             String?
+  ogImage             String?
+
+  phone               String?
+  mobilePhone         String?
+  whatsAppNumber      String?
+  email               String?
+  address             String?   @db.Text
+
+  facebookUrl         String?
+  instagramUrl        String?
+  twitterUrl          String?
+  linkedinUrl         String?
+  youtubeUrl          String?
+  githubUrl           String?
+
+  googleAnalyticsId   String?
+  googleTagManagerId  String?
+  googleAdsenseId     String?
+
+  footerText          String?   @db.Text
+  copyrightText       String?
+
+  workingHours        String?   @db.Text
+  googleMapsEmbed     String?   @db.Text
+
+  metaTitle           String?
+  metaDescription     String?   @db.Text
+  metaKeywords        String?   @db.Text
+
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+}
+
 //--------------------- NAVBAR-----------------------
 
 model Navbar {
-  id          Int      @id @default(autoincrement())
-  sectionName String   @unique @default("navbars")
-  title       String
-  subtitle    String
-  phone       String
-  createdAt   DateTime @default(now())
+  id          Int                @id @default(autoincrement())
+  sectionName String             @unique @default("navbars")
+  logo        String?
+  contacts    NavbarContacts[]
+  socialLinks NavbarSocialLink[]
+  createdAt   DateTime           @default(now())
 }
+
+model NavbarSocialLink {
+  id       Int     @id @default(autoincrement())
+  name     String?
+  url      String?
+  navbar   Navbar  @relation(fields: [navbarId], references: [id])
+  navbarId Int
+}
+
+model NavbarContacts {
+  id       Int     @id @default(autoincrement())
+  phone    String?
+  mail     String?
+  address  String?
+  navbar   Navbar  @relation(fields: [navbarId], references: [id])
+  navbarId Int
+}
+
+
 
 //--------------------- HERO-----------------------
 
 model HeroPage {
-  id              Int      @id @default(autoincrement())
-  sectionName     String   @unique @default("heros")
-  title           String
-  subtitle        String
-  description     String   @db.Text
-  primaryButton   String
-  primaryLink     String
-  secondaryButton String
-  secondaryLink   String
-  image           String
-  createdAt       DateTime @default(now())
+  id              Int       @id @default(autoincrement())
+  sectionName     String    @unique @default("heros")
+  title           String?
+  subtitle        String?
+  description     String?   @db.Text
+  primaryButton   String?
+  primaryLink     String?
+  secondaryButton String?
+  secondaryLink   String?
+  image           String?
+  backgroundImage String?
+  createdAt       DateTime? @default(now())
 }
 
-//--------------------- FOOTER-----------------------
+
 
 model Footer {
   id          Int      @id @default(autoincrement())
   sectionName String   @unique @default("footers")
-  address     String
-  phone       String
-  email       String
-  copyright   String
+  address     String?
+  phone       String?
+  email       String?
+  copyright   String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -57,321 +120,471 @@ model Footer {
 }
 
 model FooterSocialLink {
-  id       Int    @id @default(autoincrement())
-  name     String
-  url      String
-  footer   Footer @relation(fields: [footerId], references: [id])
+  id       Int     @id @default(autoincrement())
+  name     String?
+  url      String?
+  footer   Footer  @relation(fields: [footerId], references: [id])
   footerId Int
 }
 
 model FooterBlogLink {
-  id       Int    @id @default(autoincrement())
-  name     String
-  url      String
-  footer   Footer @relation(fields: [footerId], references: [id])
+  id       Int     @id @default(autoincrement())
+  name     String?
+  url      String?
+  footer   Footer  @relation(fields: [footerId], references: [id])
   footerId Int
 }
 
 model QuickLink {
-  id       Int    @id @default(autoincrement())
-  name     String
-  url      String
-  footer   Footer @relation(fields: [footerId], references: [id])
+  id       Int     @id @default(autoincrement())
+  name     String?
+  url      String?
+  footer   Footer  @relation(fields: [footerId], references: [id])
   footerId Int
 }
 
 model FooterRegionLink {
-  id       Int    @id @default(autoincrement())
-  name     String
-  url      String
-  footer   Footer @relation(fields: [footerId], references: [id])
+  id       Int     @id @default(autoincrement())
+  name     String?
+  url      String?
+  footer   Footer  @relation(fields: [footerId], references: [id])
   footerId Int
 }
 
-//--------------------- FACT-----------------------
+//--------------------- SERVICES / HİZMETLERİMİZ -----------------------
 
-model Fact {
-  id          Int             @id @default(autoincrement())
-  sectionName String          @unique @default("facts")
-  subtitle    String
-  title       String
-  description String          @db.Text
-  phoneLabel  String
-  phone       String
-  statistics  FactStatistic[]
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
+model Services {
+  id               Int       @id @default(autoincrement())
+  sectionName      String    @unique @default("services")
+  mainTitle        String    // "Profesyonel Nakliye Hizmetlerimiz"
+  description      String?   // "Evden eve nakliyat sürecinizde..." açıklama paragrafı
+  buttonText       String?   @default("Tüm Hizmetler")
+  buttonLink       String?   @default("/hizmetlerimiz")
+  
+  services         Service[]
+  statistics       Statistic[]
+  
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 }
 
-model FactStatistic {
-  id        Int      @id @default(autoincrement())
-  title     String
-  fact      Fact     @relation(fields: [factId], references: [id])
-  factId    Int
-  createdAt DateTime @default(now())
+model Service {
+  id          Int      @id @default(autoincrement())
+  imagePath   String   // "~/assets/images/ev-nakliye.png" gibi resim yolu
+  title       String   // "Evden Eve Nakliyat"
+  subtitle    String?  // "Şehir İçi & Şehirlerarası"
+  description String?  // Daha detaylı açıklama (isteğe bağlı)
+  order       Int      @default(0) // Hizmetlerin sıralaması için
+  
+  services    Services @relation(fields: [servicesId], references: [id])
+  servicesId  Int
 }
+
+model Statistic {
+  id          Int      @id @default(autoincrement())
+  iconPath    String?  // İkon SVG path veya ikon adı
+  value       String   // "60k", "150+", "15+", "58k"
+  label1      String   // "Başarılı", "Deneyimli", "Yıllık", "Memnun"
+  label2      String   // "Taşıma", "Ekip Üyesi", "Deneyim", "Müşteri"
+  order       Int      @default(0) // İstatistiklerin sıralaması için
+  
+  services    Services @relation(fields: [servicesId], references: [id])
+  servicesId  Int
+}
+
+
+//--------------------- WHY CHOOSE US / NEDEN BİZİ SEÇMELİSİNİZ -----------------------
+
+model WhyChooseUs {
+  id               Int      @id @default(autoincrement())
+  sectionName      String   @unique @default("why-choose-us")
+  mainTitle        String   // "Neden Evenakliye.com'u Tercih Etmelisiniz?"
+  shortDescription String?  // "Evden eve taşınma süreci..." paragrafı
+  closingStatement String?  // "Evenakliye.com ile taşınmanın ayrıcalığını yaşayın!"
+  mainImage        String?  // Sağ taraftaki büyük resmin (why-choose-us-img.jpg) yolu
+  features         WhyChooseUsFeature[]
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model WhyChooseUsFeature {
+  id          Int      @id @default(autoincrement())
+  iconPath    String?  // "~/assets/images/shield.svg" gibi ikon yolu
+  title       String   // "Sigortalı ve Güvenli Taşıma"
+  description String?  // Özellik açıklaması
+  order       Int      @default(0) // Özelliklerin sıralaması için
+  
+  whyChooseUs   WhyChooseUs @relation(fields: [whyChooseUsId], references: [id])
+  whyChooseUsId Int
+}
+
+//--------------------- WE HELP SECTION / YARDIM BÖLÜMÜ -----------------------
+
+model WeHelpSection {
+  id               Int              @id @default(autoincrement())
+  sectionName      String           @unique @default("we-help-section")
+  mainTitle        String           // "Evenakliye.com: Taşınma Sürecinizi Kolaylaştırıyoruz"
+  description      String?          // Açıklama paragrafı
+  buttonText       String?          @default("Hizmetlerimizi İnceleyin")
+  buttonLink       String?          @default("/hizmetlerimiz")
+  features         WeHelpFeature[]
+  images           WeHelpImage[]
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+}
+
+model WeHelpFeature {
+  id              Int           @id @default(autoincrement())
+  text            String        // "Ücretsiz Ekspertiz ve Detaylı Planlama"
+  order           Int           @default(0) // Sıralama için
+  
+  weHelpSection   WeHelpSection @relation(fields: [weHelpSectionId], references: [id])
+  weHelpSectionId Int
+}
+
+model WeHelpImage {
+  id              Int           @id @default(autoincrement())
+  imagePath       String        // "~/assets/images/img-grid-1.jpg"
+  altText         String        // "Evenakliye.com profesyonel eşya paketleme görseli"
+  position        String        // "grid-1", "grid-2", "grid-3" - görselin grid içindeki konumu
+  order           Int           @default(0) // Görsel sıralaması
+  
+  weHelpSection   WeHelpSection @relation(fields: [weHelpSectionId], references: [id])
+  weHelpSectionId Int
+}
+
+
+
+//--------------------- FAQ SECTION / SSS BÖLÜMÜ -----------------------
+
+model FaqSection {
+  id               Int              @id @default(autoincrement())
+  sectionName      String           @unique @default("faq-section")
+  mainTitle        String           // "Nakliye Sürecinizle İlgili Tüm Sorularınız"
+  description      String?          // "Evden eve nakliyat sürecinizle ilgili merak ettikleriniz..."
+  ctaTitle         String?          @default("Başka sorunuz mu var?")
+  ctaButtonText    String?          @default("Bize Ulaşın")
+  ctaButtonLink    String?          @default("/iletisim")
+  faqs             FaqItem[]
+  statsCards       FaqStatsCard[]
+  images           FaqImage[]
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+}
+
+model FaqItem {
+  id              Int           @id @default(autoincrement())
+  question        String        // "Nakliye öncesi eşyalarımı nasıl hazırlamalıyım?"
+  answer          String        @db.Text // Ana cevap paragrafı
+  order           Int           @default(0) // Sıralama için
+  isActive        Boolean       @default(true) // Gösterim durumu
+  
+  details         FaqDetail[]
+  
+  faqSection      FaqSection    @relation(fields: [faqSectionId], references: [id], onDelete: Cascade)
+  faqSectionId    Int
+}
+
+model FaqDetail {
+  id              Int           @id @default(autoincrement())
+  text            String        // "Kırılabilir eşyalar için köpük rulo ve özel karton kutular"
+  order           Int           @default(0) // Sıralama için
+  
+  faqItem         FaqItem       @relation(fields: [faqItemId], references: [id], onDelete: Cascade)
+  faqItemId       Int
+}
+
+model FaqStatsCard {
+  id              Int           @id @default(autoincrement())
+  value           String        // "150+"
+  label           String        // "Profesyonel Ekip"
+  bgColor         String        @default("#3b5d50") // Kart arka plan rengi
+  textColor       String        @default("#ffffff") // Metin rengi
+  position        String        // "top-right", "bottom-left" - kartın konumu
+  order           Int           @default(0) // Sıralama için
+  
+  faqSection      FaqSection    @relation(fields: [faqSectionId], references: [id], onDelete: Cascade)
+  faqSectionId    Int
+}
+
+model FaqImage {
+  id              Int           @id @default(autoincrement())
+  imagePath       String        // "~/assets/images/nakliye2.jpg"
+  altText         String        // "Profesyonel Nakliye Ekibimiz"
+  position        String        // "primary", "secondary" - görselin konumu (sol üst veya sağ alt)
+  order           Int           @default(0) // Görsel sıralaması
+  
+  faqSection      FaqSection    @relation(fields: [faqSectionId], references: [id], onDelete: Cascade)
+  faqSectionId    Int
+}
+
+
 
 //--------------------- FEATURE-----------------------
 
 model Feature {
   id           Int           @id @default(autoincrement())
   sectionName  String        @unique @default("features")
-  subtitle     String
-  title        String
-  image        String
+  subtitle     String?
+  title        String?
+  image        String?
   featureTypes FeatureType[]
-  createdAt    DateTime      @default(now())
+  createdAt    DateTime?     @default(now())
 }
 
 model FeatureType {
   id          Int     @id @default(autoincrement())
-  title       String
-  description String  @db.Text
+  title       String?
+  description String? @db.Text
   feature     Feature @relation(fields: [featureId], references: [id])
   featureId   Int
 }
 
-//--------------------- PRICINGPLAN-----------------------
+//--------------------- PRICING SECTION / FİYATLANDIRMA BÖLÜMÜ -----------------------
+
+model PricingSection {
+  id               Int              @id @default(autoincrement())
+  sectionName      String           @unique @default("pricing-section")
+  mainTitle        String           // "Şeffaf Nakliyat Fiyatları"
+  description      String?          // Açıklama paragrafı
+  pricingPlans     PricingPlan[]
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+}
 
 model PricingPlan {
-  id               Int            @id @default(autoincrement())
-  sectionName      String         @unique @default("pricings")
-  subtitle         String
-  title            String
-  basicFeatures    BasicPlan[]
-  standardFeatures StandardPlan[]
-  advancedFeatures AdvancedPlan[]
+  id               Int              @id @default(autoincrement())
+  name             String           // "Ekonomik Taşıma", "Standart Taşıma", "Premium Taşıma"
+  subtitle         String?          // "Temel nakliye hizmeti", "Tam kapsamlı çözüm", "Beyaz eldiven hizmeti"
+  price            String           // "1.499₺", "2.999₺", "4.499₺"
+  priceSuffix      String?          @default("/başlangıç") // Fiyat son eki
+  isPopular        Boolean          @default(false) // EN ÇOK TERCİH etiketi için
+  isFeatured       Boolean          @default(false) // Öne çıkan plan (border ile vurgulu)
+  buttonText       String           // "Detaylı Bilgi", "Hemen Teklif Al"
+  buttonLink       String           // "/ekonomik-paket", "/standart-paket", "/premium-paket"
+  buttonAriaLabel  String?          // Erişilebilirlik için aria-label
+  features         PricingFeature[]
+  order            Int              @default(0) // Sıralama için
+  
+  pricingSection   PricingSection   @relation(fields: [pricingSectionId], references: [id])
+  pricingSectionId Int
 }
 
-model BasicPlan {
-  id             Int             @id @default(autoincrement())
-  planName       String
-  price          String
-  basicPlanTypes BasicPlanType[]
-  pricingPlan    PricingPlan     @relation(fields: [pricingPlanId], references: [id])
-  pricingPlanId  Int
+model PricingFeature {
+  id              Int           @id @default(autoincrement())
+  text            String        // "1 oda eşya taşıma", "50 km'ye kadar ücretsiz"
+  isIncluded      Boolean       @default(true) // Özellik dahil mi değil mi?
+  order           Int           @default(0) // Özellik sıralaması
+  
+  pricingPlan     PricingPlan   @relation(fields: [pricingPlanId], references: [id])
+  pricingPlanId   Int
 }
 
-model StandardPlan {
-  id                Int                @id @default(autoincrement())
-  planName          String
-  price             String
-  standardPlanTypes StandardPlanType[]
-  pricingPlan       PricingPlan        @relation(fields: [pricingPlanId], references: [id])
-  pricingPlanId     Int
-}
 
-model AdvancedPlan {
-  id                Int                @id @default(autoincrement())
-  planName          String
-  price             String
-  advancedPlanTypes AdvancedPlanType[]
-  pricingPlan       PricingPlan        @relation(fields: [pricingPlanId], references: [id])
-  pricingPlanId     Int
-}
-
-model BasicPlanType {
-  id          Int       @id @default(autoincrement())
-  description String    @db.Text
-  basicPlan   BasicPlan @relation(fields: [basicPlanId], references: [id], onDelete: Cascade)
-  basicPlanId Int
-}
-
-model StandardPlanType {
-  id             Int          @id @default(autoincrement())
-  description    String       @db.Text
-  standardPlan   StandardPlan @relation(fields: [standardPlanId], references: [id], onDelete: Cascade)
-  standardPlanId Int
-}
-
-model AdvancedPlanType {
-  id             Int          @id @default(autoincrement())
-  description    String       @db.Text
-  advancedPlan   AdvancedPlan @relation(fields: [advancedPlanId], references: [id], onDelete: Cascade)
-  advancedPlanId Int
-}
-
-//--------------------- Service-----------------------
-
-model Service {
-  id          Int           @id @default(autoincrement())
-  sectionName String        @unique @default("services")
-  title       String
-  subtitle    String
-  blockquote  String        @db.Text
-  features    ServiceCard[]
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-}
-
-model ServiceCard {
-  id              Int      @id @default(autoincrement())
-  content         String   @db.Text
-  cardTitle       String
-  cardDescription String   @db.Text
-  serviceId       Int
-  service         Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-}
 
 //--------------------- Card-----------------------
 
 model Card {
   id          Int        @id @default(autoincrement())
   sectionName String     @unique @default("cards")
-  title       String
-  subtitle    String
-  blockquote  String     @db.Text
-  image       String
+  title       String?
+  subtitle    String?
+  blockquote  String?    @db.Text
+  image       String?
   cards       CardItem[]
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  createdAt   DateTime?  @default(now())
+  updatedAt   DateTime?  @updatedAt
 }
 
 model CardItem {
-  id          Int      @id @default(autoincrement())
-  iconPath    String
-  title       String
-  description String   @db.Text
-  order       Int
-  cardId      Int
-  card        Card     @relation(fields: [cardId], references: [id], onDelete: Cascade)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-}
-
-//--------------------- FAQ-----------------------
-
-model Faq {
   id          Int       @id @default(autoincrement())
-  sectionName String    @unique @default("faqs")
-  title       String
-  subtitle    String
-  faqItems    FaqItem[]
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  iconPath    String?
+  title       String?
+  description String?   @db.Text
+  order       Int?
+  cardId      Int
+  card        Card      @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  createdAt   DateTime? @default(now())
+  updatedAt   DateTime? @updatedAt
 }
 
-model FaqItem {
-  id        Int      @id @default(autoincrement())
-  question  String
-  answer    String   @db.Text
-  open      Boolean  @default(false)
-  faqId     Int
-  faq       Faq      @relation(fields: [faqId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
+
 
 //--------------------- QUOTE-----------------------
 
 model QuoteRequest {
-  id          Int      @id @default(autoincrement())
-  sectionName String   @unique @default("quotes")
-  subtitle    String
-  title       String
-  description String   @db.Text
-  phoneLabel  String
-  phone       String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id          Int       @id @default(autoincrement())
+  sectionName String    @unique @default("quotes")
+  subtitle    String?
+  title       String?
+  description String?   @db.Text
+  phoneLabel  String?
+  phone       String?
+  createdAt   DateTime? @default(now())
+  updatedAt   DateTime? @updatedAt
 }
 
-//--------------------- TESTIMONIAL-----------------------
+//--------------------- TESTIMONIALS SECTION / MÜŞTERİ YORUMLARI BÖLÜMÜ -----------------------
+
+model TestimonialSection {
+  id               Int             @id @default(autoincrement())
+  sectionName      String          @unique @default("testimonials-section")
+  mainTitle        String          // "Müşterilerimizin Deneyimleri"
+  subtitle         String?         // "Evden eve nakliyat sürecimiz hakkında müşterilerimizin gerçek yorumları..."
+  tag              String?         // "Müşteri Yorumları"
+  testimonials     Testimonial[]
+  showDecorations  Boolean         @default(true) // Dekoratif elementler gösterilsin mi?
+  backgroundColor  String?         // Arkaplan rengi (varsayılan: beyaz)
+  textColor        String?         // Yazı rengi (varsayılan: siyah)
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+}
 
 model Testimonial {
-  id                 Int                 @id @default(autoincrement())
-  sectionName        String              @unique @default("testimonials")
-  title              String
-  subtitle           String
-  testimonialDetails TestimonialDetail[]
-  createdAt          DateTime            @default(now())
+  id               Int             @id @default(autoincrement())
+  customerName     String          // "Ahmet K.", "Ayşe T.", "Mehmet E."
+  customerImage    String?         // "~/assets/images/testimonial.svg" veya müşteri fotoğrafı
+  rating           Int             @default(5) // 1-5 arası yıldız sayısı
+  comment          String          // Müşteri yorumu metni
+  date             DateTime        // Yorum tarihi
+  location         String?         // "İstanbul", "Ankara'dan İzmir'e", "Ofis Taşıma"
+  serviceType      String          // "Evden Eve Taşıma", "Şehirlerarası Nakliye", "Ofis Taşıma"
+  serviceTypeIcon  String?         // İkon SVG path veya ikon adı
+  isFeatured       Boolean         @default(false) // Öne çıkan yorum
+  isActive         Boolean         @default(true) // Yorum aktif mi?
+  order            Int             @default(0) // Sıralama
+  
+  testimonialSection TestimonialSection @relation(fields: [testimonialSectionId], references: [id])
+  testimonialSectionId Int
 }
 
-model TestimonialDetail {
-  id            Int         @id @default(autoincrement())
-  name          String
-  profession    String
-  description   String      @db.Text
-  testimonial   Testimonial @relation(fields: [testimonialId], references: [id])
-  testimonialId Int
+//--------------------- ABOUT SECTION / HAKKIMIZDA -----------------------
+
+model AboutSection {
+  id               Int      @id @default(autoincrement())
+  sectionName      String   @unique @default("about-section")
+  
+  // Başlık ve Tanıtım
+  mainTitle        String   // "Nakliyat Sektörünün Güvenilir Adresi"
+  description1     String   // 1. paragraf
+  description2     String   // 2. paragraf
+  description3     String   // 3. paragraf
+  
+  // Hizmet Detayları
+  services         AboutService[]
+  
+  // Full-width Resim
+  teamImage        String   // "~/assets/images/team.jpg"
+  teamImageAlt     String   // "Profesyonel Nakliyat Ekibimiz İş Başında"
+  
+  // Şirket Tarihçesi
+  historyTitle     String   // "15 Yıllık Deneyimle Geleceğe Taşıyoruz"
+  historyText1     String   // 1. tarihçe paragrafı
+  historyText2     String   // 2. tarihçe paragrafı
+  historyText3     String   // 3. tarihçe paragrafı
+  
+  // İstatistikler
+  stats            AboutStat[]
+  
+  // SEO ve Meta
+  seoTitle         String   // "Hakkımızda | İstanbulun En Güvenilir Nakliyat Şirketi"
+  seoDescription   String   // Meta description
+  
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 }
 
-//--------------------- ABOUT-----------------------
-
-model About {
+model AboutService {
   id          Int      @id @default(autoincrement())
-  sectionName String   @unique @default("abouts")
-  title       String
-  subtitle    String
-  content     String   @db.Text
-  image       String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  iconPath    String   // "~/assets/images/shield.svg"
+  iconAlt     String   // "Güvenli Taşıma"
+  title       String   // "Sigortalı Taşıma"
+  description String   // Özellik açıklaması
+  order       Int      @default(0) // Sıralama
+  
+  aboutSection   AboutSection @relation(fields: [aboutSectionId], references: [id])
+  aboutSectionId Int
+}
+
+model AboutStat {
+  id          Int      @id @default(autoincrement())
+  value       String   // "15+", "10K+", "20+", "24/7"
+  label       String   // "Yıllık Deneyim", "Mutlu Müşteri", vb.
+  order       Int      @default(0) // Sıralama
+  
+  aboutSection   AboutSection @relation(fields: [aboutSectionId], references: [id])
+  aboutSectionId Int
 }
 
 //--------------------- POST-----------------------
 
 model Post {
-  id         Int      @id @default(autoincrement())
+  id         Int       @id @default(autoincrement())
   title      String?
   subtitle   String?
   shortTitle String?
-  author     String
-  slug       String   @unique
-  content    String   @db.Text
-  excerpt    String   @db.Text
-  image      String
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  author     String?
+  slug       String?   @unique
+  content    String?   @db.Text
+  excerpt    String?   @db.Text
+  image      String?
+  createdAt  DateTime? @default(now())
+  updatedAt  DateTime? @updatedAt
 }
 
 //--------------------- Region-----------------------
 
 model Region {
-  id         Int      @id @default(autoincrement())
+  id         Int       @id @default(autoincrement())
   title      String?
   subtitle   String?
   shortTitle String?
-  slug       String   @unique
-  content    String   @db.Text
-  excerpt    String   @db.Text
-  image      String
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  slug       String    @unique
+  content    String?   @db.Text
+  excerpt    String?   @db.Text
+  image      String?
+  isActive   Boolean   @default(false)
+  cities     Json?     // İl bilgileri için JSON alanı
+  
+  // Yeni eklenen alanlar - Fiyat Faktörleri
+  priceFactorsTitle   String?  // Tablo başlığı
+  priceFactorsImage   String?  // Görsel URL
+  priceFactors        Json?    // Faktörler dizisi [{factor: "Kaç odalı?", min: "10.000 TL", max: "25.000 TL"}]
+  
+  createdAt  DateTime? @default(now())
+  updatedAt  DateTime? @updatedAt
 }
 
 //--------------------- Image-----------------------
 
 model StoredFile {
-  id           String   @id @default(uuid())
-  originalName String
-  storedName   String   @unique
-  mimeType     String
+  id           String    @id @default(uuid())
+  originalName String?
+  storedName   String    @unique
+  mimeType     String?
   size         Int
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  createdAt    DateTime? @default(now())
+  updatedAt    DateTime? @updatedAt
 }
 
 //--------------------- User-----------------------
 
 model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  password  String
-  role      String   @default("user")
-  createdAt DateTime @default(now())
+  id        Int       @id @default(autoincrement())
+  email     String    @unique
+  password  String?
+  role      String?   @default("user")
+  createdAt DateTime? @default(now())
 }
 
 //--------------------- Meta-----------------------
 
 model Meta {
-  id          Int      @id @default(autoincrement())
-  sectionName String   @default("metas")
-  page        String   @unique
-  title       String
+  id          Int       @id @default(autoincrement())
+  sectionName String    @default("metas")
+  page        String?   @unique
+  title       String?
   description String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime? @default(now())
+  updatedAt   DateTime? @updatedAt
 }

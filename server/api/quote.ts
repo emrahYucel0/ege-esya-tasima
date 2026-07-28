@@ -1,6 +1,5 @@
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import * as yup from 'yup';
+import prisma from '~/lib/prisma';
 
 interface QuoteRequestInput {
   sectionName?: string;
@@ -11,8 +10,25 @@ interface QuoteRequestInput {
   phone: string;
 }
 
+const quoteRequestSchema = yup.object({
+  sectionName: yup.string().trim().notRequired(),
+  subtitle: yup.string().trim().required(),
+  title: yup.string().trim().required(),
+  description: yup.string().trim().required(),
+  phoneLabel: yup.string().trim().required(),
+  phone: yup.string().trim().required(),
+});
+
+const quoteRequestDeleteSchema = yup.object({
+  sectionName: yup.string().trim().notRequired(),
+});
+
 export default defineEventHandler(async (event) => {
   const method = event.node.req.method;
+
+  if (method !== 'GET') {
+    requireAdmin(event);
+  }
 
   if (method === 'GET') {
     // "quotes" sectionName'ine sahip ilk kaydı getir
@@ -24,7 +40,10 @@ export default defineEventHandler(async (event) => {
   
   else if (method === 'POST') {
     // Yeni bir QuoteRequest kaydı oluştur
-    const body = (await readBody(event)) as QuoteRequestInput;
+    const rawBody = await readBody(event);
+    const validation = await validateOrError<QuoteRequestInput>(quoteRequestSchema, rawBody);
+    if (!validation.success) return validation;
+    const body = validation.data;
 
     const newQuote = await prisma.quoteRequest.create({
       data: {
@@ -42,7 +61,10 @@ export default defineEventHandler(async (event) => {
   
   else if (method === 'PUT') {
     // Mevcut QuoteRequest kaydını güncelle
-    const body = (await readBody(event)) as QuoteRequestInput;
+    const rawBody = await readBody(event);
+    const validation = await validateOrError<QuoteRequestInput>(quoteRequestSchema, rawBody);
+    if (!validation.success) return validation;
+    const body = validation.data;
 
     try {
       const updatedQuote = await prisma.quoteRequest.update({
@@ -64,7 +86,10 @@ export default defineEventHandler(async (event) => {
   
   else if (method === 'DELETE') {
     // sectionName = "quotes" olan kaydı sil
-    const body = (await readBody(event)) as { sectionName?: string };
+    const rawBody = await readBody(event);
+    const validation = await validateOrError<{ sectionName?: string }>(quoteRequestDeleteSchema, rawBody);
+    if (!validation.success) return validation;
+    const body = validation.data;
 
     try {
       const deletedQuote = await prisma.quoteRequest.delete({

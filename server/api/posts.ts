@@ -1,8 +1,23 @@
-import { PrismaClient } from '@prisma/client'
-const prisma = new PrismaClient()
+import * as yup from 'yup'
+import prisma from '~/lib/prisma'
+
+const postSchema = yup.object({
+  title: yup.string().trim().required(),
+  subtitle: yup.string().trim().notRequired(),
+  shortTitle: yup.string().trim().notRequired(),
+  author: yup.string().trim().notRequired(),
+  slug: yup.string().trim().required(),
+  content: yup.string().notRequired(),
+  excerpt: yup.string().notRequired(),
+  image: yup.string().trim().notRequired(),
+})
 
 export default defineEventHandler(async (event) => {
   const method = event.node.req.method // HTTP metodunu al
+
+  if (method !== 'GET') {
+    requireAdmin(event)
+  }
 
   // GET İşlemi
   if (method === 'GET') {
@@ -31,7 +46,10 @@ export default defineEventHandler(async (event) => {
   // POST İşlemi (Yeni Post Ekleme)
   else if (method === 'POST') {
     try {
-      const body = await readBody(event)
+      const rawBody = await readBody(event)
+      const validation = await validateOrError(postSchema, rawBody)
+      if (!validation.success) return validation
+      const body = validation.data
 
       const newPost = await prisma.post.create({
         data: {
@@ -55,7 +73,10 @@ export default defineEventHandler(async (event) => {
   // PUT İşlemi (Post Güncelleme)
   else if (method === 'PUT') {
     try {
-      const body = await readBody(event)
+      const rawBody = await readBody(event)
+      const validation = await validateOrError(postSchema, rawBody)
+      if (!validation.success) return validation
+      const body = validation.data
 
       const updatedPost = await prisma.post.update({
         where: { slug: body.slug },
