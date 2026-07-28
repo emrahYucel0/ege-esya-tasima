@@ -40,7 +40,7 @@ const uploadFile = async () => {
 
 <template>
   <div class="file-uploader">
-    <input type="file" accept="image/jpeg, image/png, image/webp" @change="handleFileUpload">
+    <input type="file" accept="image/jpeg, image/png, image/webp, image/svg+xml" @change="handleFileUpload">
     <button class="upload" @click="uploadFile" :disabled="!selectedFile">Resmi Yükle</button>
     <div v-if="previewUrl" class="preview">
       <img :src="previewUrl" alt="Önizleme" style="max-width: 300px;">

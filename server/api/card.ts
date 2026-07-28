@@ -1,5 +1,5 @@
-import { PrismaClient } from '@prisma/client';
-const prisma = new PrismaClient();
+import * as yup from 'yup';
+import prisma from '~/lib/prisma';
 
 interface CardItemInput {
   iconPath: string;
@@ -17,8 +17,32 @@ interface CardInput {
   cards?: CardItemInput[];
 }
 
+const cardItemSchema = yup.object({
+  iconPath: yup.string().trim().required(),
+  title: yup.string().trim().required(),
+  description: yup.string().trim().required(),
+  order: yup.number().required(),
+});
+
+const cardSchema = yup.object({
+  sectionName: yup.string().trim().notRequired(),
+  title: yup.string().trim().required(),
+  subtitle: yup.string().trim().required(),
+  blockquote: yup.string().trim().required(),
+  image: yup.string().trim().required(),
+  cards: yup.array().of(cardItemSchema).notRequired(),
+});
+
+const cardDeleteSchema = yup.object({
+  sectionName: yup.string().trim().notRequired(),
+});
+
 export default defineEventHandler(async (event) => {
   const method = event.node.req.method;
+
+  if (method !== 'GET') {
+    requireAdmin(event);
+  }
 
   if (method === 'GET') {
     const cardData = await prisma.card.findFirst({
@@ -35,7 +59,11 @@ export default defineEventHandler(async (event) => {
       cards: [] 
     };
   } else if (method === 'POST') {
-    const body = (await readBody(event)) as CardInput;
+    const rawBody = await readBody(event);
+    const validation = await validateOrError<CardInput>(cardSchema, rawBody);
+    if (!validation.success) return validation;
+    const body = validation.data;
+
     const cardsData = Array.isArray(body.cards)
       ? body.cards.map(item => ({
           iconPath: item.iconPath,
@@ -58,8 +86,11 @@ export default defineEventHandler(async (event) => {
     });
     return newCard;
   } else if (method === 'PUT') {
-    const body = (await readBody(event)) as CardInput;
-    console.log('PUT isteği body:', body); // Gelen body'yi kontrol et
+    const rawBody = await readBody(event);
+    const validation = await validateOrError<CardInput>(cardSchema, rawBody);
+    if (!validation.success) return validation;
+    const body = validation.data;
+
     try {
       const updatedCard = await prisma.card.update({
         where: { sectionName: body.sectionName || "cards" },
@@ -89,7 +120,11 @@ export default defineEventHandler(async (event) => {
       return { success: false, error: errorMessage };
     }
   } else if (method === 'DELETE') {
-    const body = (await readBody(event)) as { sectionName?: string };
+    const rawBody = await readBody(event);
+    const validation = await validateOrError<{ sectionName?: string }>(cardDeleteSchema, rawBody);
+    if (!validation.success) return validation;
+    const body = validation.data;
+
     try {
       const deletedCard = await prisma.card.delete({
         where: { sectionName: body.sectionName || "cards" }

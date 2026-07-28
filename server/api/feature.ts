@@ -1,5 +1,5 @@
-import { PrismaClient } from '@prisma/client';
-const prisma = new PrismaClient();
+import * as yup from 'yup';
+import prisma from '~/lib/prisma';
 
 interface FeatureTypeInput {
   title: string;
@@ -14,8 +14,29 @@ interface FeatureInput {
   featureTypes?: FeatureTypeInput[];
 }
 
+const featureTypeSchema = yup.object({
+  title: yup.string().trim().required(),
+  description: yup.string().trim().required(),
+});
+
+const featureSchema = yup.object({
+  sectionName: yup.string().trim().notRequired(),
+  subtitle: yup.string().trim().required(),
+  title: yup.string().trim().required(),
+  image: yup.string().trim().required(),
+  featureTypes: yup.array().of(featureTypeSchema).notRequired(),
+});
+
+const featureDeleteSchema = yup.object({
+  sectionName: yup.string().trim().notRequired(),
+});
+
 export default defineEventHandler(async (event) => {
   const method = event.node.req.method;
+
+  if (method !== 'GET') {
+    requireAdmin(event);
+  }
 
   if (method === 'GET') {
     // "features" sectionName'ine sahip ilk Feature kaydını ilişkili featureTypes verisiyle birlikte getirir.
@@ -26,7 +47,11 @@ export default defineEventHandler(async (event) => {
     return featureData;
   } else if (method === 'POST') {
     // Yeni bir Feature kaydı oluşturur.
-    const body = (await readBody(event)) as FeatureInput;
+    const rawBody = await readBody(event);
+    const validation = await validateOrError<FeatureInput>(featureSchema, rawBody);
+    if (!validation.success) return validation;
+    const body = validation.data;
+
     const featureTypesData = Array.isArray(body.featureTypes)
       ? body.featureTypes.map((type) => ({ title: type.title, description: type.description }))
       : [];
@@ -44,7 +69,11 @@ export default defineEventHandler(async (event) => {
     return newFeature;
   } else if (method === 'PUT') {
     // Belirtilen sectionName'e sahip Feature kaydını günceller.
-    const body = (await readBody(event)) as FeatureInput;
+    const rawBody = await readBody(event);
+    const validation = await validateOrError<FeatureInput>(featureSchema, rawBody);
+    if (!validation.success) return validation;
+    const body = validation.data;
+
     try {
       const updatedFeature = await prisma.feature.update({
         where: { sectionName: body.sectionName || "features" },
@@ -69,7 +98,11 @@ export default defineEventHandler(async (event) => {
     }
   } else if (method === 'DELETE') {
     // Belirtilen sectionName'e sahip Feature kaydını siler.
-    const body = (await readBody(event)) as { sectionName?: string };
+    const rawBody = await readBody(event);
+    const validation = await validateOrError<{ sectionName?: string }>(featureDeleteSchema, rawBody);
+    if (!validation.success) return validation;
+    const body = validation.data;
+
     const deletedFeature = await prisma.feature.delete({
       where: { sectionName: body.sectionName || "features" },
     });

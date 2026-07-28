@@ -74,17 +74,18 @@ useHead({
 </script>
 
 <template>
-  <main
-    class="flex flex-col justify-between min-h-screen bg-gradient-to-br from-stone-50 to-stone-100"
-  >
+  <main class="flex flex-col justify-between">
     <base-hero class="-mt-10" />
-    <base-fact class="mb-20 mt-20" />
-    <base-service class="mb-20" />
-    <base-key />
+    <base-services class="mb-20" />
+    <base-choose class="mb-20 mt-20" />
+    <base-help class="mb-20 mt-20" />
+    <base-faq class="mb-20" />
+    <base-pricing class=" " />
+    <base-testimonial class="mb-20 mt-20" />
+    <!-- <base-key />
     <base-card/>
     <base-feature class="mb-20 mt-20" />
     <base-pricing class=" " />
-    <base-testimonial class="mb-20 mt-20" />
-    <base-faq class="mb-20" />
+    <base-faq class="mb-20" /> -->
   </main>
 </template>

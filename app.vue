@@ -111,153 +111,72 @@ useHead({
   z-index: 999;
 }
 
-.scroll-to-top:hover {
-  background-color: #444;
-  transform: scale(1.1);
-}
-
-:root {
-  --primary: red;
-  --secondary: #51cfed;
-  --light: #f8f2f0;
-  --dark: #060315;
-}
-
-html {
-  font-size: 16px;
-  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-    "Helvetica Neue", Arial, sans-serif;
+* {
+  margin: 0;
+  padding: 0;
+  outline: none;
+  box-sizing: border-box;
 }
 
 body {
-  font-size: 18px;
-  line-height: 1.7;
-  color: #333;
-  background-color: rgb(249 250 251 / var(--tw-bg-opacity, 1));
-}
-
-* {
-  box-sizing: border-box;
   margin: 0;
-  padding: 0;
+  min-height: 100vh;
+  background-attachment: fixed;
+
+  background-color: #ece8e3;
+
+  background-image:
+    /* Üst sağ damar */
+    radial-gradient(
+      ellipse 1200px 180px at 110% 10%,
+      rgba(125,125,125,.18) 0%,
+      rgba(125,125,125,.14) 18%,
+      transparent 42%
+    ),
+
+    /* Alt sağ damar */
+    radial-gradient(
+      ellipse 1400px 220px at 105% 95%,
+      rgba(120,120,120,.18) 0%,
+      rgba(120,120,120,.13) 18%,
+      transparent 45%
+    ),
+
+    /* İnce damarlar */
+    linear-gradient(
+      -18deg,
+      transparent 0%,
+      transparent 18%,
+      rgba(165,165,165,.10) 21%,
+      transparent 24%,
+      transparent 44%,
+      rgba(180,180,180,.08) 47%,
+      transparent 50%,
+      transparent 100%
+    ),
+
+    /* Genel mermer dokusu */
+    linear-gradient(
+      -18deg,
+      #f7f5f2 0%,
+      #efebe6 20%,
+      #ece8e3 40%,
+      #f5f3f0 60%,
+      #ebe7e2 80%,
+      #f8f7f5 100%
+    );
+
+  background-size:
+    cover,
+    cover,
+    100% 100%,
+    cover;
+
+  background-repeat: no-repeat;
 }
 
-h1 {
-  font-size: 2.5rem;
-  font-weight: 700;
-  line-height: 1.3;
-}
-h2 {
-  font-size: 2rem;
-  font-weight: 700;
-  line-height: 1.4;
-}
-h3 {
-  font-size: 1.75rem;
-  font-weight: 600;
-  line-height: 1.4;
-}
-h4 {
-  font-size: 1.5rem;
-  font-weight: 600;
-}
-h5 {
-  font-size: 1.25rem;
-  font-weight: 500;
-}
-h6 {
-  font-size: 1rem;
-  font-weight: 500;
-}
-
-p {
-  font-size: 1.125rem;
-  line-height: 1.7;
-  margin-bottom: 1.5rem;
-}
-strong {
-  font-weight: 700;
-}
-em {
-  font-style: italic;
-}
-
-a {
-  color: red;
-  font-weight: 600;
-  text-decoration: none;
-  transition: color 0.3s ease-in-out;
-}
-
-button {
-  font-size: 1.125rem;
-  font-weight: 600;
-  padding: 12px 24px;
-  border-radius: 8px;
-  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-}
-button:hover {
-  transform: scale(1.05);
-  box-shadow: 0px 4px 15px rgba(145, 24, 2, 0.952);
-}
-
-a:focus-visible,
-button:focus-visible {
-  outline: 3px solid var(--secondary);
-  outline-offset: 2px;
-}
-
-@media (max-width: 768px) {
-  h1 {
-    font-size: 2rem;
-  }
-  h2 {
-    font-size: 1.75rem;
-  }
-  p {
-    font-size: 1rem;
-  }
-  .container {
-    max-width: 90%;
-  }
-}
-
-@media (min-width: 768px) {
-  .mobile-call {
-    display: none;
-  }
-}
-
-@media (max-width: 767px) {
-  .phone {
-    display: none;
-  }
-}
-
-.btn-primary {
-  background-color: red;
-  color: white;
-  padding: 12px 24px;
-  font-size: 1.2rem;
-  border-radius: 8px;
-  transition: transform 0.3s ease-in-out, box-shadow 0.3s;
-}
-.btn-primary:hover {
-  transform: scale(1.1);
-  box-shadow: 0px 4px 20px rgba(150, 24, 1, 0.5);
-}
-.btn-secondary {
-  background-color: white;
-  color: red;
-  padding: 12px 24px;
-  font-size: 1.2rem;
-  border-radius: 8px;
-  transition: transform 0.3s ease-in-out, box-shadow 0.3s;
-}
-.btn-secondary:hover {
-  transform: scale(1.1);
-  box-shadow: 0px 4px 20px rgba(255, 255, 255, 0.5);
-}
+.section-title {
+  color: black; }
 
 blockquote {
   position: relative;
@@ -266,8 +185,6 @@ blockquote {
   font-size: 1.2rem;
   font-style: italic;
   color: #555;
-  background-color: #f9f9f9;
-  border-left: 5px solid #51cfed;
   border-radius: 8px;
 }
 
@@ -279,7 +196,7 @@ blockquote::before,
 blockquote::after {
   content: '"';
   font-size: 2rem;
-  color: #51cfed;
+  color: yellow;
   position: absolute;
 }
 

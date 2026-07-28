@@ -1,239 +1,386 @@
-<script setup>
-import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-
-gsap.registerPlugin(ScrollTrigger);
-
-const faqData = ref({
-  title: "",
-  subtitle: "",
-});
-const faqItems = ref([]);
-const isLoading = ref(true);
-const error = ref(null);
-
-// Initialize faqItemRefs as an empty array
-const faqItemRefs = ref([]);
-const faqContainer = ref(null);
-
-const {
-  data,
-  error: fetchError,
-  pending,
-} = await useAsyncData("faq", () => $fetch("/api/faq"));
-
-if (fetchError.value) {
-  error.value = fetchError.value;
-  isLoading.value = false;
-} else if (data.value) {
-  faqData.value = {
-    title: data.value.title || "Eşya Taşıma Hakkında Merak Edilenler",
-    subtitle: data.value.subtitle || "Sıkça Sorulan Sorular",
-  };
-  faqItems.value = data.value.faqItems.map((item) => ({
-    question: item.question,
-    answer: item.answer,
-    open: item.open || false,
-    timeline: null,
-  }));
-  
-  // Initialize faqItemRefs with null values
-  faqItemRefs.value = Array(faqItems.value.length).fill(null);
-}
-isLoading.value = false;
-
-onMounted(async () => {
-  if (isLoading.value || error.value) return;
-  
-  // Wait for the next tick to ensure refs are populated
-  await nextTick();
-  
-  // Filter out any null refs
-  const validRefs = faqItemRefs.value.filter(ref => ref !== null);
-  
-  if (!validRefs.length) return;
-  
-  gsap.set(validRefs, {
-    opacity: 0,
-    y: 20,
-    scale: 0.98,
-    immediateRender: false,
-  });
-
-  gsap.to(validRefs, {
-    opacity: 1,
-    y: 0,
-    scale: 1,
-    stagger: 0.15,
-    duration: 0.8,
-    ease: "power3.out",
-    scrollTrigger: {
-      trigger: faqContainer.value,
-      start: "top 95%",
-      toggleActions: "play none none reverse",
-    },
-    onStart: () => {
-      gsap.set(validRefs, { visibility: "visible" });
-    },
-  });
-});
-
-const toggle = async (index) => {
-  const item = faqItems.value[index];
-  item.open = !item.open;
-  await nextTick();
-
-  if (!faqItemRefs.value[index]) return;
-  
-  const answerEl = faqItemRefs.value[index].querySelector(
-    '[id^="ycl-faq-answer-"]'
-  );
-
-  if (!answerEl) return;
-
-  if (!item.timeline) {
-    item.timeline = gsap
-      .timeline({ paused: true })
-      .fromTo(
-        answerEl,
-        { height: 0, opacity: 0, y: -10, scale: 0.9 },
-        {
-          height: "auto",
-          opacity: 1,
-          y: 0,
-          scale: 1,
-          duration: 0.6,
-          ease: "elastic.out(1, 0.5)",
-        }
-      )
-      .reverse();
-  }
-
-  item.timeline.reversed(!item.open);
-};
-</script>
-
 <template>
-  <section id="ycl-faq" class="ycl-faq">
-    <div class="max-w-5xl mx-auto px-4 sm:px-6" ref="faqContainer">
-      <div v-if="isLoading" class="text-center text-stone-600">
-        Yükleniyor...
+  <div class="py-12 md:py-16 lg:py-20">
+    <div class="container mx-auto px-4">
+      
+      <!-- Yükleniyor Durumu -->
+      <div v-if="isLoading" class="text-center text-xl text-gray-500 py-10">
+        <p>SSS verileri yükleniyor...</p>
       </div>
-      <div v-else-if="error" class="text-center text-red-600">
-        Veri yüklenirken bir hata oluştu: {{ error.message }}
+      
+      <!-- Hata Durumu -->
+      <div v-else-if="fetchError" class="text-center text-xl text-red-500 py-10">
+        <p>{{ fetchError }}</p>
       </div>
-      <div v-else>
-        <div class="text-center mb-16">
-          <div
-            class="inline-block bg-white/90 backdrop-blur-md px-6 py-2 rounded-full shadow-md border border-stone-200/50 mb-6"
-          >
-            <p
-              class="text-xl uppercase tracking-wider text-stone-800 font-medium my-auto"
-            >
-              {{ faqData.subtitle }}
+      
+      <!-- İçerik -->
+      <div v-else-if="faqData" class="grid grid-cols-1 lg:grid-cols-3 gap-x-8 lg:gap-x-12 gap-y-10 items-start">
+        <!-- Sol Kolon - SSS İçeriği -->
+        <div class="lg:col-span-2">
+          <div class="mb-10 md:mb-12 text-left">
+            <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-800 mb-4">
+              {{ mainTitle }}
+            </h1>
+            <p class="text-gray-600 text-base md:text-lg">
+              {{ description }}
             </p>
           </div>
 
-          <h2 class="text-4xl lg:text-5xl font-semibold text-stone-800 font-serif italic leading-tight">
-            {{ faqData.title }}<br />
-            <span class="font-serif italic text-stone-600"
-              >Merak Edilenler</span
+          <!-- FAQ Listesi -->
+          <div v-if="activeFaqs.length > 0" class="space-y-4">
+            <div 
+              v-for="(item, index) in activeFaqs" 
+              :key="item.id || index" 
+              class="shadow-lg rounded-lg overflow-hidden"
             >
-          </h2>
-        </div>
-
-        <div class="space-y-6">
-          <div
-            v-for="(item, index) in faqItems"
-            :key="index"
-            :ref="(el) => (faqItemRefs[index] = el)"
-            class="group p-6 bg-white rounded-xl border border-stone-200 transition-all duration-300 hover:border-stone-300 shadow-sm hover:shadow-md"
-            style="visibility: hidden"
-          >
-            <button
-              @click="toggle(index)"
-              class="w-full text-left focus:outline-none"
-              :aria-expanded="item.open"
-              :aria-controls="'faq-answer-' + index"
-            >
-              <div class="flex justify-between items-center">
-                <h3 class="text-lg md:text-xl font-medium text-stone-800 pr-4">
+              <button
+                @click="toggleAccordion(index)"
+                class="w-full flex justify-between items-center p-5 sm:p-6 text-left focus:outline-none transition-colors duration-200 ease-in-out"
+                :class="{ 'bg-gray-50': activeIndex === index }"
+                :aria-expanded="activeIndex === index"
+                :aria-controls="`faq-${index}`"
+              >
+                <h3 class="text-md sm:text-lg font-semibold text-gray-800 pr-4">
                   {{ item.question }}
                 </h3>
-                <svg
-                  :class="{ 'transform rotate-180 text-stone-800': item.open }"
-                  class="w-7 h-7 text-stone-600 transition-all duration-300 flex-shrink-0"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.5"
-                  viewBox="0 0 24 24"
-                  aria-hidden="true"
-                  aria-label="ok simgesi"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    d="M19.5 8.25l-7.5 7.5-7.5-7.5"
-                  />
-                </svg>
+                <span class="ml-2 flex-shrink-0">
+                  <svg 
+                    class="w-6 h-6 text-[#3b5d50] transition-transform duration-300" 
+                    :class="{ 'rotate-180': activeIndex === index }" 
+                    fill="none" 
+                    viewBox="0 0 24 24" 
+                    stroke="currentColor"
+                  >
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </span>
+              </button>
+
+              <div
+                :id="`faq-${index}`"
+                class="overflow-hidden transition-all duration-300 px-5 sm:px-6"
+                :class="{
+                  'max-h-0': activeIndex !== index,
+                  'max-h-[500px] pb-5': activeIndex === index
+                }"
+              >
+                <div class="prose prose-lg text-gray-600 pt-2">
+                  <p>{{ item.answer }}</p>
+                  <div v-if="item.details && item.details.length > 0" class="mt-4 pl-4 border-l-2 border-[#3b5d50]">
+                    <ul class="space-y-2">
+                      <li v-for="(detail, i) in item.details" :key="detail.id || i" class="flex items-start">
+                        <svg class="h-5 w-5 text-[#3b5d50] mt-0.5 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span>{{ detail.text }}</span>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
               </div>
-            </button>
-            <div
-              v-show="item.open"
-              :id="'ycl-faq-answer-' + index"
-              class="overflow-hidden"
+            </div>
+          </div>
+
+          <!-- Varsayılan FAQ Listesi (veri yoksa) -->
+          <div v-else class="space-y-4">
+            <div 
+              v-for="(item, index) in defaultFaqs" 
+              :key="index" 
+              class="shadow-lg rounded-lg overflow-hidden"
             >
-              <p class="mt-4 text-stone-800 leading-relaxed md:text-lg">
-                {{ item.answer }}
-              </p>
+              <button
+                @click="toggleAccordion(index)"
+                class="w-full flex justify-between items-center p-5 sm:p-6 text-left focus:outline-none transition-colors duration-200 ease-in-out"
+                :class="{ 'bg-gray-50': activeIndex === index }"
+                :aria-expanded="activeIndex === index"
+                :aria-controls="`faq-${index}`"
+              >
+                <h3 class="text-md sm:text-lg font-semibold text-gray-800 pr-4">
+                  {{ item.question }}
+                </h3>
+                <span class="ml-2 flex-shrink-0">
+                  <svg 
+                    class="w-6 h-6 text-[#3b5d50] transition-transform duration-300" 
+                    :class="{ 'rotate-180': activeIndex === index }" 
+                    fill="none" 
+                    viewBox="0 0 24 24" 
+                    stroke="currentColor"
+                  >
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </span>
+              </button>
+
+              <div
+                :id="`faq-${index}`"
+                class="overflow-hidden transition-all duration-300 px-5 sm:px-6"
+                :class="{
+                  'max-h-0': activeIndex !== index,
+                  'max-h-[500px] pb-5': activeIndex === index
+                }"
+              >
+                <div class="prose prose-lg text-gray-600 pt-2">
+                  <p>{{ item.answer }}</p>
+                  <div v-if="item.details" class="mt-4 pl-4 border-l-2 border-[#3b5d50]">
+                    <ul class="space-y-2">
+                      <li v-for="(detail, i) in item.details" :key="i" class="flex items-start">
+                        <svg class="h-5 w-5 text-[#3b5d50] mt-0.5 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span>{{ detail }}</span>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
+
+        <!-- Sağ Kolon - Görseller -->
+        <div class="lg:col-span-1 ml-10 relative mt-8 md:mt-4 lg:mt-0 lg:pt-8">
+          <!-- Primary Image (Sol üstteki büyük görsel) -->
+          <div 
+            v-if="primaryImage" 
+            class="relative w-full max-w-[280px] sm:max-w-xs md:max-w-sm mx-auto lg:mx-0 lg:ml-[-2rem] xl:ml-[-3rem] z-10"
+          >
+            <img
+              :src="primaryImage.imagePath"
+              :alt="primaryImage.altText"
+              class="rounded-lg shadow-xl w-full h-96 object-cover"
+              loading="lazy"
+            />
+            <!-- Top-right stats card -->
+            <div 
+              v-if="topRightCard"
+              class="absolute -top-10 sm:-right-6 rounded-lg shadow-xl w-[120px] sm:w-[140px] text-center"
+              :style="{ backgroundColor: topRightCard.bgColor, color: topRightCard.textColor }"
+            >
+              <div class="p-3 py-2 sm:p-4 sm:py-3">
+                <p class="text-xl sm:text-2xl font-bold">{{ topRightCard.value }}</p>
+                <p class="text-[10px] sm:text-xs leading-tight">
+                  {{ topRightCard.label }}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Secondary Image (Sağ alttaki görsel) -->
+          <div 
+            v-if="secondaryImage"
+            class="relative w-full max-w-[280px] sm:max-w-xs md:max-w-sm mx-auto lg:mx-0 mt-[-6rem] sm:mt-[-7rem] md:mt-[-8rem] lg:mt-[-7rem] ml-[2rem] sm:ml-[3rem] md:ml-[4rem] lg:ml-[3rem] xl:ml-[4rem] z-20"
+          >
+            <img
+              :src="secondaryImage.imagePath"
+              :alt="secondaryImage.altText"
+              class="rounded-lg shadow-xl w-full h-80 object-cover"
+              loading="lazy"
+            />
+            <!-- Bottom-left stats card -->
+            <div 
+              v-if="bottomLeftCard"
+              class="absolute -bottom-8 sm:-left-6 rounded-lg shadow-xl w-[120px] sm:w-[140px] text-center"
+              :style="{ backgroundColor: bottomLeftCard.bgColor, color: bottomLeftCard.textColor }"
+            >
+              <div class="p-3 py-2 sm:p-4 sm:py-3">
+                <p class="text-xl sm:text-2xl font-bold">{{ bottomLeftCard.value }}</p>
+                <p class="text-[10px] sm:text-xs leading-tight">{{ bottomLeftCard.label }}</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Varsayılan görseller (veri yoksa) -->
+          <template v-if="!primaryImage && !secondaryImage">
+            <div class="relative w-full max-w-[280px] sm:max-w-xs md:max-w-sm mx-auto lg:mx-0 lg:ml-[-2rem] xl:ml-[-3rem] z-10">
+              <img
+                src="~/assets/images/nakliye2.jpg"
+                alt="Profesyonel Nakliye Ekibimiz"
+                class="rounded-lg shadow-xl w-full h-96 object-cover"
+              />
+              <div class="absolute -top-10 sm:-right-6 bg-[#3b5d50] text-white p-3 py-2 sm:p-4 sm:py-3 rounded-lg shadow-xl w-[120px] sm:w-[140px] text-center">
+                <p class="text-xl sm:text-2xl font-bold">150+</p>
+                <p class="text-[10px] sm:text-xs leading-tight">
+                  Profesyonel Ekip
+                </p>
+              </div>
+            </div>
+
+            <div class="relative w-full max-w-[280px] sm:max-w-xs md:max-w-sm mx-auto lg:mx-0 mt-[-6rem] sm:mt-[-7rem] md:mt-[-8rem] lg:mt-[-7rem] ml-[2rem] sm:ml-[3rem] md:ml-[4rem] lg:ml-[3rem] xl:ml-[4rem] z-20">
+              <img
+                src="~/assets/images/nakliye1.jpg"
+                alt="Modern Nakliye Araçlarımız"
+                class="rounded-lg shadow-xl w-full h-80 object-cover"
+              />
+              <div class="absolute -bottom-8 sm:-left-6 bg-[#f9bf29] text-gray-800 p-3 py-2 sm:p-4 sm:py-3 rounded-lg shadow-xl w-[120px] sm:w-[140px] text-center">
+                <p class="text-xl sm:text-2xl font-bold">75+</p>
+                <p class="text-[10px] sm:text-xs leading-tight">Taşıma Aracı</p>
+              </div>
+            </div>
+          </template>
+        </div>
+      </div>
+
+      <!-- Veri Bulunamadı Durumu -->
+      <div v-else class="text-center text-xl text-yellow-600 py-10">
+        <p>FAQ bölümü verisi bulunamadı. Lütfen yönetim panelinden (Admin) bu bölüm için bir kayıt oluşturun.</p>
+      </div>
+
+      <!-- Ek CTA -->
+      <div class="mt-16 text-center">
+        <h3 class="text-xl font-semibold text-gray-800 mb-4">{{ ctaTitle }}</h3>
+        <NuxtLink 
+          :to="ctaButtonLink" 
+          class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-[#3b5d50] hover:bg-[#2d473d] transition-colors"
+        >
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+          </svg>
+          {{ ctaButtonText }}
+        </NuxtLink>
       </div>
     </div>
-  </section>
+  </div>
 </template>
 
+<script setup>
+import { ref, computed } from 'vue'
+
+// State
+const activeIndex = ref(null)
+const faqData = ref(null)
+const isLoading = ref(true)
+const fetchError = ref(null)
+
+// Accordion Toggle
+const toggleAccordion = (index) => {
+  activeIndex.value = activeIndex.value === index ? null : index
+}
+
+/**
+ * API'den FAQ Section verilerini çeker
+ */
+const loadFaqSection = async () => {
+  isLoading.value = true
+  fetchError.value = null
+  
+  try {
+    const { data, error } = await useFetch('/api/faq-section')
+    
+    if (error.value) {
+      fetchError.value = 'Veriler yüklenirken bir sorun oluştu.'
+      console.error('Veri çekme hatası:', error.value)
+    } else if (data.value && data.value.id) {
+      faqData.value = data.value
+    } else {
+      fetchError.value = data.value?.error || 'FAQ bölümü verisi veritabanında bulunamadı.'
+      faqData.value = null
+    }
+  } catch (err) {
+    fetchError.value = 'Sunucuya erişilemedi.'
+    console.error('Fetch işlemi sırasında beklenmeyen bir hata:', err)
+  } finally {
+    isLoading.value = false
+  }
+}
+
+// Sayfa yüklendiğinde verileri çek
+loadFaqSection()
+
+// Computed properties
+const mainTitle = computed(() => faqData.value?.mainTitle || "Nakliye Sürecinizle İlgili Tüm Sorularınız")
+const description = computed(() => faqData.value?.description || "Evden eve nakliyat sürecinizle ilgili merak ettikleriniz. Profesyonel taşımacılık hizmetlerimiz hakkında en çok sorulan sorular ve detaylı cevapları.")
+const ctaTitle = computed(() => faqData.value?.ctaTitle || "Başka sorunuz mu var?")
+const ctaButtonText = computed(() => faqData.value?.ctaButtonText || "Bize Ulaşın")
+const ctaButtonLink = computed(() => faqData.value?.ctaButtonLink || "/iletisim")
+
+// Sadece aktif FAQ'ları filtrele
+const activeFaqs = computed(() => {
+  if (!faqData.value?.faqs) return []
+  return faqData.value.faqs.filter(faq => faq.isActive)
+})
+
+// Görselleri pozisyona göre filtrele
+const primaryImage = computed(() => {
+  if (!faqData.value?.images) return null
+  return faqData.value.images.find(img => img.position === 'primary')
+})
+
+const secondaryImage = computed(() => {
+  if (!faqData.value?.images) return null
+  return faqData.value.images.find(img => img.position === 'secondary')
+})
+
+// Stats kartlarını pozisyona göre filtrele
+const topRightCard = computed(() => {
+  if (!faqData.value?.statsCards) return null
+  return faqData.value.statsCards.find(card => card.position === 'top-right')
+})
+
+const bottomLeftCard = computed(() => {
+  if (!faqData.value?.statsCards) return null
+  return faqData.value.statsCards.find(card => card.position === 'bottom-left')
+})
+
+// Varsayılan FAQ'lar (veri yoksa gösterilecek)
+const defaultFaqs = ref([
+  {
+    question: "Nakliye öncesi eşyalarımı nasıl hazırlamalıyım?",
+    answer: "Eşyalarınızın güvenli taşınması için ön hazırlık çok önemlidir. Kırılacak eşyalarınızı özel ambalaj malzemeleriyle paketlemenizi, elektronik eşyalarınızın kablolarını sarmanızı ve özel eşyalarınızı ayrı bir yerde tutmanızı öneririz.",
+    details: [
+      "Kırılabilir eşyalar için köpük rulo ve özel karton kutular",
+      "Elektronik cihazların orijinal kutularını saklayın",
+      "Değerli evraklarınızı yanınıza alın",
+      "Buzdolabı ve derin dondurucuyu taşımadan 24 saat önce boşaltın"
+    ]
+  },
+  {
+    question: "Taşıma ücreti nasıl hesaplanır?",
+    answer: "Nakliye ücreti mesafe, eşya hacmi, kat sayısı, asansör varlığı ve özel taşıma gerektiren eşyalar gibi faktörlere göre belirlenir. Ücretsiz keşif hizmetimizle net fiyat alabilirsiniz.",
+    details: [
+      "Şehir içi ve şehirlerarası farklı tarifeler",
+      "50 km'ye kadar ücretsiz keşif",
+      "Sabit fiyat garantisi",
+      "Özel eşyalar için ek ücret yok"
+    ]
+  },
+  {
+    question: "Sigorta kapsamı nedir?",
+    answer: "Tüm taşıma işlemlerimiz %100 sigortalıdır. Eşyalarınızın değerine uygun olarak eksper raporu hazırlanır ve olası hasar durumunda ekspertiz heyeti tarafından değerlendirme yapılır.",
+    details: [
+      "Full kasko sigorta kapsamı",
+      "Eşya değerinin %100'üne kadar teminat",
+      "Hasar durumunda 7 gün içinde tazminat",
+      "Uluslararası standartlarda paketleme garantisi"
+    ]
+  }
+])
+</script>
+
 <style scoped>
-@keyframes fade-in {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+/* Mikro animasyonlar */
+button {
+  transition: color 0.2s ease;
 }
 
-.animate-fade-in {
-  animation: fade-in 1s ease-out;
+button:hover {
+  color: #3b5d50;
 }
 
-.group {
-  transform: translateZ(0);
-  backface-visibility: hidden;
+/* SEO dostu gizli içerik */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
 }
 
-@media (max-width: 640px) {
-  .ycl-faq {
-    padding: 3rem 1rem;
-  }
-  h2 {
-    font-size: 2rem;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .animate-fade-in,
-  .group {
-    animation: none !important;
-    transition: none !important;
-  }
-
-  [style*="visibility: hidden"] {
-    visibility: visible !important;
-    opacity: 1 !important;
-  }
+/* Okunabilirlik için */
+.prose ul {
+  list-style-type: none;
+  padding-left: 0;
 }
 </style>

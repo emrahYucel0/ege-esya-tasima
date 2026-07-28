@@ -1,23 +1,36 @@
-/** @type {import('tailwindcss').Config} */
-export default {
+module.exports = {
   content: [
-    "./components/**/*.{vue,js,ts}",
-    "./layouts/**/*.{vue,js,ts}",
-    "./pages/**/*.{vue,js,ts}",
-    "./content/**/*.{vue,js,ts}",
+    "./components/**/*.{js,vue,ts}",
+    "./layouts/**/*.vue",
+    "./pages/**/*.vue",
     "./plugins/**/*.{js,ts}",
-    "./app.vue"
+    "./app.vue",
+    "./error.vue",
   ],
   theme: {
     extend: {
+      fontFamily: {
+        inter: ['Inter', 'sans-serif'],
+      },
       colors: {
-        primary: 'var(--primary)',
-        secondary: 'var(--secondary)',
-        light: 'var(--light)',
-        dark: 'var(--dark)',
+        primary: {
+          DEFAULT: '#3b5d50',
+          dark: '#314d43',
+        },
+        secondary: {
+          DEFAULT: '#f9bf29',
+          dark: '#f8b810',
+        },
+        dark: {
+          DEFAULT: '#2f2f2f',
+          light: '#6a6a6a',
+        },
+        background: '#eff2f1',
+      },
+      lineHeight: {
+        '28': '28px',
       },
     },
   },
   plugins: [],
-  darkMode: 'class'
 }

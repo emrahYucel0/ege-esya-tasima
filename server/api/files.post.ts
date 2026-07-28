@@ -1,14 +1,15 @@
 // server/api/files.post.ts
-import { PrismaClient } from '@prisma/client'
 import { readMultipartFormData } from 'h3'
 import { randomUUID } from 'node:crypto'
 import fs from 'node:fs/promises'
 import path from 'node:path'
+import prisma from '~/lib/prisma'
 
-const prisma = new PrismaClient()
 const STORAGE_PATH = path.join(process.cwd(), 'server', 'storage', 'images')
 
 export default defineEventHandler(async (event) => {
+  requireAdmin(event)
+
   try {
     // 1. Dosya kontrolü: multipart veriyi oku ve 'file' isimli dosya parçasını bul.
     const parts = await readMultipartFormData(event)
@@ -32,7 +33,7 @@ export default defineEventHandler(async (event) => {
       throw createError({ statusCode: 415, message: 'İzin verilmeyen dosya tipi' })
     }
 
-    const maxSize = 5 * 1024 * 1024 // 5MB
+    const maxSize = 10 * 1024 * 1024 // 5MB
     if ((filePart as FilePart).data.length > maxSize) {
       throw createError({ statusCode: 413, message: 'Dosya boyutu limiti aşıldı' })
     }

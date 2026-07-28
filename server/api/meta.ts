@@ -1,5 +1,5 @@
-import { PrismaClient } from '@prisma/client';
-const prisma = new PrismaClient();
+import * as yup from 'yup';
+import prisma from '~/lib/prisma';
 
 interface MetaInput {
   page: string;
@@ -8,8 +8,23 @@ interface MetaInput {
   sectionName?: string;
 }
 
+const metaSchema = yup.object({
+  page: yup.string().trim().required(),
+  title: yup.string().trim().required(),
+  description: yup.string().trim().notRequired(),
+  sectionName: yup.string().trim().notRequired(),
+});
+
+const metaDeleteSchema = yup.object({
+  page: yup.string().trim().required(),
+});
+
 export default defineEventHandler(async (event) => {
   const method = event.node.req.method;
+
+  if (method !== 'GET') {
+    requireAdmin(event);
+  }
 
   if (method === 'GET') {
     const { page } = getQuery(event);
@@ -26,7 +41,11 @@ export default defineEventHandler(async (event) => {
     }
   } 
   else if (method === 'POST') {
-    const body = (await readBody(event)) as MetaInput;
+    const rawBody = await readBody(event);
+    const validation = await validateOrError<MetaInput>(metaSchema, rawBody);
+    if (!validation.success) return validation;
+    const body = validation.data;
+
     const newMeta = await prisma.meta.create({
       data: {
         sectionName: body.sectionName || "metas",
@@ -38,7 +57,11 @@ export default defineEventHandler(async (event) => {
     return newMeta;
   } 
   else if (method === 'PUT') {
-    const body = (await readBody(event)) as MetaInput;
+    const rawBody = await readBody(event);
+    const validation = await validateOrError<MetaInput>(metaSchema, rawBody);
+    if (!validation.success) return validation;
+    const body = validation.data;
+
     try {
       const updatedMeta = await prisma.meta.update({
         where: { page: body.page },
@@ -55,7 +78,11 @@ export default defineEventHandler(async (event) => {
     }
   } 
   else if (method === 'DELETE') {
-    const body = (await readBody(event)) as { page: string };
+    const rawBody = await readBody(event);
+    const validation = await validateOrError<{ page: string }>(metaDeleteSchema, rawBody);
+    if (!validation.success) return validation;
+    const body = validation.data;
+
     const deletedMeta = await prisma.meta.delete({
       where: { page: body.page },
     });
