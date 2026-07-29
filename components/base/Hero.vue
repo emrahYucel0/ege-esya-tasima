@@ -24,10 +24,10 @@
     <div class="container mx-auto px-4 relative z-10">
       <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center min-h-[600px] lg:min-h-[700px]">
         <!-- Text Content -->
-        <div class="lg:w-5/12 mb-10 lg:mb-0 text-center lg:text-left lg:self-center">
+        <div ref="textRef" class="lg:w-5/12 mb-10 lg:mb-0 text-center lg:text-left lg:self-center">
           <div class="intro-excerpt">
             <h1
-              class="text-white font-bold text-4xl xl:text-[54px] mb-8 leading-tight"
+              class="reveal-item text-white font-bold text-4xl sm:text-5xl xl:text-[54px] mb-6 sm:mb-8 leading-tight"
             >
               {{ heroData.title || "Evden Eve Nakliyat:" }}<br />
               <span class="block">{{
@@ -35,13 +35,13 @@
                 "Hızlı, Güvenilir ve Profesyonel Taşımacılık"
               }}</span>
             </h1>
-            <p class="text-white/90 mb-6 lg:mb-8 text-base lg:text-lg leading-relaxed max-w-2xl mx-auto lg:mx-0 line-clamp-6">
+            <p class="reveal-item text-white/90 mb-6 lg:mb-8 text-base lg:text-lg leading-relaxed max-w-2xl mx-auto lg:mx-0 line-clamp-6">
               {{
                 heroData.description ||
                 "Yeni bir eve taşınmanın heyecanını yaşarken, eşyalarınızın güvenliği ve taşınma sürecinin stresi gözünüzü korkutmasın. Firmamız, İstanbul evden eve nakliyat sektöründeki köklü deneyimiyle, bu zorlu süreci sizler için başından sona kadar kolay ve sorunsuz bir deneyime dönüştürüyor. Alanında uzman ekibimiz ve modern taşıma tekniklerimizle, güvenilir evden eve nakliyat hizmetinin kapılarını aralıyoruz. Sunduğumuz sigortalı nakliyat güvencesi ile tüm eşyalarınızı titizlikle paketliyor, potansiyel hasarlara karşı koruma altına alıyoruz. Yüksek katlarda bile hızlı ve emniyetli çözümler sunan asansörlü nakliyat seçeneğimizle, taşınma işlemini maksimum verimlilikle gerçekleştiriyoruz. Sadece İstanbul içi değil, şehirler arası nakliyat hizmetimizle de Türkiye'nin dört bir yanına güvenle taşınmanızı sağlıyoruz. Şeffaf fiyat politikamız gereği, evden eve nakliyat fiyatları hakkında bilgi almak ve size özel ücretsiz ekspertiz hizmetimizden yararlanmak için bizimle hemen iletişime geçin. Profesyonel, hızlı ve stressiz bir taşınma deneyimi için doğru adrestesiniz."
               }}
             </p>
-            <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+            <div class="reveal-item flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
               <NuxtLink
                 v-if="heroData.primaryLink && heroData.primaryButton"
                 :to="heroData.primaryLink"
@@ -61,7 +61,7 @@
         </div>
 
         <!-- Hero Image -->
-        <div class="lg:w-7/12 relative mt-8 lg:mt-0 lg:self-end">
+        <div ref="imageRef" class="lg:w-7/12 relative mt-8 lg:mt-0 lg:self-end">
           <div class="hero-img-wrap">
             <NuxtImg
               v-if="heroData.image"
@@ -87,6 +87,15 @@
 // Fetch hero data from API
 const { data: heroResponse } = await useFetch("/api/hero");
 const { brandName } = await useSiteSettings();
+
+// Giriş animasyonu: metin bloğu (başlık → açıklama → butonlar) sırayla
+// belirir, görsel sağdan hafifçe kayarak gelir. immediate:true kullanılıyor
+// (ScrollTrigger değil) çünkü Hero sayfa yüklendiğinde zaten görünür — bkz.
+// composables/useScrollReveal.ts'teki immediate açıklaması.
+const textRef = ref(null);
+const imageRef = ref(null);
+useScrollReveal(textRef, { targets: ".reveal-item", y: 30, stagger: 0.15, immediate: true });
+useScrollReveal(imageRef, { x: 60, y: 0, duration: 1, delay: 0.3, immediate: true });
 
 // Set default values if no data exists
 const heroData = ref({
