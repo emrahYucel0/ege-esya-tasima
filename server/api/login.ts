@@ -52,6 +52,7 @@ export default defineEventHandler(async (event) => {
   setCookie(event, 'auth', signAuthPayload({ id: user.id, role: user.role ?? 'user' }, event), {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
     path: '/',
     maxAge: 60 * 60 * 24,
   });
