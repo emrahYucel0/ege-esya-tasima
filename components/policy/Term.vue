@@ -25,7 +25,7 @@
             <h2 class="term-title">Şartların Kabulü</h2>
             <div class="term-description">
               <p>
-                Bu Kullanım Şartları , egeesya.com tarafından sunulan web sitesi, mobil uygulama ve ilgili hizmetlerin ("Hizmet") kullanımını düzenler. Hizmeti kullanarak, bu Şartları ve ek politikalarımızı (Gizlilik Politikası, Çerez Politikası vb.) kabul etmiş sayılırsınız.
+                Bu Kullanım Şartları , evenakliyatevden.com tarafından sunulan web sitesi, mobil uygulama ve ilgili hizmetlerin ("Hizmet") kullanımını düzenler. Hizmeti kullanarak, bu Şartları ve ek politikalarımızı (Gizlilik Politikası, Çerez Politikası vb.) kabul etmiş sayılırsınız.
               </p>
               <ul class="term-list">
                 <li>Şartlar, Hizmet'e erişim sağladığınız anda yürürlüğe girer.</li>
@@ -52,7 +52,7 @@
                 <li>Kullanıcılar, gerçek, doğru ve güncel bilgiler sağlamakla yükümlüdür (ad, soyad, e-posta vb.).</li>
                 <li>Sahte veya yanıltıcı profiller oluşturmak kesinlikle yasaktır.</li>
                 <li>Hesap şifrenizin güvenliğinden ve hesabınız üzerinden yapılan tüm faaliyetlerden siz sorumlusunuz.</li>
-                <li>Hesabınızın yetkisiz kullanımı durumunda derhal <a href="mailto:info@egeesya.com" class="text-primary underline">destek ekibimize</a> bildirimde bulunmalısınız.</li>
+                <li>Hesabınızın yetkisiz kullanımı durumunda derhal <a href="mailto:info@evenakliyatevden.com" class="text-primary underline">destek ekibimize</a> bildirimde bulunmalısınız.</li>
                 <li>18 yaşından küçük kullanıcılar Hizmet'i yalnızca yasal vasi izniyle kullanabilir.</li>
               </ul>
               <ProcessTimeline title="Hesap Oluşturma Süreci" :steps="accountCreationSteps" class="mt-6" />
@@ -95,7 +95,7 @@
               <ul class="term-list">
                 <li>Hizmet içeriğini izinsiz kopyalamak, dağıtmak veya değiştirmek yasaktır.</li>
                 <li>Kullanıcılar, Hizmet'e yükledikleri içeriklerin sahipliğini korur ancak Şirket'e bu içerikleri kullanma, saklama ve görüntüleme için sınırlı, geri alınabilir bir lisans verir.</li>
-                <li>Fikri mülkiyet ihlali iddiaları için <a href="mailto:info@egeesya.com" class="text-primary underline">info@egeesya.com</a> adresine bildirimde bulunabilirsiniz.</li>
+                <li>Fikri mülkiyet ihlali iddiaları için <a href="mailto:info@evenakliyatevden.com" class="text-primary underline">info@evenakliyatevden.com</a> adresine bildirimde bulunabilirsiniz.</li>
               </ul>
             </div>
           </div>
@@ -183,7 +183,7 @@
       <section class="contact-section">
         <h2 class="section-title">İletişim</h2>
         <p class="contact-text">
-          Sorularınız için: <a href="mailto:info@egeesya.com" class="text-primary underline">info@egeesya.com</a>
+          Sorularınız için: <a href="mailto:info@evenakliyatevden.com" class="text-primary underline">info@evenakliyatevden.com</a>
         </p>
       </section>
     </article>

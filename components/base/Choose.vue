@@ -112,7 +112,7 @@ const mainImage = computed(() => whyChooseUsData.value?.mainImage || "")
           <div class="img-wrap relative max-w-sm lg:max-w-full">
             <img
               :src="mainImage"
-              alt="Evenakliye.com neden bizi seçmelisiniz görseli"
+              alt="Neden bizi seçmelisiniz görseli"
               class="img-fluid rounded-2xl w-full h-auto object-cover shadow-xl"
               loading="lazy"
             />

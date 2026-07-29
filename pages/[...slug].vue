@@ -5,6 +5,8 @@ import { useRoute } from "vue-router";
 const route = useRoute();
 const slug = route.params.slug;
 
+const { brandName, siteUrl, ogImage: siteOgImage } = await useSiteSettings();
+
 // Veri çekme işlemleri
 const { data: postData, error: postError } = await useFetch(
   `/api/posts?slug=${slug}`
@@ -233,17 +235,18 @@ const metaData = computed(() => {
     title: title || data.title,
     meta: [
       { name: "description", content: data.excerpt },
-      { name: "author", content: "Ege Eşya" },
+      { name: "author", content: brandName.value },
       { name: "robots", content: "index, follow" },
       { property: "og:title", content: data.title },
       { property: "og:description", content: data.excerpt },
-      { property: "og:image", content: data.image },
+      { property: "og:image", content: data.image || siteOgImage.value },
       { property: "og:type", content: "article" },
+      { property: "og:site_name", content: brandName.value },
     ],
     link: [
       {
         rel: "canonical",
-        href: `https://www.egeesya.com/${data.slug}`,
+        href: `${siteUrl.value}/${data.slug}`,
       },
     ],
   };

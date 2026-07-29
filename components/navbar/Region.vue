@@ -131,25 +131,30 @@ onMounted(() => {
   });
 });
 
+const { siteUrl, brandName } = await useSiteSettings();
+
 useHead({
   link: [
     {
       rel: "canonical",
-      href: `https://egeesya.com/regions?sayfa=${currentPage.value}`,
+      href: () =>
+        currentPage.value > 1
+          ? `${siteUrl.value}/bolgelerimiz?sayfa=${currentPage.value}`
+          : `${siteUrl.value}/bolgelerimiz`,
     },
     {
       rel: "prev",
-      href:
+      href: () =>
         currentPage.value > 1
-          ? `https://egeesya.com/regions?sayfa=${currentPage.value - 1}`
-          : null,
+          ? `${siteUrl.value}/bolgelerimiz?sayfa=${currentPage.value - 1}`
+          : undefined,
     },
     {
       rel: "next",
-      href:
+      href: () =>
         currentPage.value < totalPages.value
-          ? `https://egeesya.com/regions?sayfa=${currentPage.value + 1}`
-          : null,
+          ? `${siteUrl.value}/bolgelerimiz?sayfa=${currentPage.value + 1}`
+          : undefined,
     },
   ],
 });
@@ -165,7 +170,7 @@ useHead({
         <p
           class="text-stone-800 text-lg md:text-xl leading-relaxed max-w-3xl mx-auto"
         >
-          <strong>Ege Eşya Taşıma</strong> olarak sadece Ege Bölgesi değil,
+          <strong>{{ brandName }}</strong> olarak sadece Ege Bölgesi değil,
           Türkiye'nin dört bir köşesine
           <span class="text-stone-700 font-medium"
             >güvenilir nakliye hizmetleri</span
@@ -269,7 +274,7 @@ useHead({
 
       <div class="text-center">
         <p class="text-stone-600 max-w-3xl mx-auto mb-6">
-          <strong>Ege Eşya Taşıma</strong> olarak müşterilerimize
+          <strong>{{ brandName }}</strong> olarak müşterilerimize
           <span class="font-medium text-stone-700">%100 sigortalı</span>,
           <span class="font-medium text-stone-700">profesyonel paketleme</span>
           ve

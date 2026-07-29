@@ -21,10 +21,10 @@
           id="verilerin-islenmesi"
         >
           <p class="mb-4">
-            egeesya.com olarak kişisel verilerinizin güvenliği hususuna azami hassasiyet göstermekteyiz. Kişisel verileriniz, 6698 sayılı Kişisel Verilerin Korunması Kanunu (KVKK)’na uygun olarak işlenmekte ve saklanmaktadır.
+            evenakliyatevden.com olarak kişisel verilerinizin güvenliği hususuna azami hassasiyet göstermekteyiz. Kişisel verileriniz, 6698 sayılı Kişisel Verilerin Korunması Kanunu (KVKK)’na uygun olarak işlenmekte ve saklanmaktadır.
           </p>
           <p>
-            KVKK uyarınca, egeesya.com ile paylaştığınız kişisel veriler, tamamen veya kısmen, otomatik olarak veya herhangi bir veri kayıt sisteminin parçası olmak kaydıyla otomatik olmayan yollarla elde edilerek, kaydedilerek, depolanarak, değiştirilerek, yeniden düzenlenerek; yani veriler üzerinde gerçekleştirilen her türlü işlem “kişisel verilerin işlenmesi” olarak kabul edilmektedir.
+            KVKK uyarınca, evenakliyatevden.com ile paylaştığınız kişisel veriler, tamamen veya kısmen, otomatik olarak veya herhangi bir veri kayıt sisteminin parçası olmak kaydıyla otomatik olmayan yollarla elde edilerek, kaydedilerek, depolanarak, değiştirilerek, yeniden düzenlenerek; yani veriler üzerinde gerçekleştirilen her türlü işlem “kişisel verilerin işlenmesi” olarak kabul edilmektedir.
           </p>
         </PolicySection>
   
@@ -53,10 +53,10 @@
           id="aktarim"
         >
           <p class="mb-4">
-            KVKK kapsamındaki amaçlarla, egeesya.com ile paylaştığınız kişisel verileriniz, ana hissedarlarımız, hissedarlarımız, reklam verenler, yurt içi/yurt dışı iştiraklerimiz; altyapımızı kullanan üye firmalar ve hizmetimizle ilişkili diğer kişi ve kuruluşlarla paylaşılabilir.
+            KVKK kapsamındaki amaçlarla, evenakliyatevden.com ile paylaştığınız kişisel verileriniz, ana hissedarlarımız, hissedarlarımız, reklam verenler, yurt içi/yurt dışı iştiraklerimiz; altyapımızı kullanan üye firmalar ve hizmetimizle ilişkili diğer kişi ve kuruluşlarla paylaşılabilir.
           </p>
           <p>
-            Ayrıca, reklam amaçlı kullanılacak çerezler “egeesya.com Çerez Politikası” kapsamında değerlendirilmekte ve bu gizlilik politikasının bir parçası olarak uygulanmaktadır.
+            Ayrıca, reklam amaçlı kullanılacak çerezler “evenakliyatevden.com Çerez Politikası” kapsamında değerlendirilmekte ve bu gizlilik politikasının bir parçası olarak uygulanmaktadır.
           </p>
         </PolicySection>
   
@@ -68,7 +68,7 @@
         >
           <p class="mb-4">Kişisel verileriniz aşağıdaki yollarla toplanmaktadır:</p>
           <ul class="list-disc pl-6 text-gray-700">
-            <li>egeesya.com internet sitesi ve mobil uygulamalarındaki formlar aracılığıyla (ad, soyad, adres, telefon, iş veya özel e-posta gibi);</li>
+            <li>evenakliyatevden.com internet sitesi ve mobil uygulamalarındaki formlar aracılığıyla (ad, soyad, adres, telefon, iş veya özel e-posta gibi);</li>
             <li>Kullanıcı adı ve şifre ile giriş yapılan sayfalarda, tercihlerin, IP kayıtlarının, çerez verilerinin, gezinme süresi ve detaylarının toplanması;</li>
             <li>Ticari ilişki kurma, iş başvurusu, teklif verme gibi amaçlarla, kartvizit, özgeçmiş, teklif vb. yollarla sağlanan veriler;</li>
             <li>Farklı kanallardan (web siteleri, bloglar, yarışmalar, anketler, oyunlar, kampanyalar, sosyal medya) dolaylı olarak elde edilen veriler.</li>
@@ -82,7 +82,7 @@
           id="kvkk-oncesi"
         >
           <p>
-            egeesya.com, KVKK’nın yürürlük tarihi olan 7 Nisan 2016’dan önce yayım hayatına başlamadığı için bu tarihten önce depolanan herhangi bir kişisel veri bulunmamaktadır.
+            evenakliyatevden.com, KVKK’nın yürürlük tarihi olan 7 Nisan 2016’dan önce yayım hayatına başlamadığı için bu tarihten önce depolanan herhangi bir kişisel veri bulunmamaktadır.
           </p>
         </PolicySection>
   
@@ -101,7 +101,7 @@
             <li>Ürün ve hizmetlerin sunulması ve tanıtılması için işbirliği yapılan/ hizmet alınan iş ortaklarımıza,</li>
             <li>Acil yardım çağrısı halinde konumunuzu tespit edecek yetkili mercilere,</li>
             <li>Düzenleyici ve denetleyici kurumlar, mahkeme ve icra müdürlükleri gibi resmi kuruluşlara,</li>
-            <li>egeesya.com ile ticari ilişki içinde bulunan ve telefon numaranıza sahip tüzel kişilere,</li>
+            <li>evenakliyatevden.com ile ticari ilişki içinde bulunan ve telefon numaranıza sahip tüzel kişilere,</li>
             <li>Gerekli görüldüğü durumlarda diğer üçüncü şahıslara.</li>
           </ul>
         </PolicySection>
@@ -113,7 +113,7 @@
           id="saklama-koruma"
         >
           <p class="mb-4">
-            egeesya.com, kişisel verilerinizin bulunduğu sistem ve veri tabanlarını, KVKK’nın 12. maddesi gereği, yetkisiz erişimleri engellemek, hukuka aykırı işlenmelerin önüne geçmek amacıyla hash, şifreleme, işlem kaydı, erişim yönetimi gibi yazılımsal tedbirlerin yanı sıra fiziksel güvenlik önlemleriyle korumaktadır.
+            evenakliyatevden.com, kişisel verilerinizin bulunduğu sistem ve veri tabanlarını, KVKK’nın 12. maddesi gereği, yetkisiz erişimleri engellemek, hukuka aykırı işlenmelerin önüne geçmek amacıyla hash, şifreleme, işlem kaydı, erişim yönetimi gibi yazılımsal tedbirlerin yanı sıra fiziksel güvenlik önlemleriyle korumaktadır.
           </p>
           <p>
             Kişisel verilerin yasal olmayan yollarla elde edilmesinin tespit edilmesi durumunda, derhal yasal düzenlemelere uygun olarak Kişisel Verileri Koruma Kurulu’na bildirilecektir.
@@ -127,7 +127,7 @@
           id="guncel-dogru"
         >
           <p>
-            KVKK’nun 4. maddesi uyarınca, egeesya.com’un kişisel verilerinizi doğru ve güncel tutma yükümlülüğü bulunmaktadır. Bu kapsamda, üyelerimizin doğru ve güncel verilerini paylaşması veya web sitesi/mobil uygulama üzerinden güncellemesi gerekmektedir.
+            KVKK’nun 4. maddesi uyarınca, evenakliyatevden.com’un kişisel verilerinizi doğru ve güncel tutma yükümlülüğü bulunmaktadır. Bu kapsamda, üyelerimizin doğru ve güncel verilerini paylaşması veya web sitesi/mobil uygulama üzerinden güncellemesi gerekmektedir.
           </p>
         </PolicySection>
   
@@ -160,10 +160,10 @@
           id="iletisim"
         >
           <p class="mb-4">
-            egeesya.com tarafından atanacak Veri Sorumlusu Temsilcisi, yasal altyapı sağlandığında Veri Sorumluları Sicilinde ve bu belgenin bulunduğu internet adresinde ilan edilecektir.
+            evenakliyatevden.com tarafından atanacak Veri Sorumlusu Temsilcisi, yasal altyapı sağlandığında Veri Sorumluları Sicilinde ve bu belgenin bulunduğu internet adresinde ilan edilecektir.
           </p>
           <p class="mb-4">
-            Kişisel veri sahipleri, sorularını, görüşlerini veya taleplerini <a href="mailto:info@egeesya.com" class="text-primary underline">info@egeesya.com</a> adresine yöneltebilirler.
+            Kişisel veri sahipleri, sorularını, görüşlerini veya taleplerini <a href="mailto:info@evenakliyatevden.com" class="text-primary underline">info@evenakliyatevden.com</a> adresine yöneltebilirler.
           </p>
           <p class="mb-4">
             Taleplerinize, gerekçeli olmak ve 30 gün içerisinde yanıt vermek kaydıyla yazılı veya dijital ortamda olumlu/olumsuz bildirim yapılacaktır. İşlemlerin ücretsiz olması esas olmakla birlikte, maliyet gerektiren durumlarda ücret talep etme hakkı saklıdır. Bu ücretler, Kişisel Verilerin Korunması Kurulu’nun belirlediği tarife üzerinden hesaplanır.

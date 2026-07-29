@@ -8,6 +8,8 @@ const { data: quoteResponse, pending } = await useFetch("/api/quote");
 // çalışabilsin diye burada tek noktadan unwrap ediyoruz.
 const quoteData = computed(() => quoteResponse.value?.data ?? null);
 
+const { settings, brandName } = await useSiteSettings();
+
 const formData = ref({
   name: "",
   email: "",
@@ -38,9 +40,9 @@ const onSubmit = async (values, { resetForm }) => {
   
   try {
     const response = await mail.send({
-      from: "admin@egeesya.com",
-      to: "info@egeesya.com",
-      subject: "Ege Eşya Yeni Talep",
+      from: settings.value?.email || "admin@evenakliyatevden.com",
+      to: settings.value?.email || "info@evenakliyatevden.com",
+      subject: `${brandName.value} Yeni Talep`,
       text: `
         İsim: ${values.name}
         E-posta: ${values.email}
@@ -122,11 +124,11 @@ const onSubmit = async (values, { resetForm }) => {
                 </div>
                 <div>
                   <p class="text-sm text-secondary mb-1">E-posta</p>
-                  <a 
-                    :href="`mailto:${quoteData?.subtitle || 'info@egeesya.com'}`" 
+                  <a
+                    :href="`mailto:${quoteData?.subtitle || settings?.email || 'info@evenakliyatevden.com'}`"
                     class="text-lg font-semibold text-white hover:text-secondary transition-colors"
                   >
-                    {{ quoteData?.subtitle || "info@egeesya.com" }}
+                    {{ quoteData?.subtitle || settings?.email || "info@evenakliyatevden.com" }}
                   </a>
                 </div>
               </div>

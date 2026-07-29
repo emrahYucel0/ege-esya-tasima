@@ -57,7 +57,7 @@
               <div class="grid grid-1 absolute w-[66.666%] h-[77.777%]">
                 <img
                   src="~/assets/images/img-grid-1.jpg"
-                  alt="Evenakliye.com profesyonel eşya paketleme görseli"
+                  :alt="`${brandName} profesyonel eşya paketleme görseli`"
                   class="rounded-2xl w-full h-full object-cover shadow-lg"
                 />
               </div>
@@ -67,7 +67,7 @@
               >
                 <img
                   src="~/assets/images/img-grid-2.jpg"
-                  alt="Evenakliye.com ambalaj detayı"
+                  :alt="`${brandName} ambalaj detayı`"
                   class="rounded-2xl w-full h-full object-cover shadow-lg"
                 />
               </div>
@@ -77,7 +77,7 @@
               >
                 <img
                   src="~/assets/images/img-grid-3.jpg"
-                  alt="Evenakliye.com mobilya taşıma süreci"
+                  :alt="`${brandName} mobilya taşıma süreci`"
                   class="rounded-2xl w-full h-full object-cover shadow-lg"
                 />
               </div>
@@ -207,9 +207,11 @@ const loadWeHelpSection = async () => {
 // Sayfa yüklendiğinde verileri çek
 loadWeHelpSection()
 
+const { brandName } = await useSiteSettings()
+
 // Computed property'ler
-const mainTitle = computed(() => weHelpData.value?.mainTitle || "Evenakliye.com: Taşınma Sürecinizi Kolaylaştırıyoruz")
-const description = computed(() => weHelpData.value?.description || "Evenakliye.com olarak biliyoruz ki, taşınma sadece eşyaların bir yerden başka bir yere nakli değil, aynı zamanda yeni bir başlangıçtır. Bu süreci sizin için mümkün olduğunca stressiz, hızlı ve güvenli hale getirmek için buradayız. Modern yöntemlerimiz ve uzman ekibimizle, taşınmanın her adımında yanınızdayız.")
+const mainTitle = computed(() => weHelpData.value?.mainTitle || `${brandName.value}: Taşınma Sürecinizi Kolaylaştırıyoruz`)
+const description = computed(() => weHelpData.value?.description || `${brandName.value} olarak biliyoruz ki, taşınma sadece eşyaların bir yerden başka bir yere nakli değil, aynı zamanda yeni bir başlangıçtır. Bu süreci sizin için mümkün olduğunca stressiz, hızlı ve güvenli hale getirmek için buradayız. Modern yöntemlerimiz ve uzman ekibimizle, taşınmanın her adımında yanınızdayız.`)
 const buttonText = computed(() => weHelpData.value?.buttonText || "Hizmetlerimizi İnceleyin")
 const buttonLink = computed(() => weHelpData.value?.buttonLink || "/hizmetlerimiz")
 

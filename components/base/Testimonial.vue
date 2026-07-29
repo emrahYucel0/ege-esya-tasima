@@ -201,16 +201,9 @@ const handleImageError = (event) => {
   event.target.src = '/images/testimonial-placeholder.svg'
 }
 
-// ------------------------------------
-// SEO META TAG'LERİ
-// ------------------------------------
-
-useSeoMeta({
-  title: computed(() => data.value?.mainTitle ? `${data.value.mainTitle} - Müşteri Yorumları` : 'Müşteri Yorumları - Deneyimler'),
-  description: computed(() => data.value?.subtitle || 'Müşterilerimizin evden eve nakliyat deneyimleri. Profesyonel hizmet anlayışımızın sonuçlarını keşfedin.'),
-  ogTitle: computed(() => data.value?.mainTitle ? `${data.value.mainTitle} - Evenakliye.com` : 'Müşteri Yorumları - Evenakliye.com'),
-  ogDescription: 'Gerçek müşteri deneyimleri ve yorumları. Profesyonel nakliye hizmeti ile ilgili müşterilerimizin görüşleri.',
-})
+// Not: paylaşılan bir bölüm bileşeni olduğu için burada useSeoMeta/useHead
+// çağrılmaz — sayfa meta verisi usePageSeo composable'ı ile sayfa
+// seviyesinde yönetiliyor (bkz. pages/index.vue).
 
 // Yükleme durumu
 const isLoading = computed(() => pending.value && !data.value)

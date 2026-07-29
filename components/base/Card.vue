@@ -6,13 +6,15 @@ const isLoading = ref(true);
 const { data: cardResponse, error } = await useFetch("/api/card", {});
 const data = computed(() => cardResponse.value?.data ?? null);
 
+const { brandName } = await useSiteSettings();
+
 if (!error.value && data.value) {
   cardData.value = {
     title: data.value?.title || "Eşyalarınız Özenle Taşınır",
     subtitle: data.value?.subtitle || "Premium Nakliye Hizmetleri",
     blockquote:
       data.value?.blockquote ||
-      '"Gerçekten profesyonel bir nakliye hizmeti farkını yaşamaya hazır mısınız? Bugün Ege Eşya Taşıma\'ya ulaşarak size özel bir teklif alın ve yeni başlangıcınıza odaklanırken detayları bize bırakın."',
+      `"Gerçekten profesyonel bir nakliye hizmeti farkını yaşamaya hazır mısınız? Bugün ${brandName.value}'ya ulaşarak size özel bir teklif alın ve yeni başlangıcınıza odaklanırken detayları bize bırakın."`,
     image: data.value?.image || "/img/ege-esya-tasima-servisler.jpg",
   };
   const transformedCards = (data.value?.cards || []).map((cardItem) => ({
@@ -72,7 +74,7 @@ onMounted(() => {
         <p
           class="text-stone-800 text-lg leading-relaxed contrast-more:text-stone-900 max-w-6xl mx-auto"
         >
-          Ege Eşya Taşıma olarak, eşyalarınızın sadece eşya olmadığını
+          {{ brandName }} olarak, eşyalarınızın sadece eşya olmadığını
           biliyoruz; onlar sizin anılarınız, yatırımlarınız ve hayatınızın bir
           parçası. Bu yüzden profesyonel ekibimiz, en son lojistik teknolojileri
           ve titiz taşıma teknikleriyle her bir parçanızın yeni adresinize
@@ -160,8 +162,8 @@ onMounted(() => {
             <NuxtImg
               provider="imgix"
               :src="cardData?.image || '/img/ege-esya-tasima-servisler.jpg'"
-              alt="Profesyonel Taşıma Hizmetleri - Ege Eşya Taşıma"
-              title="Ege Eşya Taşıma ile Güvenli ve Hızlı Taşınma"
+              :alt="`Profesyonel Taşıma Hizmetleri - ${brandName}`"
+              :title="`${brandName} ile Güvenli ve Hızlı Taşınma`"
               class="w-full h-64 lg:h-80 rounded-xl shadow-lg"
               format="webp"
               quality="70"

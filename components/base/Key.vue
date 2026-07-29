@@ -20,7 +20,7 @@ const marquees = [
       { text: "Uzun Mesafe Güvenli Taşıma", link: "#ycl-feature" },
       { text: "Sigortalı Nakliye Güvencesi", link: "#ycl-card" },
       { text: "Özel Paketleme Çözümleri", link: "#ycl-service" },
-      { text: "Ege Eşya Taşıma Garantisi", link: "#ycl-hero" },
+      { text: "EveNakliyatEvden Garantisi", link: "#ycl-hero" },
     ],
     reverse: true,
     contentClass: "content-secondary",
