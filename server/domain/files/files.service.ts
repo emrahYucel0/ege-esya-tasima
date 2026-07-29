@@ -3,6 +3,7 @@ import { randomUUID } from 'node:crypto'
 import fs from 'node:fs/promises'
 import fsSync from 'node:fs'
 import path from 'node:path'
+import { fileTypeFromBuffer } from 'file-type'
 import { storedFileRepository } from './stored-file.repository'
 
 export const STORAGE_PATH = path.join(process.cwd(), 'server', 'storage', 'images')
@@ -29,15 +30,21 @@ export interface UploadFilePart {
 }
 
 export async function saveUploadedFile(filePart: UploadFilePart): Promise<{ id: number; url: string }> {
-  if (!ALLOWED_MIME_TYPES.includes(filePart.type)) {
-    throw createError({ statusCode: 415, message: 'İzin verilmeyen dosya tipi' })
-  }
   if (filePart.data.length > MAX_SIZE_BYTES) {
     throw createError({ statusCode: 413, message: 'Dosya boyutu limiti aşıldı' })
   }
 
-  const fileExt = path.extname(filePart.filename)
-  const storedFileName = `${randomUUID()}${fileExt}`
+  // Multipart isteğindeki Content-Type header'ı istemci tarafından serbestçe
+  // beyan edilir (sahtelenebilir); gerçek dosya tipini magic byte
+  // imzasından tespit edip buna göre karar veriyoruz. Uzantı da beyan edilen
+  // dosya adından değil, tespit edilen gerçek tipten türetiliyor — böylece
+  // örn. ".png" uzantılı ama aslında farklı bir dosya diske yazılamıyor.
+  const detected = await fileTypeFromBuffer(filePart.data)
+  if (!detected || !ALLOWED_MIME_TYPES.includes(detected.mime)) {
+    throw createError({ statusCode: 415, message: 'İzin verilmeyen dosya tipi' })
+  }
+
+  const storedFileName = `${randomUUID()}.${detected.ext}`
   const filePath = path.join(STORAGE_PATH, storedFileName)
 
   await fs.mkdir(STORAGE_PATH, { recursive: true })
@@ -46,7 +53,7 @@ export async function saveUploadedFile(filePart: UploadFilePart): Promise<{ id: 
   const fileRecord = await storedFileRepository.create({
     originalName: filePart.filename,
     storedName: storedFileName,
-    mimeType: filePart.type,
+    mimeType: detected.mime,
     size: filePart.data.length,
   })
 
