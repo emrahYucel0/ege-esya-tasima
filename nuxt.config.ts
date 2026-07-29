@@ -143,4 +143,21 @@ export default defineNuxtConfig({
       if ([500, 503].includes(err.statusCode)) return false;
     },
   },
+
+  nitro: {
+    // server/utils/rateLimit.ts brute-force korumasının (login) sayaçlarını
+    // tuttuğu depo. REDIS_URL tanımlıysa Redis'e bağlanır — bu sayede birden
+    // fazla sunucu instance'ı (yatay ölçekleme) aynı sayaçları paylaşır.
+    // Tanımlı değilse (yerel geliştirme, tek instance'lık üretim) Nitro'nun
+    // varsayılan bellek-içi (in-memory) sürücüsüne düşer — hiçbir ek kurulum
+    // gerekmez, önceki davranışla birebir aynıdır.
+    storage: process.env.REDIS_URL
+      ? {
+          "rate-limit": {
+            driver: "redis",
+            url: process.env.REDIS_URL,
+          },
+        }
+      : undefined,
+  },
 });

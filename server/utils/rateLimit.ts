@@ -1,14 +1,15 @@
 // server/utils/rateLimit.ts
-// Basit, bağımlılıksız brute-force koruması. Nitro'nun yerleşik useStorage()
-// (unstorage) katmanını kullanır — ek bir paket gerekmez. Şu an sadece
-// /api/login için kullanılıyor ama anahtar (key) parametreli olduğu için
-// başka bir endpoint'te de (örn. şifre sıfırlama) aynen kullanılabilir.
+// Basit brute-force koruması. Nitro'nun yerleşik useStorage() (unstorage)
+// katmanını kullanır. Şu an sadece /api/login için kullanılıyor ama anahtar
+// (key) parametreli olduğu için başka bir endpoint'te de (örn. şifre
+// sıfırlama) aynen kullanılabilir.
 //
-// Not: varsayılan storage sürücüsü bellek-içi (in-memory) — tek instance'lık
-// bu ölçekteki uygulama için yeterli, ama sunucu yeniden başlatıldığında
-// sayaçlar sıfırlanır ve birden fazla instance'ta (yatay ölçekleme) sayaçlar
-// paylaşılmaz. Üretimde yatay ölçekleme gerekirse nitro.config'te bu storage
-// mount noktasına Redis gibi kalıcı bir sürücü bağlanmalı.
+// Depolama sürücüsü nuxt.config.ts'teki nitro.storage['rate-limit'] mount'una
+// bağlı: REDIS_URL tanımlıysa Redis (yatay ölçeklemede sayaçlar tüm
+// instance'lar arasında paylaşılır), tanımlı değilse bellek-içi (in-memory,
+// tek instance'lık kurulumlar için yeterli, sunucu yeniden başlatıldığında
+// sıfırlanır). Bu dosya hangi sürücünün aktif olduğunu bilmez/bilmesine
+// gerek yok — useStorage() ile şeffaf şekilde çalışır.
 const WINDOW_MS = 15 * 60 * 1000 // 15 dakika
 const MAX_ATTEMPTS = 5
 
