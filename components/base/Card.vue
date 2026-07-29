@@ -28,21 +28,30 @@ if (!error.value && data.value) {
 }
 isLoading.value = false;
 
+let cardObserver = null;
+
 onMounted(() => {
   const observerOptions = { threshold: 0.1 };
-  const observer = new IntersectionObserver((entries) => {
+  cardObserver = new IntersectionObserver((entries) => {
     entries.forEach((entry) => {
       if (entry.isIntersecting) {
         entry.target.classList.add("animate-in");
-        observer.unobserve(entry.target);
+        cardObserver.unobserve(entry.target);
       }
     });
   }, observerOptions);
 
   document.querySelectorAll(".service-card").forEach((card) => {
     card.classList.add("before-animate");
-    observer.observe(card);
+    cardObserver.observe(card);
   });
+});
+
+// Bileşen unmount olduğunda (henüz görünüme girmemiş kartlar varsa)
+// observer'ı da kapatmazsak artık DOM'da olmayan elementleri
+// gözlemlemeye devam eden bir referans bellekte asılı kalır.
+onUnmounted(() => {
+  cardObserver?.disconnect();
 });
 </script>
 

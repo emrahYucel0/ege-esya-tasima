@@ -1,7 +1,7 @@
 <script setup>
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRoute, navigateTo } from '#app'
 
 gsap.registerPlugin(ScrollTrigger);
@@ -12,7 +12,13 @@ const itemsPerPage = 9;
 const pageGroupSize = 10; // 10'ar 10'ar ilerleme için
 
 // API'yi active=true parametresiyle çağırın
-const { data: rawData, error, pending } = useFetch("/api/regions?active=true");
+// Not: "?active=true" server tarafında tanınan bir parametre değildi
+// (gerçek admin/publik ayrımı `?admin=true` ile yapılıyor) — sessizce
+// yok sayılıyordu, public tarafın zaten varsayılan olarak sadece
+// isActive:true bölgeleri döndürmesi tesadüfen doğru sonucu veriyordu.
+// "?light=true" gerçek, sunucuda uygulanan bir parametre: liste
+// görünümünde kullanılmayan ağır `content` alanını sorgudan çıkarır.
+const { data: rawData, error, pending } = useFetch("/api/regions?light=true");
 
 const regions = computed(() => {
   return rawData.value?.success ? rawData.value.data : [];
@@ -116,8 +122,10 @@ watch(searchQuery, () => {
   navigateTo({ query: { sayfa: 1 } });
 });
 
+let revealTween = null;
+
 onMounted(() => {
-  gsap.from(".service-card", {
+  revealTween = gsap.from(".service-card", {
     opacity: 0,
     y: 50,
     duration: 1,
@@ -129,6 +137,13 @@ onMounted(() => {
       toggleActions: "play none none none",
     },
   });
+});
+
+// Tween'e bağlı ScrollTrigger, bileşen unmount olduğunda temizlenmezse
+// artık var olmayan bir DOM elementini dinlemeye devam eder.
+onUnmounted(() => {
+  revealTween?.scrollTrigger?.kill();
+  revealTween?.kill();
 });
 
 const { siteUrl, brandName } = await useSiteSettings();

@@ -8,7 +8,7 @@ const route = useRoute();
 const currentPage = ref(Number(route.query.sayfa) || 1);
 const itemsPerPage = 9;
 
-const { data: rawData, error, pending } = useFetch("/api/posts");
+const { data: rawData, error, pending } = useFetch("/api/posts?light=true");
 
 const posts = computed(() => {
   return rawData.value?.success ? rawData.value.data : [];
@@ -45,8 +45,10 @@ watch(searchQuery, () => {
   navigateTo({ query: { sayfa: 1 } });
 });
 
+let revealTween = null;
+
 onMounted(() => {
-  gsap.from(".service-card", {
+  revealTween = gsap.from(".service-card", {
     opacity: 0,
     y: 50,
     duration: 1,
@@ -58,6 +60,13 @@ onMounted(() => {
       toggleActions: "play none none none",
     },
   });
+});
+
+// Tween'e bağlı ScrollTrigger, bileşen unmount olduğunda temizlenmezse
+// artık var olmayan bir DOM elementini dinlemeye devam eder.
+onUnmounted(() => {
+  revealTween?.scrollTrigger?.kill();
+  revealTween?.kill();
 });
 
 const { siteUrl, brandName } = await useSiteSettings();

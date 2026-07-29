@@ -14,14 +14,14 @@ export interface PostInput {
   image?: string
 }
 
-async function get(slug?: string): Promise<ServiceResult<any>> {
+async function get(slug?: string, light?: boolean): Promise<ServiceResult<any>> {
   try {
     if (slug) {
       const post = await postsRepository.findBySlug(slug)
       if (!post) return fail('Post bulunamadı')
       return ok(post)
     }
-    return ok(await postsRepository.findAll())
+    return ok(await postsRepository.findAll({ light }))
   } catch (error) {
     return fail(getSafeErrorMessage(error))
   }

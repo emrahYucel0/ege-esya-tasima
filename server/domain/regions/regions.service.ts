@@ -28,6 +28,7 @@ export interface RegionGetOptions {
   slug?: string
   cityId?: number
   includeInactive: boolean
+  light?: boolean
 }
 
 async function get(options: RegionGetOptions): Promise<ServiceResult<any>> {
@@ -48,12 +49,12 @@ async function get(options: RegionGetOptions): Promise<ServiceResult<any>> {
       // JSON dizi alanının kökünde doğru şekilde çalışıyor (canlı doğrulandı).
       const whereClause: any = { cities: { array_contains: options.cityId } }
       if (!options.includeInactive) whereClause.isActive = true
-      return ok(await regionsRepository.findMany(whereClause))
+      return ok(await regionsRepository.findMany(whereClause, { light: options.light }))
     }
 
     const whereClause: any = {}
     if (!options.includeInactive) whereClause.isActive = true
-    return ok(await regionsRepository.findMany(whereClause))
+    return ok(await regionsRepository.findMany(whereClause, { light: options.light }))
   } catch (error) {
     return fail(getSafeErrorMessage(error))
   }

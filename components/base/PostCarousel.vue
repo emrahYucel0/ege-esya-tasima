@@ -8,7 +8,7 @@ const {
   data: postData,
   pending: postPending,
   error: postError,
-} = await useFetch("/api/posts");
+} = await useFetch("/api/posts?light=true");
 
 const posts = computed(() =>
   postData.value && postData.value.success ? postData.value.data : []
@@ -17,6 +17,8 @@ const recentPosts = computed(() => [...posts.value].reverse().slice(0,6));
 
 const carouselRef = ref(null);
 const cards = ref([]);
+let infiniteTween = null;
+let scrollTriggerInstance = null;
 
 onMounted(() => {
   cards.value = gsap.utils.toArray(".carousel-card");
@@ -25,7 +27,7 @@ onMounted(() => {
     (acc, card) => acc + card.offsetWidth + 24,
     0
   );
-  gsap.to(carouselRef.value, {
+  infiniteTween = gsap.to(carouselRef.value, {
     x: `-=${totalWidth}`,
     duration: 60,
     repeat: -1,
@@ -35,7 +37,7 @@ onMounted(() => {
     },
   });
 
-  ScrollTrigger.create({
+  scrollTriggerInstance = ScrollTrigger.create({
     trigger: ".carousel-section",
     start: "top center",
     onEnter: () => {
@@ -48,6 +50,15 @@ onMounted(() => {
       });
     },
   });
+});
+
+// Sonsuz tekrarlı (repeat:-1) tween ve ScrollTrigger, bileşen unmount
+// olduğunda (istemci-taraflı sayfa geçişlerinde) durdurulmazsa çalışmaya
+// devam eder — artık var olmayan bir DOM elementine referans tutarak
+// bellek sızıntısına ve gereksiz CPU kullanımına yol açar.
+onUnmounted(() => {
+  infiniteTween?.kill();
+  scrollTriggerInstance?.kill();
 });
 </script>
 

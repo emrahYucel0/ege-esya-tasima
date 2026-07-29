@@ -83,6 +83,9 @@ const getIconPath = (icon) => {
   return icons[icon] || icons.truck;
 };
 
+const marqueeTweens = [];
+const linkClickHandlers = [];
+
 onMounted(() => {
   const revealElements = document.querySelectorAll(".reveal-me");
   gsap.fromTo(
@@ -102,17 +105,19 @@ onMounted(() => {
     const duration = 15 + Math.random() * 5;
 
     gsap.set(inner, { xPercent: isReverse ? -50 : 0 });
-    gsap.to(inner, {
-      xPercent: isReverse ? 0 : -50,
-      duration: duration,
-      ease: "none",
-      repeat: -1,
-      modifiers: { xPercent: gsap.utils.wrap(-50, 0) },
-    });
+    marqueeTweens.push(
+      gsap.to(inner, {
+        xPercent: isReverse ? 0 : -50,
+        duration: duration,
+        ease: "none",
+        repeat: -1,
+        modifiers: { xPercent: gsap.utils.wrap(-50, 0) },
+      })
+    );
   });
 
   document.querySelectorAll(".marquee-item-link").forEach((link) => {
-    link.addEventListener("click", (e) => {
+    const handler = (e) => {
       e.preventDefault();
       const href = link.getAttribute("href");
       const text = link.querySelector(".text").textContent;
@@ -125,8 +130,18 @@ onMounted(() => {
         repeat: 1,
         ease: "power1.inOut",
       });
-    });
+    };
+    link.addEventListener("click", handler);
+    linkClickHandlers.push({ link, handler });
   });
+});
+
+// Sonsuz tekrarlı (repeat:-1) marquee tween'leri ve tıklama listener'ları,
+// bileşen unmount olduğunda temizlenmezse çalışmaya/dinlemeye devam eder —
+// istemci-taraflı sayfa geçişlerinde birikimli bellek sızıntısına yol açar.
+onUnmounted(() => {
+  marqueeTweens.forEach((tween) => tween.kill());
+  linkClickHandlers.forEach(({ link, handler }) => link.removeEventListener("click", handler));
 });
 </script>
 
