@@ -14,11 +14,16 @@
               v-if="getImageByPosition('grid-1')" 
               class="grid grid-1 absolute w-[66.666%] h-[77.777%]"
             >
-              <img
+              <NuxtImg
+                provider="imgix"
                 :src="getImageByPosition('grid-1').imagePath"
                 :alt="getImageByPosition('grid-1').altText"
                 class="rounded-2xl w-full h-full object-cover shadow-lg"
+                format="webp"
+                quality="70"
+                sizes="sm:100vw md:66vw"
                 loading="lazy"
+                decoding="async"
               />
             </div>
 
@@ -27,11 +32,16 @@
               v-if="getImageByPosition('grid-2')"
               class="grid grid-2 absolute top-0 right-0 w-[33.333%] h-[18.518%] pl-5"
             >
-              <img
+              <NuxtImg
+                provider="imgix"
                 :src="getImageByPosition('grid-2').imagePath"
                 :alt="getImageByPosition('grid-2').altText"
                 class="rounded-2xl w-full h-full object-cover shadow-lg"
+                format="webp"
+                quality="70"
+                sizes="sm:100vw md:33vw"
                 loading="lazy"
+                decoding="async"
               />
             </div>
 
@@ -40,41 +50,64 @@
               v-if="getImageByPosition('grid-3')"
               class="grid grid-3 absolute bottom-0 left-[48.148%] w-[59.259%] h-[67.777%] pt-5"
             >
-              <img
+              <NuxtImg
+                provider="imgix"
                 :src="getImageByPosition('grid-3').imagePath"
                 :alt="getImageByPosition('grid-3').altText"
                 class="rounded-2xl w-full h-full object-cover shadow-lg"
+                format="webp"
+                quality="70"
+                sizes="sm:100vw md:59vw"
                 loading="lazy"
+                decoding="async"
               />
             </div>
 
             <!-- Varsayılan görseller (veri yoksa) -->
             <div v-if="imagesList.length === 0">
               <div class="grid grid-1 absolute w-[66.666%] h-[77.777%]">
-                <img
-                  src="~/assets/images/img-grid-1.jpg"
+                <NuxtImg
+                  provider="imgix"
+                  src="/images/img-grid-1.jpg"
                   :alt="`${brandName} profesyonel eşya paketleme görseli`"
                   class="rounded-2xl w-full h-full object-cover shadow-lg"
+                  format="webp"
+                  quality="70"
+                  sizes="sm:100vw md:66vw"
+                  loading="lazy"
+                  decoding="async"
                 />
               </div>
 
               <div
                 class="grid grid-2 absolute top-0 right-0 w-[33.333%] h-[18.518%] pl-5"
               >
-                <img
-                  src="~/assets/images/img-grid-2.jpg"
+                <NuxtImg
+                  provider="imgix"
+                  src="/images/img-grid-2.jpg"
                   :alt="`${brandName} ambalaj detayı`"
                   class="rounded-2xl w-full h-full object-cover shadow-lg"
+                  format="webp"
+                  quality="70"
+                  sizes="sm:100vw md:33vw"
+                  loading="lazy"
+                  decoding="async"
                 />
               </div>
 
               <div
                 class="grid grid-3 absolute bottom-0 left-[48.148%] w-[59.259%] h-[67.777%] pt-5"
               >
-                <img
-                  src="~/assets/images/img-grid-3.jpg"
+                <NuxtImg
+                  provider="imgix"
+                  src="/images/img-grid-3.jpg"
                   :alt="`${brandName} mobilya taşıma süreci`"
                   class="rounded-2xl w-full h-full object-cover shadow-lg"
+                  format="webp"
+                  quality="70"
+                  sizes="sm:100vw md:59vw"
+                  loading="lazy"
+                  decoding="async"
                 />
               </div>
             </div>

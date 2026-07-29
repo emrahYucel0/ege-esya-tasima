@@ -68,11 +68,16 @@ const mainImage = computed(() => whyChooseUsData.value?.mainImage || "")
 
         <div class="lg:w-5/12 flex justify-center lg:justify-end items-center">
           <div class="img-wrap relative max-w-sm lg:max-w-full">
-            <img
-              :src="mainImage"
+            <NuxtImg
+              provider="imgix"
+              :src="mainImage || '/images/nakliye2.jpg'"
               alt="Neden bizi seçmelisiniz görseli"
               class="img-fluid rounded-2xl w-full h-auto object-cover shadow-xl"
+              format="webp"
+              quality="70"
+              sizes="sm:100vw md:100vw lg:40vw"
               loading="lazy"
+              decoding="async"
             />
             <div
               class="hidden lg:block absolute w-64 h-56 bg-[url('/images/dots-yellow.svg')] bg-contain bg-no-repeat -translate-x-[40%] -translate-y-[350%] -z-10 opacity-75"
