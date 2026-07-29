@@ -2,16 +2,11 @@
   <div class="py-12 md:py-16 lg:py-20">
     <div class="container mx-auto px-4">
       
-      <!-- Yükleniyor Durumu -->
-      <div v-if="isLoading" class="text-center text-xl text-gray-500 py-10">
-        <p>SSS verileri yükleniyor...</p>
-      </div>
-      
       <!-- Hata Durumu -->
-      <div v-else-if="fetchError" class="text-center text-xl text-red-500 py-10">
-        <p>{{ fetchError }}</p>
+      <div v-if="fetchError" class="text-center text-xl text-red-500 py-10">
+        <p>Veriler yüklenirken bir sorun oluştu.</p>
       </div>
-      
+
       <!-- İçerik -->
       <div v-else-if="faqData" class="grid grid-cols-1 lg:grid-cols-3 gap-x-8 lg:gap-x-12 gap-y-10 items-start">
         <!-- Sol Kolon - SSS İçeriği -->
@@ -246,45 +241,18 @@ import { ref, computed } from 'vue'
 
 // State
 const activeIndex = ref(null)
-const faqData = ref(null)
-const isLoading = ref(true)
-const fetchError = ref(null)
+
+// `await useFetch` doğrudan burada, setup'ın en üst seviyesinde çağrılıyor
+// (bkz. components/base/Services.vue'daki aynı düzeltmenin gerekçesi — eski
+// "tanımla ve await etmeden çağır" deseni Vue hydration mismatch'ine ve
+// istemci tarafında gereksiz bir ikinci isteğe yol açıyordu).
+const { data: faqResponse, error: fetchError } = await useFetch('/api/faq-section')
+const faqData = computed(() => faqResponse.value?.data ?? null)
 
 // Accordion Toggle
 const toggleAccordion = (index) => {
   activeIndex.value = activeIndex.value === index ? null : index
 }
-
-/**
- * API'den FAQ Section verilerini çeker
- */
-const loadFaqSection = async () => {
-  isLoading.value = true
-  fetchError.value = null
-  
-  try {
-    const { data, error } = await useFetch('/api/faq-section')
-    const record = data.value?.data
-
-    if (error.value) {
-      fetchError.value = 'Veriler yüklenirken bir sorun oluştu.'
-      console.error('Veri çekme hatası:', error.value)
-    } else if (record && record.id) {
-      faqData.value = record
-    } else {
-      fetchError.value = data.value?.error || 'FAQ bölümü verisi veritabanında bulunamadı.'
-      faqData.value = null
-    }
-  } catch (err) {
-    fetchError.value = 'Sunucuya erişilemedi.'
-    console.error('Fetch işlemi sırasında beklenmeyen bir hata:', err)
-  } finally {
-    isLoading.value = false
-  }
-}
-
-// Sayfa yüklendiğinde verileri çek
-loadFaqSection()
 
 // Computed properties
 const mainTitle = computed(() => faqData.value?.mainTitle || "Nakliye Sürecinizle İlgili Tüm Sorularınız")

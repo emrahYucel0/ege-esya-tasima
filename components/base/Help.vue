@@ -2,14 +2,10 @@
   <section class="we-help-section py-16 md:py-20 lg:py-28">
     <div class="container mx-auto px-4">
       
-      <div v-if="isLoading" class="text-center text-xl text-gray-500 py-10">
-        <p>Bölüm verileri yükleniyor...</p>
+      <div v-if="fetchError" class="text-center text-xl text-red-500 py-10">
+        <p>Bölüm verileri yüklenirken bir sorun oluştu.</p>
       </div>
-      
-      <div v-else-if="fetchError" class="text-center text-xl text-red-500 py-10">
-        <p>{{ fetchError }}</p>
-      </div>
-      
+
       <div v-else-if="weHelpData" class="flex flex-col lg:flex-row justify-between gap-12">
         <div class="lg:w-7/12 mb-12 lg:mb-0">
           <div class="imgs-grid relative">
@@ -163,49 +159,20 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { computed } from 'vue'
 
-// API'den gelen veriyi tutacak ref'ler
-const weHelpData = ref(null)
-const featuresList = ref([])
-const imagesList = ref([])
-const isLoading = ref(true)
-const fetchError = ref(null)
-
-/**
- * API'den "We Help Section" verilerini çeker
- */
-const loadWeHelpSection = async () => {
-  isLoading.value = true
-  fetchError.value = null
-  
-  try {
-    const { data, error } = await useFetch('/api/we-help-section')
-    const record = data.value?.data
-
-    if (error.value) {
-      fetchError.value = 'Veriler yüklenirken bir sorun oluştu.'
-      console.error('Veri çekme hatası:', error.value)
-    } else if (record && record.id) {
-      weHelpData.value = record
-      featuresList.value = record.features || []
-      imagesList.value = record.images || []
-    } else {
-      fetchError.value = data.value?.error || 'Bölüm verisi veritabanında bulunamadı.'
-      weHelpData.value = null
-      featuresList.value = []
-      imagesList.value = []
-    }
-  } catch (err) {
-    fetchError.value = 'Sunucuya erişilemedi.'
-    console.error('Fetch işlemi sırasında beklenmeyen bir hata:', err)
-  } finally {
-    isLoading.value = false
-  }
-}
-
-// Sayfa yüklendiğinde verileri çek
-loadWeHelpSection()
+// `await useFetch` doğrudan burada, setup'ın en üst seviyesinde çağrılıyor
+// (bkz. components/base/Services.vue'daki aynı düzeltmenin gerekçesi — eski
+// "tanımla ve await etmeden çağır" deseni Vue hydration mismatch'ine ve
+// istemci tarafında gereksiz bir ikinci isteğe yol açıyordu). Önceden bu
+// dosyada `loadWeHelpSection()` await edilmeden çağrılıp hemen ardından
+// `await useSiteSettings()` geldiği için hata bazen "tesadüfen" (iki
+// isteğin zamanlaması çakıştığı için) gizleniyordu — bu güvenilir bir
+// çözüm değildi, üretimde yavaş bir sorguda tekrar ortaya çıkabilirdi.
+const { data: weHelpResponse, error: fetchError } = await useFetch('/api/we-help-section')
+const weHelpData = computed(() => weHelpResponse.value?.data ?? null)
+const featuresList = computed(() => weHelpData.value?.features || [])
+const imagesList = computed(() => weHelpData.value?.images || [])
 
 const { brandName } = await useSiteSettings()
 
