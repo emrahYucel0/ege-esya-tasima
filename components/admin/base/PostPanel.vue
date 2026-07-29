@@ -11,17 +11,36 @@ import OrderedList from '@tiptap/extension-ordered-list'
 import ListItem from '@tiptap/extension-list-item'
 import Image from '@tiptap/extension-image'
 
-const { form: post, message, items: posts, isSaving, isDeleting, resetForm, selectItem, save, remove } = useListCrud('posts', {
-  id: null,
-  title: '',
-  subtitle: '',
-  shortTitle: '',
-  author: '',
-  slug: '',
-  content: '',
-  excerpt: '',
-  image: '',
-})
+const {
+  form: post,
+  message,
+  items: posts,
+  isSaving,
+  isDeleting,
+  isLoadingItem,
+  page,
+  total,
+  totalPages,
+  goToPage,
+  resetForm,
+  selectItem,
+  save,
+  remove,
+} = useListCrud(
+  'posts',
+  {
+    id: null,
+    title: '',
+    subtitle: '',
+    shortTitle: '',
+    author: '',
+    slug: '',
+    content: '',
+    excerpt: '',
+    image: '',
+  },
+  { paginated: true, pageSize: 12 }
+)
 
 // --- Karakter Dönüşüm Fonksiyonu ---
 // Bu fonksiyon, slug ve resim URL'si oluştururken Türkçe karakterleri dönüştürmek için kullanılır.
@@ -104,8 +123,10 @@ const openAddForm = () => {
 }
 
 // --- Post Seçimi ---
-const selectPost = (slug) => {
-  const selected = selectItem(slug)
+// selectItem artık listeden değil, doğrudan API'den (slug ile) tek kayıt
+// çekiyor (bkz. useListCrud.ts) — bu yüzden async.
+const selectPost = async (slug) => {
+  const selected = await selectItem(slug)
   if (selected) {
     if (editor.value) {
       editor.value.commands.setContent(selected.content)
@@ -160,7 +181,10 @@ const updateImageUrl = (url) => {
   <div class="max-w-7xl mx-auto p-6">
     <!-- Başlık ve Ekleme Butonu -->
     <div class="flex justify-between items-center mb-8">
-      <h1 class="text-2xl font-bold">Post Yönetim Paneli</h1>
+      <h1 class="text-2xl font-bold">
+        Post Yönetim Paneli
+        <span class="text-base font-normal text-gray-500">({{ total }} yazı)</span>
+      </h1>
       <button
         @click="openAddForm"
         class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
@@ -171,26 +195,27 @@ const updateImageUrl = (url) => {
 
     <!-- Post Listesi -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      <div 
-        v-for="p in posts" 
+      <div
+        v-for="p in posts"
         :key="p.id"
         class="bg-white p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow"
       >
-        <img 
-          :src="p.image" 
+        <img
+          :src="p.image"
           :alt="p.title"
           class="w-full h-48 object-cover mb-4 rounded"
         >
         <h3 class="text-xl font-semibold mb-2">{{ p.title }}</h3>
         <p class="text-gray-600 text-sm mb-4">{{ p.excerpt }}</p>
         <div class="flex space-x-2">
-          <button 
+          <button
             @click="selectPost(p.slug)"
-            class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
+            :disabled="isLoadingItem"
+            class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Düzenle
           </button>
-          <button 
+          <button
             @click="selectedSlug = p.slug; showDeleteModal = true"
             class="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700"
           >
@@ -198,6 +223,25 @@ const updateImageUrl = (url) => {
           </button>
         </div>
       </div>
+    </div>
+
+    <!-- Sayfalama -->
+    <div v-if="totalPages > 1" class="flex justify-center items-center gap-4 mt-8">
+      <button
+        @click="goToPage(page - 1)"
+        :disabled="page <= 1"
+        class="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        Önceki
+      </button>
+      <span class="text-gray-600">Sayfa {{ page }} / {{ totalPages }}</span>
+      <button
+        @click="goToPage(page + 1)"
+        :disabled="page >= totalPages"
+        class="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        Sonraki
+      </button>
     </div>
 
     <!-- Düzenleme/Ekleme Modalı -->
