@@ -1,20 +1,21 @@
 // composables/useScrollReveal.ts
 // Ana sayfadaki TÜM bölümlerin ortak scroll-animasyon dili — her component
-// kendi GSAP tween'ini elle yazıp kendi zamanlama/easing değerlerini
-// seçmek yerine, aynı "belirme" hissini (aynı mesafe, aynı hız eğrisi, aynı
-// stagger aralığı) buradan alır. Bu, sayfa boyunca yukarı/aşağı kaydırırken
-// bölümlerin birbirinden kopuk değil, tek bir tasarım sisteminin parçası
-// gibi hissettirmesini sağlar.
+// kendi tetikleme/animasyon mantığını elle yazmak yerine aynı "belirme"
+// hissini (aynı mesafe, aynı hız eğrisi, aynı stagger aralığı) buradan alır.
+//
+// Tetikleyici olarak GSAP ScrollTrigger DEĞİL, IntersectionObserver
+// kullanılıyor: canlı ortamda (Services bölümünde) ScrollTrigger'ın "top 85%"
+// hesaplamasının güvenilir şekilde tetiklenmediği, kartların/butonun kalıcı
+// olarak opacity:0'da takılı kaldığı tespit edildi. IntersectionObserver hem
+// bu projede zaten kanıtlanmış bir desen (bkz. components/base/Card.vue),
+// hem de "element mount anında zaten görünür" durumunu (Hero gibi
+// üstte-katlanmış içerik) ekstra bir moda gerek kalmadan doğru şekilde
+// ele alıyor — gözlemci .observe() çağrıldığı anda mevcut kesişim durumunu
+// bildirir.
 //
 // Temizlik: bu composable'ı çağıran her component, onUnmounted'da
-// ScrollTrigger/tween'in .kill() edildiğinden emin olur (bkz. performans
-// denetiminde bulunan ve düzeltilen GSAP bellek sızıntıları) — kill()
-// çağrısı burada, tek yerde yapılıyor, her component'in kendi tekrar
-// etmesine gerek yok.
+// observer/tween'in kill/disconnect edildiğinden emin olur.
 import { gsap } from 'gsap'
-import { ScrollTrigger } from 'gsap/ScrollTrigger'
-
-gsap.registerPlugin(ScrollTrigger)
 
 export interface ScrollRevealOptions {
   /** Kök element içinde stagger'lanacak alt öğelerin seçicisi (ör. '.reveal-item').
@@ -28,18 +29,13 @@ export interface ScrollRevealOptions {
   stagger?: number
   /** Animasyon süresi (saniye) */
   duration?: number
-  /** GSAP ScrollTrigger start değeri */
-  start?: string
   /** Animasyon başlamadan önceki gecikme (saniye) */
   delay?: number
-  /**
-   * true ise ScrollTrigger hiç kullanılmaz, animasyon mount olur olmaz oynar.
-   * Sayfa yüklendiğinde ZATEN görünür olan içerik (ör. Hero) için kullanılır:
-   * ScrollTrigger'ın "start" mantığı scroll pozisyonuna göre çalışır, element
-   * scroll=0'da zaten "geçilmiş" bir tetik noktasındaysa gsap.from()'un
-   * başlangıç (opacity:0) durumunda takılı kalmasına yol açabiliyor.
-   */
+  /** true ise IntersectionObserver hiç kullanılmaz, animasyon mount olur olmaz
+   *  oynar. Sayfa yüklendiğinde zaten görünür olan içerik (ör. Hero) için. */
   immediate?: boolean
+  /** IntersectionObserver eşiği (0-1) — elementin ne kadarı görünür olunca tetiklensin */
+  threshold?: number
 }
 
 export function useScrollReveal(rootRef: Ref<HTMLElement | null>, options: ScrollRevealOptions = {}) {
@@ -49,18 +45,16 @@ export function useScrollReveal(rootRef: Ref<HTMLElement | null>, options: Scrol
     x = 0,
     stagger = 0.12,
     duration = 0.8,
-    start = 'top 85%',
     delay = 0,
     immediate = false,
+    threshold = 0.15,
   } = options
 
   let tween: gsap.core.Tween | null = null
-  let trigger: ScrollTrigger | null = null
+  let observer: IntersectionObserver | null = null
 
-  onMounted(() => {
+  const play = () => {
     if (!rootRef.value) return
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
-
     const els = targets ? rootRef.value.querySelectorAll(targets) : rootRef.value
     if (targets && (els as NodeListOf<Element>).length === 0) return
 
@@ -72,21 +66,32 @@ export function useScrollReveal(rootRef: Ref<HTMLElement | null>, options: Scrol
       delay,
       stagger: targets ? stagger : 0,
       ease: 'power2.out',
-      ...(immediate
-        ? {}
-        : {
-            scrollTrigger: {
-              trigger: rootRef.value,
-              start,
-              toggleActions: 'play none none none',
-            },
-          }),
     })
-    trigger = tween.scrollTrigger ?? null
+  }
+
+  onMounted(() => {
+    if (!rootRef.value) return
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+
+    if (immediate) {
+      play()
+      return
+    }
+
+    observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          play()
+          observer?.disconnect()
+        }
+      },
+      { threshold, rootMargin: '0px 0px -10% 0px' }
+    )
+    observer.observe(rootRef.value)
   })
 
   onUnmounted(() => {
-    trigger?.kill()
+    observer?.disconnect()
     tween?.kill()
   })
 }
