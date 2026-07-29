@@ -1,6 +1,5 @@
 <script setup>
 import { ref, onMounted } from 'vue'
-import { useFetch } from '#app'
 
 // --- Meta Veri Modeli ---
 const meta = ref({
@@ -15,10 +14,12 @@ const meta = ref({
 const pages = ref(['home', 'about', 'region', 'blog', 'contact'])
 
 // API'den mevcut Meta verisini çekiyoruz
+// $fetch kasıtlı: useFetch aynı sayfa arasında geçiş yapıldığında (fetchMetaData
+// birden çok kez çağrıldığından) URL bazlı cache'ten eski veriyi döndürebiliyordu.
 const fetchMetaData = async (page) => {
-  const { data, error } = await useFetch(`/api/meta?page=${page}`)
-  if (!error.value && data.value && !data.value.error) {
-    meta.value = { ...data.value }
+  const response = await $fetch(`/api/meta?page=${page}`)
+  if (response.success) {
+    meta.value = { ...response.data }
   } else {
     meta.value = {
       id: null,
@@ -51,17 +52,12 @@ const submitForm = async () => {
       method,
       body: meta.value
     })
-    
-    if (method === 'PUT') {
-      if (response.success) {
-        meta.value = response.data
-        alert('Meta verisi başarıyla güncellendi.')
-      } else {
-        alert('Hata: ' + response.error)
-      }
+
+    if (response.success) {
+      meta.value = response.data
+      alert(method === 'POST' ? 'Meta verisi başarıyla oluşturuldu.' : 'Meta verisi başarıyla güncellendi.')
     } else {
-      meta.value = response
-      alert('Meta verisi başarıyla oluşturuldu.')
+      alert('Hata: ' + response.error)
     }
   } catch (err) {
     console.error(err)

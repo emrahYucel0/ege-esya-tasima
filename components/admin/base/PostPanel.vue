@@ -1,6 +1,5 @@
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
-import { useFetch } from '#app'
+import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { Editor, EditorContent } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
 import Heading from '@tiptap/extension-heading'
@@ -12,8 +11,7 @@ import OrderedList from '@tiptap/extension-ordered-list'
 import ListItem from '@tiptap/extension-list-item'
 import Image from '@tiptap/extension-image'
 
-// --- Post Veri Modeli ---
-const post = ref({
+const { form: post, message, items: posts, resetForm, selectItem, save, remove } = useListCrud('posts', {
   id: null,
   title: '',
   subtitle: '',
@@ -22,7 +20,7 @@ const post = ref({
   slug: '',
   content: '',
   excerpt: '',
-  image: ''
+  image: '',
 })
 
 // --- Karakter Dönüşüm Fonksiyonu ---
@@ -41,7 +39,7 @@ const sanitizeText = (text) => {
 
 // --- Slug Oluşturma ---
 const generateSlug = () => {
-  const title = post.value.title
+  const title = post.title
   let slug = sanitizeText(title)
     .toLowerCase()
     .trim()
@@ -49,14 +47,14 @@ const generateSlug = () => {
     .replace(/\s+/g, '-')
     .replace(/-+/g, '-')
 
-  post.value.slug = slug
+  post.slug = slug
 }
 
 // --- TipTap Editor Instance ---
 const editor = ref(null)
 onMounted(() => {
   editor.value = new Editor({
-    content: post.value.content,
+    content: post.content,
     extensions: [
       StarterKit.configure({
         heading: false,
@@ -76,7 +74,7 @@ onMounted(() => {
       }),
     ],
     onUpdate: () => {
-      post.value.content = editor.value.getHTML()
+      post.content = editor.value.getHTML()
     }
   })
 })
@@ -87,22 +85,24 @@ onBeforeUnmount(() => {
   }
 })
 
-// --- API'den Postları Çek ---
-const { data, error } = await useFetch('/api/posts')
-const posts = computed(() => {
-  return data.value && data.value.success ? data.value.data : []
-})
-
 // --- Modal Kontrolleri ---
 const showEditModal = ref(false)
 const showDeleteModal = ref(false)
 const selectedSlug = ref('')
 
+// --- Yeni Post Ekleme Modalını Aç ---
+const openAddForm = () => {
+  resetForm()
+  if (editor.value) {
+    editor.value.commands.clearContent()
+  }
+  showEditModal.value = true
+}
+
 // --- Post Seçimi ---
 const selectPost = (slug) => {
-  const selected = posts.value.find(p => p.slug === slug)
+  const selected = selectItem(slug)
   if (selected) {
-    Object.assign(post.value, selected)
     if (editor.value) {
       editor.value.commands.setContent(selected.content)
     }
@@ -122,65 +122,33 @@ const addImage = () => {
 
 // --- Post Silme ---
 const deletePost = async () => {
-  try {
-    await $fetch(`/api/posts?slug=${selectedSlug.value}`, { method: 'DELETE' })
-    const updated = posts.value.filter(p => p.slug !== selectedSlug.value)
-    data.value.data = updated 
-    showDeleteModal.value = false
-  } catch (error) {
-    console.error('Silme Hatası:', error)
-    alert('Post silinirken hata oluştu: ' + error.message)
+  const result = await remove(selectedSlug.value)
+  showDeleteModal.value = false
+  if (!result.success) {
+    alert('Post silinirken hata oluştu.')
   }
 }
 
-const submitForm = async () => {
-  try {
-    const method = post.value.id ? 'PUT' : 'POST'
-    const response = await $fetch('/api/posts', {
-      method,
-      body: post.value
-    })
-
-    if (!response) {
-      throw new Error('Geçersiz API yanıtı')
-    }
-
-    if (method === 'POST') {
-      data.value.data = [...posts.value, response]
-    } else {
-      data.value.data = posts.value.map(p =>
-        p.id === response.id ? response : p
-      )
-    }
-
-    showEditModal.value = false
-    resetForm()
-  } catch (error) {
-    console.error('Form Gönderim Hatası:', error)
-    alert('İşlem başarısız: ' + error.message)
-  }
-}
-
-const resetForm = () => {
-  post.value = {
-    id: null,
-    title: '',
-    subtitle: '',
-    shortTitle: '',
-    author: '',
-    slug: '',
-    content: '',
-    excerpt: '',
-    image: ''
-  }
+const closeModal = () => {
+  showEditModal.value = false
+  resetForm()
   if (editor.value) {
     editor.value.commands.clearContent()
   }
 }
 
+const submitForm = async () => {
+  const result = await save()
+  if (result.success) {
+    closeModal()
+  } else {
+    alert('İşlem başarısız: ' + (result.error || 'Bilinmeyen hata'))
+  }
+}
+
 // --- FileUploader'dan Gelen Event'i İşle ---
 const updateImageUrl = (url) => {
-  post.value.image = url
+  post.image = url
 }
 </script>
 
@@ -189,8 +157,8 @@ const updateImageUrl = (url) => {
     <!-- Başlık ve Ekleme Butonu -->
     <div class="flex justify-between items-center mb-8">
       <h1 class="text-2xl font-bold">Post Yönetim Paneli</h1>
-      <button 
-        @click="showEditModal = true"
+      <button
+        @click="openAddForm"
         class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
       >
         Yeni Post Ekle
@@ -353,9 +321,9 @@ const updateImageUrl = (url) => {
 
           <!-- Form Butonları -->
           <div class="flex justify-end space-x-3">
-            <button 
+            <button
               type="button"
-              @click="showEditModal = false; resetForm()"
+              @click="closeModal"
               class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
             >
               İptal
