@@ -1,54 +1,17 @@
 <script setup>
-// **Düzeltme 1: computed'ı import etmeliyiz.**
-import { ref, onMounted, computed } from 'vue'
+import { computed } from 'vue'
 
-// API'den gelen veriyi tutacak ref'ler
-const aboutData = ref(null)
-const servicesList = ref([])
-const statsList = ref([])
-const isLoading = ref(true)
-const fetchError = ref(null)
-
-/**
- * API'den "Hakkımızda" verilerini çeker.
- */
-const loadAboutSection = async () => {
-  isLoading.value = true
-  fetchError.value = null
-  
-  try {
-    // API rotasından veriyi çekiyoruz
-    const { data, error } = await useFetch('/api/about-section')
-    const record = data.value?.data
-
-    if (error.value) {
-      fetchError.value = 'Veriler yüklenirken bir sorun oluştu.'
-      console.error('Veri çekme hatası:', error.value)
-    } else if (data.value && data.value.success === false) {
-      // API'den hata mesajı geldiyse
-      fetchError.value = data.value?.error || 'Bölüm verisi veritabanında bulunamadı.'
-      aboutData.value = null
-      servicesList.value = []
-      statsList.value = []
-    } else if (record && (record.id || record.sectionName)) {
-      aboutData.value = record
-      servicesList.value = record.services || []
-      statsList.value = record.stats || []
-    } else {
-      aboutData.value = null
-      servicesList.value = []
-      statsList.value = []
-    }
-  } catch (err) {
-    fetchError.value = 'Sunucuya erişilemedi.'
-    console.error('Fetch işlemi sırasında beklenmeyen bir hata:', err)
-  } finally {
-    isLoading.value = false
-  }
-}
-
-// Nuxt 3'te, verinin daha hızlı gelmesi için doğrudan yükleyelim
-loadAboutSection()
+// `await useFetch` doğrudan burada, setup'ın en üst seviyesinde çağrılıyor
+// (bkz. components/base/Services.vue'daki aynı düzeltmenin gerekçesi — eski
+// "tanımla ve await etmeden çağır" deseni Vue hydration mismatch'ine ve
+// istemci tarafında gereksiz bir ikinci isteğe yol açıyordu).
+const { data: aboutResponse, error: fetchError } = await useFetch('/api/about-section')
+const aboutData = computed(() => {
+  const record = aboutResponse.value?.data
+  return record && (record.id || record.sectionName) ? record : null
+})
+const servicesList = computed(() => aboutData.value?.services || [])
+const statsList = computed(() => aboutData.value?.stats || [])
 
 // Not: paylaşılan bir bölüm bileşeni olduğu için burada useHead çağrılmaz —
 // sayfa meta verisi usePageSeo composable'ı ile pages/hakkimizda.vue
@@ -72,16 +35,11 @@ const historyText3 = computed(() => aboutData.value?.historyText3 || "Bugün yı
   <section class="about-section py-16">
     <div class="container mx-auto px-4">
       
-      <!-- Yükleniyor durumu -->
-      <div v-if="isLoading" class="text-center text-xl text-gray-500 py-10">
-        <p>Hakkımızda verileri yükleniyor...</p>
-      </div>
-      
       <!-- Hata durumu -->
-      <div v-else-if="fetchError" class="text-center text-xl text-red-500 py-10">
-        <p>{{ fetchError }}</p>
+      <div v-if="fetchError" class="text-center text-xl text-red-500 py-10">
+        <p>Veriler yüklenirken bir sorun oluştu.</p>
       </div>
-      
+
       <!-- Veri mevcut durumu -->
       <div v-else>
         <!-- Başlık ve Tanıtım -->
@@ -159,7 +117,7 @@ const historyText3 = computed(() => aboutData.value?.historyText3 || "Bugün yı
         </div>
 
         <!-- Veri bulunamadı durumu -->
-        <div v-if="!aboutData && !isLoading && !fetchError" class="text-center text-xl text-yellow-600 py-10">
+        <div v-if="!aboutData && !fetchError" class="text-center text-xl text-yellow-600 py-10">
           <p>Hakkımızda verisi bulunamadı. Lütfen yönetim panelinden bu bölüm için bir kayıt oluşturun.</p>
         </div>
       </div>

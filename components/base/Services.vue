@@ -1,48 +1,21 @@
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { computed } from 'vue'
 
-// API'den gelen veriyi tutacak ref'ler
-const servicesData = ref(null)
-const servicesList = ref([])
-const statisticsList = ref([])
-const isLoading = ref(true)
-const fetchError = ref(null)
-
-/**
- * API'den "Servisler" verilerini çeker.
- */
-const loadServices = async () => {
-  isLoading.value = true
-  fetchError.value = null
-  
-  try {
-    // API rotasından veriyi çekiyoruz
-    const { data, error } = await useFetch('/api/services')
-    const record = data.value?.data
-
-    if (error.value) {
-      fetchError.value = 'Servis verileri yüklenirken bir sorun oluştu.'
-      console.error('Veri çekme hatası:', error.value)
-    } else if (record && record.id) {
-      servicesData.value = record
-      servicesList.value = record.services || []
-      statisticsList.value = record.statistics || []
-    } else {
-      fetchError.value = data.value?.error || 'Servis verisi veritabanında bulunamadı.'
-      servicesData.value = null
-      servicesList.value = []
-      statisticsList.value = []
-    }
-  } catch (err) {
-    fetchError.value = 'Sunucuya erişilemedi.'
-    console.error('Fetch işlemi sırasında beklenmeyen bir hata:', err)
-  } finally {
-    isLoading.value = false
-  }
-}
-
-// Component mount edildiğinde verileri yükle
-loadServices()
+// `await useFetch` doğrudan burada, setup'ın en üst seviyesinde çağrılıyor.
+// Önceden bu veri, tanımlanıp AWAIT EDİLMEDEN çağrılan (fire-and-forget) bir
+// async fonksiyon içinde çekiliyordu. Bu durumda Vue bileşeni "async" olarak
+// işaretlemiyor: sunucu render'ı Nitro'nun kendi bekleme mekanizması sayesinde
+// veriyle doluyken, istemci hydration'ı `isLoading` henüz true iken senkron
+// başlıyordu — sunucu ile istemcinin ilk render'ı birbirini tutmuyor, Vue
+// "Hydration mismatch" uyarısı basıp sunucunun (doğru) DOM'unu atıyor, sonra
+// istemci tarafında AYNI veri için gereksiz bir ikinci istek daha atılıyordu
+// (kullanıcı kısa süreliğine "yükleniyor" metnini görüyordu). `await` ile
+// çağırmak bileşeni gerçek anlamda async yapıyor; veri her iki tarafta da
+// render'dan önce hazır oluyor.
+const { data: servicesResponse, error: fetchError } = await useFetch('/api/services')
+const servicesData = computed(() => servicesResponse.value?.data ?? null)
+const servicesList = computed(() => servicesData.value?.services || [])
+const statisticsList = computed(() => servicesData.value?.statistics || [])
 
 // Computed properties ile dinamik veriler
 const mainTitle = computed(() => servicesData.value?.mainTitle || "Profesyonel Nakliye Hizmetlerimiz")
@@ -149,14 +122,9 @@ const displayServices = computed(() => {
 
     <div class="container mx-auto px-4 relative z-10">
       
-      <!-- Yükleniyor Durumu -->
-      <div v-if="isLoading" class="text-center text-xl text-gray-500 py-10">
-        <p>Servis verileri yükleniyor...</p>
-      </div>
-      
       <!-- Hata Durumu -->
-      <div v-else-if="fetchError" class="text-center text-xl text-red-500 py-10">
-        <p>{{ fetchError }}</p>
+      <div v-if="fetchError" class="text-center text-xl text-red-500 py-10">
+        <p>Servis verileri yüklenirken bir sorun oluştu.</p>
         <p class="text-sm mt-2">Varsayılan içerik gösteriliyor.</p>
       </div>
 

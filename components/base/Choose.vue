@@ -1,52 +1,14 @@
 <script setup>
-// **Düzeltme 1: computed'ı import etmeliyiz.**
-import { ref, onMounted, computed } from 'vue'
+import { computed } from 'vue'
 
-// API'den gelen veriyi tutacak ref'ler
-const whyChooseUsData = ref(null)
-const featuresList = ref([])
-const isLoading = ref(true)
-const fetchError = ref(null)
-
-/**
- * API'den "Neden Bizi Seçmelisiniz" verilerini çeker.
- * Nuxt 3'te, bu fonskiyonu `onMounted` yerine doğrudan `setup` içinde
- * `await` ile çağırmak, SEO için daha iyi sonuçlar verir (server-side rendering).
- */
-const loadWhyChooseUs = async () => {
-  isLoading.value = true
-  fetchError.value = null
-  
-  try {
-    // API rotasından veriyi çekiyoruz
-    // Nuxt 3'te, bu kullanım sunucu tarafında çalışacaktır (SSR)
-    const { data, error } = await useFetch('/api/why-choose-us')
-    const record = data.value?.data
-
-    if (error.value) {
-      fetchError.value = 'Veriler yüklenirken bir sorun oluştu.'
-      console.error('Veri çekme hatası:', error.value)
-    } else if (record && record.id) { // Başarılı veri ve geçerli ID kontrolü
-      whyChooseUsData.value = record
-      featuresList.value = record.features || []
-    } else {
-      // API'den success:false, error: 'kayıt bulunamadı' gibi bir yanıt gelirse
-      fetchError.value = data.value?.error || 'Bölüm verisi veritabanında bulunamadı.'
-      whyChooseUsData.value = null
-      featuresList.value = []
-    }
-  } catch (err) {
-    fetchError.value = 'Sunucuya erişilemedi.'
-    console.error('Fetch işlemi sırasında beklenmeyen bir hata:', err)
-  } finally {
-    isLoading.value = false
-  }
-}
-
-// **Düzeltme 2: Nuxt 3'te, verinin daha hızlı gelmesi için `onMounted` yerine
-// bu fonksiyonu doğrudan `setup` bloğunda çalıştırıyoruz (üst düzey await'i taklit eder).**
-// Alternatif olarak, `setup` dışında `const { data } = await useFetch(...)` kullanabilirsiniz.
-loadWhyChooseUs()
+// `await useFetch` doğrudan burada, setup'ın en üst seviyesinde çağrılıyor
+// (bkz. components/base/Services.vue'daki aynı düzeltmenin gerekçesi — eski
+// "tanımla ve await etmeden çağır" deseni sunucu/istemci render'larının
+// birbirini tutmamasına, Vue hydration mismatch'ine ve istemci tarafında
+// gereksiz bir ikinci isteğe yol açıyordu).
+const { data: whyChooseUsResponse, error: fetchError } = await useFetch('/api/why-choose-us')
+const whyChooseUsData = computed(() => whyChooseUsResponse.value?.data ?? null)
+const featuresList = computed(() => whyChooseUsData.value?.features || [])
 
 // Veri gelene kadar veya hata durumunda boş kalacak/gösterilecek hesaplanmış alanlar
 const mainTitle = computed(() => whyChooseUsData.value?.mainTitle || "Yükleniyor...")
@@ -60,14 +22,10 @@ const mainImage = computed(() => whyChooseUsData.value?.mainImage || "")
   <section class="why-choose-section py-16 md:py-20 lg:py-28">
     <div class="container mx-auto px-4">
       
-      <div v-if="isLoading" class="text-center text-xl text-gray-500 py-10">
-        <p>Bölüm verileri yükleniyor...</p>
+      <div v-if="fetchError" class="text-center text-xl text-red-500 py-10">
+        <p>Bölüm verileri yüklenirken bir sorun oluştu.</p>
       </div>
-      
-      <div v-else-if="fetchError" class="text-center text-xl text-red-500 py-10">
-        <p>{{ fetchError }}</p>
-      </div>
-      
+
       <div v-else-if="whyChooseUsData" class="flex flex-col lg:flex-row justify-between gap-12">
         <div class="lg:w-6/12 text-center lg:text-left relative">
           <div class="absolute -top-4 -left-4 w-16 h-16 border-l-4 border-t-4 border-[#3b5d50]/30"></div>
