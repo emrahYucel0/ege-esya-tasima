@@ -46,6 +46,7 @@ useHead({
   <main class="flex flex-col justify-between">
     <base-hero class="-mt-10" />
     <base-services class="mb-20" />
+    <base-process class="mb-20" />
     <base-choose class="mb-20 mt-20" />
     <base-help class="mb-20 mt-20" />
     <base-faq class="mb-20" />

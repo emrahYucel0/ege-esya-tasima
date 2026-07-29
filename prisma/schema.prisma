@@ -157,7 +157,7 @@ model Services {
   id               Int       @id @default(autoincrement())
   sectionName      String    @unique @default("services")
   mainTitle        String    // "Profesyonel Nakliye Hizmetlerimiz"
-  description      String?   // "Evden eve nakliyat sürecinizde..." açıklama paragrafı
+  description      String?   @db.Text // "Evden eve nakliyat sürecinizde..." açıklama paragrafı
   buttonText       String?   @default("Tüm Hizmetler")
   buttonLink       String?   @default("/hizmetlerimiz")
   
@@ -173,7 +173,7 @@ model Service {
   imagePath   String   // "~/assets/images/ev-nakliye.png" gibi resim yolu
   title       String   // "Evden Eve Nakliyat"
   subtitle    String?  // "Şehir İçi & Şehirlerarası"
-  description String?  // Daha detaylı açıklama (isteğe bağlı)
+  description String?  @db.Text // Daha detaylı açıklama (isteğe bağlı)
   order       Int      @default(0) // Hizmetlerin sıralaması için
   
   services    Services @relation(fields: [servicesId], references: [id])
@@ -193,14 +193,40 @@ model Statistic {
 }
 
 
+//--------------------- PROCESS SECTION / NASIL ÇALIŞIYORUZ -----------------------
+// Ana sayfaya derinlik katmak için eklendi: taşınma sürecini adım adım anlatan,
+// arama niyetine ("nakliyat süreci nasıl işler" vb.) doğrudan hizmet eden ve
+// müşterinin taşınma öncesi belirsizlik/kaygısını azaltan bir bölüm.
+
+model ProcessSection {
+  id          Int           @id @default(autoincrement())
+  sectionName String        @unique @default("process-section")
+  mainTitle   String        // "Taşınma Sürecimiz Nasıl İşliyor?"
+  description String?       @db.Text // Açıklama paragrafı
+  steps       ProcessStep[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+model ProcessStep {
+  id               Int            @id @default(autoincrement())
+  title            String         // "Ücretsiz Keşif ve Planlama"
+  description      String         @db.Text // Adımın detaylı anlatımı
+  iconPath         String?        // İkon/görsel yolu
+  order            Int            @default(0) // Adım sırası (1,2,3...)
+
+  processSection   ProcessSection @relation(fields: [processSectionId], references: [id], onDelete: Cascade)
+  processSectionId Int
+}
+
 //--------------------- WHY CHOOSE US / NEDEN BİZİ SEÇMELİSİNİZ -----------------------
 
 model WhyChooseUs {
   id               Int      @id @default(autoincrement())
   sectionName      String   @unique @default("why-choose-us")
   mainTitle        String   // "Neden Evenakliye.com'u Tercih Etmelisiniz?"
-  shortDescription String?  // "Evden eve taşınma süreci..." paragrafı
-  closingStatement String?  // "Evenakliye.com ile taşınmanın ayrıcalığını yaşayın!"
+  shortDescription String?  @db.Text // "Evden eve taşınma süreci..." paragrafı
+  closingStatement String?  @db.Text // "Evenakliye.com ile taşınmanın ayrıcalığını yaşayın!"
   mainImage        String?  // Sağ taraftaki büyük resmin (why-choose-us-img.jpg) yolu
   features         WhyChooseUsFeature[]
   createdAt        DateTime @default(now())
@@ -211,7 +237,7 @@ model WhyChooseUsFeature {
   id          Int      @id @default(autoincrement())
   iconPath    String?  // "~/assets/images/shield.svg" gibi ikon yolu
   title       String   // "Sigortalı ve Güvenli Taşıma"
-  description String?  // Özellik açıklaması
+  description String?  @db.Text // Özellik açıklaması
   order       Int      @default(0) // Özelliklerin sıralaması için
   
   whyChooseUs   WhyChooseUs @relation(fields: [whyChooseUsId], references: [id])
@@ -224,7 +250,7 @@ model WeHelpSection {
   id               Int              @id @default(autoincrement())
   sectionName      String           @unique @default("we-help-section")
   mainTitle        String           // "Evenakliye.com: Taşınma Sürecinizi Kolaylaştırıyoruz"
-  description      String?          // Açıklama paragrafı
+  description      String?          @db.Text // Açıklama paragrafı
   buttonText       String?          @default("Hizmetlerimizi İnceleyin")
   buttonLink       String?          @default("/hizmetlerimiz")
   features         WeHelpFeature[]
@@ -261,7 +287,7 @@ model FaqSection {
   id               Int              @id @default(autoincrement())
   sectionName      String           @unique @default("faq-section")
   mainTitle        String           // "Nakliye Sürecinizle İlgili Tüm Sorularınız"
-  description      String?          // "Evden eve nakliyat sürecinizle ilgili merak ettikleriniz..."
+  description      String?          @db.Text // "Evden eve nakliyat sürecinizle ilgili merak ettikleriniz..."
   ctaTitle         String?          @default("Başka sorunuz mu var?")
   ctaButtonText    String?          @default("Bize Ulaşın")
   ctaButtonLink    String?          @default("/iletisim")
@@ -346,7 +372,7 @@ model PricingSection {
   id               Int              @id @default(autoincrement())
   sectionName      String           @unique @default("pricing-section")
   mainTitle        String           // "Şeffaf Nakliyat Fiyatları"
-  description      String?          // Açıklama paragrafı
+  description      String?          @db.Text // Açıklama paragrafı
   pricingPlans     PricingPlan[]
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
@@ -355,7 +381,7 @@ model PricingSection {
 model PricingPlan {
   id               Int              @id @default(autoincrement())
   name             String           // "Ekonomik Taşıma", "Standart Taşıma", "Premium Taşıma"
-  subtitle         String?          // "Temel nakliye hizmeti", "Tam kapsamlı çözüm", "Beyaz eldiven hizmeti"
+  subtitle         String?          @db.Text // "Temel nakliye hizmeti", "Tam kapsamlı çözüm", "Beyaz eldiven hizmeti"
   price            String           // "1.499₺", "2.999₺", "4.499₺"
   priceSuffix      String?          @default("/başlangıç") // Fiyat son eki
   isPopular        Boolean          @default(false) // EN ÇOK TERCİH etiketi için
@@ -430,7 +456,7 @@ model TestimonialSection {
   id               Int             @id @default(autoincrement())
   sectionName      String          @unique @default("testimonials-section")
   mainTitle        String          // "Müşterilerimizin Deneyimleri"
-  subtitle         String?         // "Evden eve nakliyat sürecimiz hakkında müşterilerimizin gerçek yorumları..."
+  subtitle         String?         @db.Text // "Evden eve nakliyat sürecimiz hakkında müşterilerimizin gerçek yorumları..."
   tag              String?         // "Müşteri Yorumları"
   testimonials     Testimonial[]
   showDecorations  Boolean         @default(true) // Dekoratif elementler gösterilsin mi?
@@ -445,7 +471,7 @@ model Testimonial {
   customerName     String          // "Ahmet K.", "Ayşe T.", "Mehmet E."
   customerImage    String?         // "~/assets/images/testimonial.svg" veya müşteri fotoğrafı
   rating           Int             @default(5) // 1-5 arası yıldız sayısı
-  comment          String          // Müşteri yorumu metni
+  comment          String          @db.Text // Müşteri yorumu metni
   date             DateTime        // Yorum tarihi
   location         String?         // "İstanbul", "Ankara'dan İzmir'e", "Ofis Taşıma"
   serviceType      String          // "Evden Eve Taşıma", "Şehirlerarası Nakliye", "Ofis Taşıma"
