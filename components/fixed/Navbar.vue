@@ -299,7 +299,7 @@ const fetchNavbarData = async () => {
       method: "GET",
     });
 
-    navbarData.value = response;
+    navbarData.value = response?.data ?? null;
   } catch (err) {
     error.value = err;
     console.error("Error fetching navbar data:", err);

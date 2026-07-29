@@ -320,7 +320,7 @@ useHead(metaData);
         <!-- Content Section -->
         <div class="p-6 md:p-12 lg:p-16">
           <div
-            v-html="post.content"
+            v-html="sanitizeHtml(post.content)"
             class="prose prose-lg md:prose-xl max-w-none prose-headings:font-bold prose-headings:text-gray-900 prose-p:text-gray-700 prose-a:text-blue-600 hover:prose-a:text-blue-800 prose-a:no-underline hover:prose-a:underline prose-img:rounded-2xl prose-img:shadow-xl prose-blockquote:border-l-4 prose-blockquote:border-blue-500 prose-blockquote:bg-blue-50 prose-blockquote:rounded-r-xl"
           ></div>
         </div>
@@ -428,7 +428,7 @@ useHead(metaData);
         <div class="p-6 md:p-12 lg:p-16">
           <div
             ref="contentRef"
-            v-html="region.content"
+            v-html="sanitizeHtml(region.content)"
             class="prose prose-lg md:prose-xl max-w-none prose-headings:font-bold prose-headings:text-primary prose-p:text-dark prose-a:text-primary hover:prose-a:text-primary-dark prose-a:no-underline hover:prose-a:underline prose-img:rounded-2xl prose-img:shadow-xl prose-blockquote:border-l-4 prose-blockquote:border-secondary prose-blockquote:bg-background prose-blockquote:rounded-r-xl prose-blockquote:py-4"
           ></div>
         </div>

@@ -149,8 +149,8 @@ const { data, error } = await useFetch('/api/footer')
 
 const footerData = ref(null)
 
-if (data.value) {
-  footerData.value = data.value
+if (data.value?.data) {
+  footerData.value = data.value.data
 }
 
 if (error.value) {

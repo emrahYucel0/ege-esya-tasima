@@ -6,10 +6,15 @@ gsap.registerPlugin(ScrollTrigger);
 
 const { data: features } = await useFetch("/api/feature", {
   key: "features-data",
-  transform: (data) => ({
-    ...data,
-    image: `${data.image}?auto=format,compress&w=1000&q=60`,
-  }),
+  // API artık {success,data} zarfı dönüyor; transform içinde tek noktadan unwrap ediyoruz.
+  transform: (response) => {
+    const record = response?.data;
+    if (!record) return null;
+    return {
+      ...record,
+      image: `${record.image}?auto=format,compress&w=1000&q=60`,
+    };
+  },
 });
 
 onMounted(() => {

@@ -264,12 +264,13 @@ const loadFaqSection = async () => {
   
   try {
     const { data, error } = await useFetch('/api/faq-section')
-    
+    const record = data.value?.data
+
     if (error.value) {
       fetchError.value = 'Veriler yüklenirken bir sorun oluştu.'
       console.error('Veri çekme hatası:', error.value)
-    } else if (data.value && data.value.id) {
-      faqData.value = data.value
+    } else if (record && record.id) {
+      faqData.value = record
     } else {
       fetchError.value = data.value?.error || 'FAQ bölümü verisi veritabanında bulunamadı.'
       faqData.value = null
