@@ -60,25 +60,30 @@ onMounted(() => {
   });
 });
 
+const { siteUrl, brandName } = await useSiteSettings();
+
 useHead({
   link: [
     {
       rel: "canonical",
-      href: `https://egeesya.com/posts?sayfa=${currentPage.value}`,
+      href: () =>
+        currentPage.value > 1
+          ? `${siteUrl.value}/blog?sayfa=${currentPage.value}`
+          : `${siteUrl.value}/blog`,
     },
     {
       rel: "prev",
-      href:
+      href: () =>
         currentPage.value > 1
-          ? `https://egeesya.com/posts?sayfa=${currentPage.value - 1}`
-          : null,
+          ? `${siteUrl.value}/blog?sayfa=${currentPage.value - 1}`
+          : undefined,
     },
     {
       rel: "next",
-      href:
+      href: () =>
         currentPage.value < totalPages.value
-          ? `https://egeesya.com/posts?sayfa=${currentPage.value + 1}`
-          : null,
+          ? `${siteUrl.value}/blog?sayfa=${currentPage.value + 1}`
+          : undefined,
     },
   ],
 });
@@ -107,7 +112,7 @@ useHead({
       <p
         class="text-stone-800 text-lg md:text-xl leading-relaxed max-w-3xl mx-auto"
       >
-        <strong>Ege Eşya Taşıma</strong> ekibi olarak tüm sektör deneyimimizi
+        <strong>{{ brandName }}</strong> ekibi olarak tüm sektör deneyimimizi
         paylaştığımız bu köşede,
         <span class="text-stone-600 font-medium"
           >ev taşıma sürecinizi kolaylaştıracak</span
@@ -253,7 +258,7 @@ useHead({
                   </div>
                 </div>
                 <span class="text-sm text-stone-600">{{
-                  post.author || "Ege Eşya Ekibi"
+                  post.author || `${brandName} Ekibi`
                 }}</span>
               </div>
               <NuxtLink

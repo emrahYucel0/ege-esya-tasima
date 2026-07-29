@@ -53,7 +53,7 @@ const removeBlogLink = (index) => form.blogLinks.splice(index, 1)
 
       <div>
         <label for="copyright" class="block font-medium text-gray-700 mb-1">Telif Hakkı Metni</label>
-        <input id="copyright" v-model="form.copyright" type="text" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="© 2026 Evenakliye.com Tüm Hakları Saklıdır." />
+        <input id="copyright" v-model="form.copyright" type="text" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="© 2026 EveNakliyatEvden Tüm Hakları Saklıdır." />
       </div>
 
       <!-- SOSYAL MEDYA LİNKLERİ -->

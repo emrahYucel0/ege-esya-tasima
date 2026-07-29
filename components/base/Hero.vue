@@ -87,6 +87,7 @@
 <script setup>
 // Fetch hero data from API
 const { data: heroResponse } = await useFetch("/api/hero");
+const { brandName } = await useSiteSettings();
 
 // Set default values if no data exists
 const heroData = ref({
@@ -105,7 +106,7 @@ const heroData = ref({
 // Fallback to default values if API returns null
 if (!heroResponse.value?.data) {
   heroData.value = {
-    title: "Evenakliye.com İle",
+    title: `${brandName.value} İle`,
     subtitle: "Güvenli ve Profesyonel Nakliyat",
     description:
       "Evden eve taşınma süreci gözünüzde büyümesin. Eşyalarınızı sigortalı, ambalajlı ve uzman ekibimizle yeni adresinize güvenle taşıyoruz.",

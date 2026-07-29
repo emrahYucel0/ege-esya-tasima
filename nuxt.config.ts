@@ -3,6 +3,13 @@ export default defineNuxtConfig({
   compatibilityDate: "2024-11-01",
   devtools: { enabled: true },
 
+  // usePageSeo/useSiteSettings composable'ları await sonrasında başka
+  // composable'lar (useAsyncData) çağırdığı için Nuxt instance context'inin
+  // await sınırları arasında korunması gerekiyor.
+  experimental: {
+    asyncContext: true,
+  },
+
   modules: [
     "@nuxt/image",
     "@nuxtjs/tailwindcss",
@@ -53,7 +60,6 @@ export default defineNuxtConfig({
   },
 
   sitemap: {
-    hostnames: ["http://egeesya.com", "https://egeesya.com"],
     sources: ["/api/__sitemap__/urls"],
   },
 
@@ -98,15 +104,15 @@ export default defineNuxtConfig({
   },
 
   site: {
-    urls: ["http://egeesya.com", "https://egeesya.com"],
-    name: "Ege Eşya Taşıma",
+    url: "https://evenakliyatevden.com",
+    name: "EveNakliyatEvden",
   },
 
   image: {
     imgix: {
       baseURL: "/",
     },
-    domains: ["egeesya.com", "cdn.egeesya.com"],
+    domains: ["evenakliyatevden.com", "cdn.evenakliyatevden.com"],
     quality: 70,
     format: ["webp"],
     screens: {
@@ -124,17 +130,17 @@ export default defineNuxtConfig({
     authSecret: process.env.AUTH_SECRET || "",
     mail: {
       smtp: {
-        host: process.env.MAIL_HOST || "mail.egeesya.com",
+        host: process.env.MAIL_HOST || "mail.evenakliyatevden.com",
         port: parseInt(process.env.MAIL_PORT || "587", 10),
         secure: process.env.MAIL_SECURE === "true" || false,
         auth: {
-          user: process.env.MAIL_USER || "info@egeesya.com",
+          user: process.env.MAIL_USER || "info@evenakliyatevden.com",
           pass: process.env.MAIL_PASSWORD || "",
         },
       },
       message: {
-        from: process.env.MAIL_FROM || "mail.egeesya.com",
-        to: process.env.MAIL_TO || "info@egeesya.com",
+        from: process.env.MAIL_FROM || "mail.evenakliyatevden.com",
+        to: process.env.MAIL_TO || "info@evenakliyatevden.com",
       },
     },
   },

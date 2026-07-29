@@ -14,15 +14,66 @@ const scrollToTop = () => {
 onMounted(() => window.addEventListener("scroll", handleScroll));
 onUnmounted(() => window.removeEventListener("scroll", handleScroll));
 
+const { settings } = await useSiteSettings();
+
+// wa.me sadece rakam ister; Site Ayarları'na +90 532 ... gibi biçimlendirilmiş
+// girilse bile buradan temizlenip kullanılıyor.
+const whatsAppHref = computed(() => {
+  const raw = settings.value?.whatsAppNumber || "905326454289";
+  const digitsOnly = raw.replace(/\D/g, "");
+  return `https://wa.me/${digitsOnly}?text=Merhaba`;
+});
+
+// Analitik/takip script'leri sadece production'da VE Site Ayarları'nda
+// ilgili ID gerçekten doldurulduğunda enjekte edilir — hem geliştirme
+// trafiğinin analytics verisini kirletmemesi hem de ID girilmediğinde
+// gereksiz üçüncü taraf istek yapılmaması için.
+const isProd = process.env.NODE_ENV === "production";
+const analyticsId = settings.value?.googleAnalyticsId || "";
+const tagManagerId = settings.value?.googleTagManagerId || "";
+const adsenseId = settings.value?.googleAdsenseId || "";
+
+const trackingScripts = [];
+const trackingNoscripts = [];
+
+if (isProd && analyticsId) {
+  trackingScripts.push(
+    { src: `https://www.googletagmanager.com/gtag/js?id=${analyticsId}`, async: true },
+    {
+      innerHTML: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${analyticsId}');`,
+    }
+  );
+}
+
+if (isProd && tagManagerId) {
+  trackingScripts.push({
+    innerHTML: `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','${tagManagerId}');`,
+  });
+  trackingNoscripts.push({
+    tagPosition: "bodyOpen",
+    children: `<iframe src="https://www.googletagmanager.com/ns.html?id=${tagManagerId}" height="0" width="0" style="display:none;visibility:hidden"></iframe>`,
+  });
+}
+
+if (isProd && adsenseId) {
+  trackingScripts.push({
+    src: `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsenseId}`,
+    async: true,
+    crossorigin: "anonymous",
+  });
+}
+
 useHead({
   link: [
     {
       rel: "icon",
       type: "image/png",
       sizes: "32x32",
-      href: "/favicon.ico.png",
+      href: () => settings.value?.favicon || "/favicon.ico.png",
     },
   ],
+  script: trackingScripts,
+  noscript: trackingNoscripts,
 });
 </script>
 
@@ -35,7 +86,7 @@ useHead({
     </NuxtLayout>
 
     <a
-      href="https://wa.me/905326454289?text=Merhaba"
+      :href="whatsAppHref"
       target="_blank"
       class="whatsapp-button"
     >

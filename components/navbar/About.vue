@@ -50,21 +50,9 @@ const loadAboutSection = async () => {
 // Nuxt 3'te, verinin daha hızlı gelmesi için doğrudan yükleyelim
 loadAboutSection()
 
-// SEO için head ayarları
-const seoData = computed(() => ({
-  title: aboutData.value?.seoTitle || 'Hakkımızda | İstanbulun En Güvenilir Nakliyat Şirketi',
-  description: aboutData.value?.seoDescription || '15 yıllık nakliyat deneyimiyle İstanbul ve çevre illerde sigortalı, ekonomik evden eve taşımacılık. Profesyonel ekip, modern araçlar ve %97 müşteri memnuniyeti.'
-}))
-
-useHead({
-  title: seoData.value.title,
-  meta: [
-    { 
-      name: 'description', 
-      content: seoData.value.description 
-    }
-  ]
-})
+// Not: paylaşılan bir bölüm bileşeni olduğu için burada useHead çağrılmaz —
+// sayfa meta verisi usePageSeo composable'ı ile pages/hakkimizda.vue
+// seviyesinde yönetiliyor.
 
 // Veri gelene kadar veya hata durumunda boş kalacak/gösterilecek hesaplanmış alanlar
 const mainTitle = computed(() => aboutData.value?.mainTitle || "Nakliyat Sektörünün Güvenilir Adresi")

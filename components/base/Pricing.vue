@@ -133,13 +133,11 @@ if (error.value) {
   console.error('Fiyatlandırma verileri yüklenirken hata oluştu:', error.value)
 }
 
-// SEO için meta tag'leri
-useSeoMeta({
-  title: 'Şeffaf Nakliyat Fiyatları - %100 Fiyat Garantisi',
-  description: 'Evenakliye.com güvencesiyle şeffaf nakliyat fiyatları. Ekonomik, standart ve premium taşıma paketlerimizle eşyalarınız güvende.',
-  ogTitle: 'Şeffaf Nakliyat Fiyatları - Evenakliye.com',
-  ogDescription: '%100 fiyat garantili ev taşıma paketleri. Profesyonel nakliye hizmeti için hemen teklif alın.',
-})
+// Not: Bu bölüm birden fazla sayfada (ör. ana sayfa) kullanılan paylaşılan
+// bir bileşen olduğu için burada useSeoMeta/useHead ÇAĞRILMAZ — sayfa
+// başlığı/açıklaması sadece kendisini kullanan sayfa tarafından
+// (usePageSeo composable'ı ile) belirlenir. Aksi halde bu bileşenin meta
+// verisi, içinde bulunduğu sayfanın gerçek meta verisini ezer.
 
 // Yükleme durumu
 const isLoading = computed(() => pending.value && !data.value)

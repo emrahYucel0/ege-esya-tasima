@@ -9,6 +9,7 @@ const {
   pending: regionPending,
   error: regionError,
 } = await useFetch("/api/regions");
+const { brandName } = await useSiteSettings();
 const regions = computed(() =>
   regionData.value && regionData.value.success ? regionData.value.data : []
 );
@@ -58,7 +59,7 @@ onMounted(() => {
         Bölgelerimiz
       </h3>
       <p class="text-stone-800 mt-4 max-w-2xl mx-auto">
-        Ege Eşya Taşıma olarak, Türkiye'nin dört bir yanında güvenilir, hızlı ve
+        {{ brandName }} olarak, Türkiye'nin dört bir yanında güvenilir, hızlı ve
         profesyonel nakliye hizmeti sunuyoruz. Şehir içi ve şehirler arası
         taşımacılıkta uzman ekibimizle eşyalarınızı güvenle yeni adresinize
         ulaştırıyoruz.
