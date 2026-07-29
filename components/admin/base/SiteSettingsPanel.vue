@@ -1,5 +1,5 @@
 <script setup>
-const { form, message, showDeleteModal, recordId, save, remove } = useSectionCrud('siteSettings', 'site-settings', {
+const { form, message, showDeleteModal, recordId, isSaving, isDeleting, save, remove } = useSectionCrud('siteSettings', 'site-settings', {
   brandName: '',
   siteName: '',
   siteDescription: '',
@@ -203,10 +203,10 @@ const updateOgImageUrl = (url) => {
       </div>
 
       <div class="flex space-x-4 pt-4 border-t">
-        <button type="submit" class="px-6 py-3 bg-primary text-white rounded-lg hover:bg-green-600 font-semibold">
+        <button type="submit" :disabled="isSaving" :aria-busy="isSaving" class="px-6 py-3 bg-primary text-white rounded-lg hover:bg-green-600 font-semibold disabled:opacity-50 disabled:cursor-not-allowed">
           {{ recordId ? 'Tümünü Güncelle' : 'Oluştur' }}
         </button>
-        <button v-if="recordId" type="button" @click="showDeleteModal = true" class="px-6 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 font-semibold">
+        <button v-if="recordId" type="button" @click="showDeleteModal = true" :disabled="isSaving" class="px-6 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 font-semibold disabled:opacity-50 disabled:cursor-not-allowed">
           Tüm Ayarları Sil
         </button>
       </div>
@@ -214,6 +214,7 @@ const updateOgImageUrl = (url) => {
 
     <AdminModalDynamicDeleteModal
       :show="showDeleteModal"
+      :loading="isDeleting"
       title="Site Ayarlarını Sil"
       message="Tüm site ayarları silinecek. Bu işlem geri alınamaz! Emin misiniz?"
       confirmText="Evet, Sil"

@@ -1,5 +1,5 @@
 <script setup>
-const { form, message, showDeleteModal, recordId, save, remove } = useSectionCrud('navbar', 'navbars', {
+const { form, message, showDeleteModal, recordId, isSaving, isDeleting, save, remove } = useSectionCrud('navbar', 'navbars', {
   logo: '',
   socialLinks: [],
   contacts: [],
@@ -94,10 +94,10 @@ const removeContact = (index) => {
       </div>
 
       <div class="flex space-x-4 mt-4">
-        <button type="submit" class="px-4 py-2 bg-primary text-white rounded">
+        <button type="submit" :disabled="isSaving" :aria-busy="isSaving" class="px-4 py-2 bg-primary text-white rounded disabled:opacity-50 disabled:cursor-not-allowed">
           {{ recordId ? 'Güncelle' : 'Oluştur' }}
         </button>
-        <button v-if="recordId" type="button" @click="showDeleteModal = true" class="px-4 py-2 bg-red-500 text-white rounded">
+        <button v-if="recordId" type="button" @click="showDeleteModal = true" :disabled="isSaving" class="px-4 py-2 bg-red-500 text-white rounded disabled:opacity-50 disabled:cursor-not-allowed">
           Sil
         </button>
       </div>
@@ -108,6 +108,7 @@ const removeContact = (index) => {
 
     <AdminModalDynamicDeleteModal
       :show="showDeleteModal"
+      :loading="isDeleting"
       title="Navbar Kaydını Sil"
       message="Bu navbar kaydını silmek istediğinize emin misiniz?"
       confirmText="Sil"

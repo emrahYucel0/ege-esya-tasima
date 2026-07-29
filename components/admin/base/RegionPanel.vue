@@ -17,7 +17,7 @@ import Image from '@tiptap/extension-image'
 // id 47 yanlışlıkla "Karaman" olarak etiketlenmişti, doğrusu "Mardin"dir;
 // 70 zaten doğru şekilde "Karaman"dı).
 
-const { form: region, message, items: allRegions, resetForm: resetFormBase, selectItem, save, remove, replaceItem } = useListCrud('regions', {
+const { form: region, message, items: allRegions, isSaving, isDeleting, resetForm: resetFormBase, selectItem, save, remove, replaceItem } = useListCrud('regions', {
   id: null,
   title: '',
   subtitle: '',
@@ -1361,11 +1361,13 @@ const updateImageUrl = (url) => {
             >
               İptal
             </button>
-            <button 
+            <button
               type="submit"
-              class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+              :disabled="isSaving"
+              :aria-busy="isSaving"
+              class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {{ region.id ? 'Güncelle' : 'Oluştur' }}
+              {{ isSaving ? 'Kaydediliyor...' : (region.id ? 'Güncelle' : 'Oluştur') }}
             </button>
           </div>
         </form>
@@ -1381,17 +1383,20 @@ const updateImageUrl = (url) => {
         <h3 class="text-lg font-bold mb-4">Bölgeyi Sil</h3>
         <p class="mb-4 text-gray-600">Bu bölgeyi kalıcı olarak silmek istediğinize emin misiniz?</p>
         <div class="flex justify-end space-x-3">
-          <button 
+          <button
             @click="showDeleteModal = false"
-            class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+            :disabled="isDeleting"
+            class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             İptal
           </button>
-          <button 
+          <button
             @click="deleteRegion"
-            class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+            :disabled="isDeleting"
+            :aria-busy="isDeleting"
+            class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Sil
+            {{ isDeleting ? 'Siliniyor...' : 'Sil' }}
           </button>
         </div>
       </div>

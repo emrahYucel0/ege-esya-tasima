@@ -20,6 +20,11 @@ export function useListCrud<T extends Record<string, any>>(
 
   const form = reactive({ ...initialShape }) as T
   const message = ref('')
+  // save()/remove() süren istek boyunca true — panel şablonu bunu Kaydet/Sil
+  // butonlarını devre dışı bırakmak için kullanır. Olmadan, yavaş bir ağda
+  // çift tıklama aynı kaydı iki kez POST/PUT veya DELETE edebiliyordu.
+  const isSaving = ref(false)
+  const isDeleting = ref(false)
 
   const { data } = useFetch(`/api/${apiPath}${listQuery}`)
   const items = computed(() => (data.value && (data.value as any).success ? (data.value as any).data : []))
@@ -50,6 +55,8 @@ export function useListCrud<T extends Record<string, any>>(
   }
 
   const save = async () => {
+    if (isSaving.value) return { success: false }
+    isSaving.value = true
     const method = (form as any)[idField] ? 'PUT' : 'POST'
     try {
       const response: any = await $fetch(`/api/${apiPath}`, { method, body: form })
@@ -63,10 +70,14 @@ export function useListCrud<T extends Record<string, any>>(
     } catch (err) {
       message.value = 'Kaydetme sırasında hata oluştu.'
       return { success: false }
+    } finally {
+      isSaving.value = false
     }
   }
 
   const remove = async (key: string | number) => {
+    if (isDeleting.value) return { success: false }
+    isDeleting.value = true
     try {
       const response: any = await $fetch(`/api/${apiPath}?${keyField}=${encodeURIComponent(String(key))}`, { method: 'DELETE' })
       if (!response?.success) {
@@ -81,8 +92,10 @@ export function useListCrud<T extends Record<string, any>>(
     } catch {
       message.value = 'Silme sırasında hata oluştu.'
       return { success: false }
+    } finally {
+      isDeleting.value = false
     }
   }
 
-  return { form, message, items, resetForm, selectItem, save, remove, replaceItem }
+  return { form, message, items, isSaving, isDeleting, resetForm, selectItem, save, remove, replaceItem }
 }

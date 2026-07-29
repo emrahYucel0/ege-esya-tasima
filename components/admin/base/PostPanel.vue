@@ -11,7 +11,7 @@ import OrderedList from '@tiptap/extension-ordered-list'
 import ListItem from '@tiptap/extension-list-item'
 import Image from '@tiptap/extension-image'
 
-const { form: post, message, items: posts, resetForm, selectItem, save, remove } = useListCrud('posts', {
+const { form: post, message, items: posts, isSaving, isDeleting, resetForm, selectItem, save, remove } = useListCrud('posts', {
   id: null,
   title: '',
   subtitle: '',
@@ -329,11 +329,13 @@ const updateImageUrl = (url) => {
             >
               İptal
             </button>
-            <button 
+            <button
               type="submit"
-              class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+              :disabled="isSaving"
+              :aria-busy="isSaving"
+              class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {{ post.id ? 'Güncelle' : 'Oluştur' }}
+              {{ isSaving ? 'Kaydediliyor...' : (post.id ? 'Güncelle' : 'Oluştur') }}
             </button>
           </div>
         </form>
@@ -349,17 +351,20 @@ const updateImageUrl = (url) => {
         <h3 class="text-lg font-bold mb-4">Postu Sil</h3>
         <p class="mb-4">Bu postu kalıcı olarak silmek istediğinize emin misiniz?</p>
         <div class="flex justify-end space-x-3">
-          <button 
+          <button
             @click="showDeleteModal = false"
-            class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+            :disabled="isDeleting"
+            class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             İptal
           </button>
-          <button 
+          <button
             @click="deletePost"
-            class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+            :disabled="isDeleting"
+            :aria-busy="isDeleting"
+            class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Sil
+            {{ isDeleting ? 'Siliniyor...' : 'Sil' }}
           </button>
         </div>
       </div>

@@ -24,6 +24,11 @@ export function useSectionCrud<T extends Record<string, any>>(apiPath: string, s
   const form = reactive({ ...initialShape }) as T
   const message = ref('')
   const showDeleteModal = ref(false)
+  // save()/remove() süren istek boyunca true — panel şablonu bunu Kaydet/Sil
+  // butonlarını devre dışı bırakmak için kullanır. Olmadan, yavaş bir ağda
+  // çift tıklama aynı kaydı iki kez POST/PUT veya DELETE edebiliyordu.
+  const isSaving = ref(false)
+  const isDeleting = ref(false)
   // Panelin initialShape'inde "id" olsun ya da olmasın, kayıt var mı yok mu
   // burada takip edilir — save()'in POST/PUT karar mekanizması buna bakar.
   const recordId = ref<number | string | null>(null)
@@ -54,6 +59,8 @@ export function useSectionCrud<T extends Record<string, any>>(apiPath: string, s
 
   // Kayıt yoksa (form.id boş) oluşturur, varsa günceller.
   const save = async () => {
+    if (isSaving.value) return { success: false }
+    isSaving.value = true
     const method = recordId.value ? 'PUT' : 'POST'
     try {
       const response: any = await $fetch(`/api/${apiPath}`, {
@@ -70,11 +77,15 @@ export function useSectionCrud<T extends Record<string, any>>(apiPath: string, s
     } catch {
       message.value = 'Kaydetme sırasında hata oluştu.'
       return { success: false }
+    } finally {
+      isSaving.value = false
     }
   }
 
   const remove = async () => {
+    if (isDeleting.value) return
     showDeleteModal.value = false
+    isDeleting.value = true
     try {
       const response: any = await $fetch(`/api/${apiPath}`, {
         method: 'DELETE',
@@ -89,10 +100,12 @@ export function useSectionCrud<T extends Record<string, any>>(apiPath: string, s
       }
     } catch {
       message.value = 'Silme sırasında hata oluştu.'
+    } finally {
+      isDeleting.value = false
     }
   }
 
   onMounted(load)
 
-  return { form, message, showDeleteModal, recordId, load, save, remove }
+  return { form, message, showDeleteModal, recordId, isSaving, isDeleting, load, save, remove }
 }

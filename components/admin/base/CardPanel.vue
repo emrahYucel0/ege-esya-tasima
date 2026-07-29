@@ -1,5 +1,5 @@
 <script setup>
-const { form, message, showDeleteModal, recordId, save, remove } = useSectionCrud('card', 'cards', {
+const { form, message, showDeleteModal, recordId, isSaving, isDeleting, save, remove } = useSectionCrud('card', 'cards', {
   title: "",
   subtitle: "",
   blockquote: "",
@@ -154,15 +154,18 @@ const updateImageUrl = (url) => {
           type="button"
           v-if="recordId"
           @click="showDeleteModal = true"
-          class="px-4 py-2 bg-red-500 text-white rounded"
+          :disabled="isSaving"
+          class="px-4 py-2 bg-red-500 text-white rounded disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Sil
         </button>
         <button
           type="submit"
-          class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          :disabled="isSaving"
+          :aria-busy="isSaving"
+          class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {{ recordId ? 'Güncelle' : 'Oluştur' }}
+          {{ isSaving ? 'Kaydediliyor...' : (recordId ? 'Güncelle' : 'Oluştur') }}
         </button>
       </div>
     </form>
@@ -172,6 +175,7 @@ const updateImageUrl = (url) => {
 
     <AdminModalDynamicDeleteModal
       :show="showDeleteModal"
+      :loading="isDeleting"
       title="Card Kaydını Sil"
       message="Bu Card kaydını silmek istediğinize emin misiniz?"
       confirmText="Sil"

@@ -1,5 +1,5 @@
 <script setup>
-const { form, message, showDeleteModal, save, remove } = useSectionCrud('quote', 'quotes', {
+const { form, message, showDeleteModal, isSaving, isDeleting, save, remove } = useSectionCrud('quote', 'quotes', {
   title: '',
   subtitle: '',
   description: '',
@@ -34,10 +34,20 @@ const { form, message, showDeleteModal, save, remove } = useSectionCrud('quote',
         <input id="phone" v-model="form.phone" type="text" class="w-full p-2 border rounded" />
       </div>
       <div class="flex space-x-4">
-        <button type="submit" class="px-4 py-2 bg-primary text-white rounded">
-          Kaydet
+        <button
+          type="submit"
+          :disabled="isSaving"
+          :aria-busy="isSaving"
+          class="px-4 py-2 bg-primary text-white rounded disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {{ isSaving ? 'Kaydediliyor...' : 'Kaydet' }}
         </button>
-        <button type="button" @click="showDeleteModal = true" class="px-4 py-2 bg-red-500 text-white rounded">
+        <button
+          type="button"
+          @click="showDeleteModal = true"
+          :disabled="isSaving"
+          class="px-4 py-2 bg-red-500 text-white rounded disabled:opacity-50 disabled:cursor-not-allowed"
+        >
           Sil
         </button>
       </div>
@@ -53,6 +63,7 @@ const { form, message, showDeleteModal, save, remove } = useSectionCrud('quote',
       message="Bu QuoteRequest kaydını silmek istediğinize emin misiniz?"
       confirmText="Sil"
       cancelText="İptal"
+      :loading="isDeleting"
       @confirm="remove"
       @cancel="showDeleteModal = false"
     />
