@@ -1,5 +1,5 @@
 // server/domain/posts/posts.service.ts
-import { getErrorMessage } from '~/server/utils/prismaError'
+import { getSafeErrorMessage } from '~/server/utils/prismaError'
 import { ok, fail, type ServiceResult } from '../shared/response'
 import { postsRepository } from './posts.repository'
 
@@ -23,7 +23,7 @@ async function get(slug?: string): Promise<ServiceResult<any>> {
     }
     return ok(await postsRepository.findAll())
   } catch (error) {
-    return fail(getErrorMessage(error))
+    return fail(getSafeErrorMessage(error))
   }
 }
 
@@ -41,7 +41,7 @@ async function create(body: PostInput): Promise<ServiceResult<any>> {
     })
     return ok(post)
   } catch (error) {
-    return fail(getErrorMessage(error))
+    return fail(getSafeErrorMessage(error))
   }
 }
 
@@ -58,7 +58,7 @@ async function update(body: PostInput): Promise<ServiceResult<any>> {
     })
     return ok(post)
   } catch (error) {
-    return fail(getErrorMessage(error))
+    return fail(getSafeErrorMessage(error))
   }
 }
 
@@ -67,7 +67,7 @@ async function remove(slug: string): Promise<ServiceResult<any>> {
     const post = await postsRepository.remove(slug)
     return ok(post, 'Post başarıyla silindi')
   } catch (error) {
-    return fail(getErrorMessage(error))
+    return fail(getSafeErrorMessage(error))
   }
 }
 

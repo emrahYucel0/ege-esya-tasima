@@ -12,7 +12,7 @@
 //      kayıt oluşturuyor (diğer 17 dosyada olmayan bir upsert-benzeri davranış).
 //   3. Diğer dosyalarda olmayan bir PATCH metodu destekliyor.
 import prisma from '~/lib/prisma'
-import { isUniqueConstraintError, isRecordNotFoundError, getErrorMessage } from '~/server/utils/prismaError'
+import { isUniqueConstraintError, isRecordNotFoundError, getSafeErrorMessage } from '~/server/utils/prismaError'
 import { ok, fail, type ServiceResult } from '../shared/response'
 
 const DEFAULT_SECTION_NAME = 'about-section'
@@ -133,7 +133,7 @@ async function create(body: AboutSectionInput): Promise<ServiceResult<any>> {
     if (isUniqueConstraintError(error)) {
       return fail(`Hata: '${DEFAULT_SECTION_NAME}' adında bir kayıt zaten mevcut. Güncelleme (PUT) metodunu kullanın.`)
     }
-    return fail(getErrorMessage(error))
+    return fail(getSafeErrorMessage(error))
   }
 }
 
@@ -198,7 +198,7 @@ async function update(body: AboutSectionInput): Promise<ServiceResult<any>> {
         return fail('Kayıt oluşturulurken hata oluştu.')
       }
     }
-    return fail(getErrorMessage(error))
+    return fail(getSafeErrorMessage(error))
   }
 }
 
@@ -229,7 +229,7 @@ async function partialUpdate(body: Partial<AboutSectionInput>): Promise<ServiceR
     if (isRecordNotFoundError(error)) {
       return fail(`Hata: '${targetSectionName}' adında bir kayıt bulunamadı.`)
     }
-    return fail(getErrorMessage(error))
+    return fail(getSafeErrorMessage(error))
   }
 }
 
@@ -246,7 +246,7 @@ async function remove(sectionNameInput?: string): Promise<ServiceResult<any>> {
     if (isRecordNotFoundError(error)) {
       return fail(`Hata: '${targetSectionName}' adında silinecek kayıt bulunamadı.`)
     }
-    return fail(getErrorMessage(error))
+    return fail(getSafeErrorMessage(error))
   }
 }
 

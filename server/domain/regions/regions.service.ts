@@ -1,5 +1,5 @@
 // server/domain/regions/regions.service.ts
-import { getErrorMessage } from '~/server/utils/prismaError'
+import { getSafeErrorMessage } from '~/server/utils/prismaError'
 import { ok, fail, type ServiceResult } from '../shared/response'
 import { regionsRepository } from './regions.repository'
 
@@ -55,7 +55,7 @@ async function get(options: RegionGetOptions): Promise<ServiceResult<any>> {
     if (!options.includeInactive) whereClause.isActive = true
     return ok(await regionsRepository.findMany(whereClause))
   } catch (error) {
-    return fail(getErrorMessage(error))
+    return fail(getSafeErrorMessage(error))
   }
 }
 
@@ -77,7 +77,7 @@ async function create(body: RegionInput): Promise<ServiceResult<any>> {
     })
     return ok(region)
   } catch (error) {
-    return fail(getErrorMessage(error))
+    return fail(getSafeErrorMessage(error))
   }
 }
 
@@ -98,7 +98,7 @@ async function update(body: RegionInput): Promise<ServiceResult<any>> {
     })
     return ok(region)
   } catch (error) {
-    return fail(getErrorMessage(error))
+    return fail(getSafeErrorMessage(error))
   }
 }
 
@@ -107,7 +107,7 @@ async function remove(slug: string): Promise<ServiceResult<any>> {
     const region = await regionsRepository.remove(slug)
     return ok(region, 'Bölge başarıyla silindi')
   } catch (error) {
-    return fail(getErrorMessage(error))
+    return fail(getSafeErrorMessage(error))
   }
 }
 
