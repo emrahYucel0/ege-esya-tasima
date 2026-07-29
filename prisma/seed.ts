@@ -3,9 +3,17 @@ import * as bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
+function requireEnv(name: string): string {
+  const value = process.env[name];
+  if (!value) {
+    throw new Error(`${name} ortam değişkeni tanımlı değil. .env dosyasını kontrol edin.`);
+  }
+  return value;
+}
+
 const admins = [
-  { email: 'egeesya@yonetici.com', password: '!Ege_Yönetim_Güvenlik_Pass_1350!' },
-  { email: 'evdeneve@yonetici.com', password: 'JQeD1tTpgKB9pBmTwnDO!Ev26' },
+  { email: requireEnv('SEED_ADMIN_1_EMAIL'), password: requireEnv('SEED_ADMIN_1_PASSWORD') },
+  { email: requireEnv('SEED_ADMIN_2_EMAIL'), password: requireEnv('SEED_ADMIN_2_PASSWORD') },
 ];
 
 async function seed() {
@@ -17,7 +25,7 @@ async function seed() {
 
       const admin = await prisma.user.upsert({
         where: { email },
-        update: {},
+        update: { password: hashedPassword },
         create: {
           email,
           password: hashedPassword,
@@ -25,7 +33,7 @@ async function seed() {
         },
       });
 
-      console.log('Admin kullanıcısı eklendi:', admin);
+      console.log('Admin kullanıcısı oluşturuldu/güncellendi:', admin.email);
     }
   } catch (error) {
     console.error('Hata:', error);
