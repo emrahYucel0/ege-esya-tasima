@@ -4,14 +4,18 @@ import { ref, onMounted, onUnmounted } from "vue";
 const showScrollButton = ref(false);
 
 const handleScroll = () => {
-  showScrollButton.value = window.scrollY > 100;
+  showScrollButton.value = window.scrollY > 400;
 };
 
 const scrollToTop = () => {
-  window.scrollTo({ top: 0, behavior: "smooth" });
+  // Hareket hassasiyeti olan kullanıcı için anlık atlama; aksi halde yumuşak.
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  window.scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" });
 };
 
-onMounted(() => window.addEventListener("scroll", handleScroll));
+// passive: tarayıcıya "bu dinleyici preventDefault çağırmayacak" der; kaydırma
+// bu sayede dinleyiciyi beklemeden ilerler.
+onMounted(() => window.addEventListener("scroll", handleScroll, { passive: true }));
 onUnmounted(() => window.removeEventListener("scroll", handleScroll));
 
 const { settings } = await useSiteSettings();
@@ -88,15 +92,17 @@ useHead({
     <a
       :href="whatsAppHref"
       target="_blank"
-      class="whatsapp-button"
+      rel="noopener noreferrer"
+      aria-label="WhatsApp üzerinden bize yazın"
+      class="float-btn float-btn--whatsapp"
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
-        aria-label="whatsapp ikonu"
-        alt="whatsapp simgesi"
-        width="32"
-        height="32"
-        fill="white"
+        aria-hidden="true"
+        focusable="false"
+        width="30"
+        height="30"
+        fill="currentColor"
         viewBox="0 0 16 16"
       >
         <path
@@ -105,159 +111,138 @@ useHead({
       </svg>
     </a>
 
+    <!-- Buton DOM'dan silinip eklenmiyor, yalnızca görünürlüğü değişiyor:
+         `v-if` ile oluşturulan bir elemanda CSS geçişi (transition) hiçbir
+         zaman çalışmaz — eleman zaten son durumuyla doğuyor. Bu yüzden
+         belirme/kaybolma animasyonu tanımlıydı ama hiç görünmüyordu. -->
     <button
-      v-if="showScrollButton"
-      aria-label="Sayfayı yukarı kaydırma butonu"
-      aria-labelledby="Sayfayı yukarı kaydırma butonu"
+      type="button"
+      aria-label="Sayfanın başına dön"
+      :tabindex="showScrollButton ? 0 : -1"
+      :aria-hidden="showScrollButton ? undefined : 'true'"
+      class="float-btn float-btn--top"
+      :class="{ 'is-visible': showScrollButton }"
       @click="scrollToTop"
-      class="scroll-to-top"
     >
-      ⬆
+      <ui-icon name="arrow-right" :size="24" class="-rotate-90" />
     </button>
   </div>
 </template>
 
 <style>
-.whatsapp-button {
+/* ---------------------------------------------------------------------------
+   YÜZEN EYLEM BUTONLARI (WhatsApp + başa dön)
+   ---------------------------------------------------------------------------
+   Buradaki stiller kasıtlı olarak global (scoped değil): iki buton da
+   <NuxtLayout>'un dışında, uygulama kökünde duruyor.
+
+   Bu bloktan KALDIRILANLAR ve gerekçeleri:
+
+   • `* { outline: none }` — sitedeki TÜM elemanların odak halkasını yok
+     ediyordu. Klavyeyle gezinen kullanıcı nerede olduğunu göremiyordu
+     (WCAG 2.4.7 ihlali). Üstelik katmansız (unlayered) yazıldığı için,
+     cascade layer kuralları gereği main.css'teki `@layer base` içindeki
+     `:focus-visible` kuralını ÖZGÜLLÜKTEN BAĞIMSIZ olarak eziyordu —
+     yani odak halkası düzeltmesi hiç devreye girmiyordu.
+     `* { margin/padding/box-sizing }` kısmı da gereksizdi: Tailwind
+     Preflight bunları zaten ve daha doğru biçimde yapıyor.
+
+   • `body { background: <mermer gradient> }` — token tabanlı zemine
+     taşındı (bkz. assets/css/main.css).
+
+   • `.section-title { color: black }` — iki bölümün başlık rengini
+     token'ların dışından eziyordu.
+
+   • `blockquote` + sarı tırnak ::before/::after — design system'e taşındı.
+   ------------------------------------------------------------------------ */
+
+.float-btn {
   position: fixed;
-  bottom: 120px;
-  right: 25px;
-  width: 60px;
-  height: 60px;
-  background-color: #25d366;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
-  transition: transform 0.3s ease-in-out;
-  z-index: 1000;
-}
-
-.whatsapp-button:hover {
-  background-color: #1ebe5d;
-  transform: scale(1.1);
-}
-
-.scroll-to-top {
-  position: fixed;
-  bottom: 30px;
-  right: 25px;
-  width: 60px;
-  height: 60px;
-  font-size: 2rem;
-
-  background-color: #000;
-  color: var(--primary);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
-  transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
-  cursor: pointer;
+  right: 1.25rem;
+  display: grid;
+  place-items: center;
+  width: 3.25rem;
+  height: 3.25rem;
   border: none;
-  outline: none;
-  opacity: 0.9;
-  z-index: 999;
+  border-radius: var(--r-full);
+  cursor: pointer;
+  box-shadow: var(--shadow-lg);
+  transition: transform var(--dur-base) var(--ease-out),
+    background-color var(--dur-base) var(--ease-out),
+    opacity var(--dur-base) var(--ease-out),
+    visibility var(--dur-base) var(--ease-out);
 }
 
-* {
-  margin: 0;
-  padding: 0;
-  outline: none;
-  box-sizing: border-box;
+.float-btn:hover {
+  transform: translateY(-3px) scale(1.04);
 }
 
-body {
-  margin: 0;
-  min-height: 100vh;
-  background-attachment: fixed;
-
-  background-color: #ece8e3;
-
-  background-image:
-    /* Üst sağ damar */
-    radial-gradient(
-      ellipse 1200px 180px at 110% 10%,
-      rgba(125,125,125,.18) 0%,
-      rgba(125,125,125,.14) 18%,
-      transparent 42%
-    ),
-
-    /* Alt sağ damar */
-    radial-gradient(
-      ellipse 1400px 220px at 105% 95%,
-      rgba(120,120,120,.18) 0%,
-      rgba(120,120,120,.13) 18%,
-      transparent 45%
-    ),
-
-    /* İnce damarlar */
-    linear-gradient(
-      -18deg,
-      transparent 0%,
-      transparent 18%,
-      rgba(165,165,165,.10) 21%,
-      transparent 24%,
-      transparent 44%,
-      rgba(180,180,180,.08) 47%,
-      transparent 50%,
-      transparent 100%
-    ),
-
-    /* Genel mermer dokusu */
-    linear-gradient(
-      -18deg,
-      #f7f5f2 0%,
-      #efebe6 20%,
-      #ece8e3 40%,
-      #f5f3f0 60%,
-      #ebe7e2 80%,
-      #f8f7f5 100%
-    );
-
-  background-size:
-    cover,
-    cover,
-    100% 100%,
-    cover;
-
-  background-repeat: no-repeat;
+.float-btn:active {
+  transform: translateY(0) scale(0.97);
 }
 
-.section-title {
-  color: black; }
-
-blockquote {
-  position: relative;
-  padding: 20px 30px;
-  margin: 30px 0;
-  font-size: 1.2rem;
-  font-style: italic;
-  color: #555;
-  border-radius: 8px;
+/* WhatsApp marka rengi — bilinçli olarak paletin dışında bırakıldı, çünkü
+   bu butonun tanınırlığı renginden geliyor.
+   Parlak yeşil (#25d366) yerine WhatsApp'ın koyu marka yeşilinin bir tonu
+   kullanılıyor: beyaz ikon parlak yeşil üzerinde yalnızca 1.9:1 kontrast
+   veriyordu — WCAG'ın grafik öğeler için istediği 3:1 eşiğinin bile
+   altında. Bu tonda oran 5.2:1, yani metin eşiğini (4.5:1) de geçiyor.
+   Ayrıca sitenin koyu yeşil paletiyle çok daha uyumlu duruyor. */
+.float-btn--whatsapp {
+  bottom: 5.75rem;
+  z-index: var(--z-overlay);
+  background-color: #0f7a6c;
+  color: #fff;
 }
 
-blockquote p {
-  margin: 0;
+.float-btn--whatsapp:hover {
+  background-color: #0b6357;
 }
 
-blockquote::before,
-blockquote::after {
-  content: '"';
-  font-size: 2rem;
-  color: yellow;
-  position: absolute;
+.float-btn--top {
+  bottom: 1.5rem;
+  z-index: var(--z-sticky);
+  background-color: rgb(var(--c-brand-600));
+  color: rgb(var(--c-ink-inverse));
+  /* Görünür olana kadar tıklanamaz ve okuyuculardan gizli. */
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(0.5rem);
 }
 
-blockquote::before {
-  top: 10px;
-  left: 10px;
+.float-btn--top:hover {
+  background-color: rgb(var(--c-brand-700));
 }
 
-blockquote::after {
-  bottom: 10px;
-  right: 10px;
+.float-btn--top.is-visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+/* Küçük ekranda biraz daha kenara ve birbirine yakın. */
+@media (max-width: 640px) {
+  .float-btn {
+    right: 0.875rem;
+    width: 3rem;
+    height: 3rem;
+  }
+
+  .float-btn--whatsapp {
+    bottom: 4.75rem;
+  }
+
+  .float-btn--top {
+    bottom: 1rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .float-btn,
+  .float-btn:hover,
+  .float-btn:active {
+    transition: opacity var(--dur-base) linear, visibility var(--dur-base) linear;
+    transform: none;
+  }
 }
 </style>

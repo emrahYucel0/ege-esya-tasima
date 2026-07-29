@@ -123,11 +123,16 @@
         </NuxtLink>
 
         <!-- Hamburger Menü Butonu -->
+        <!-- `focus:outline-none focus:ring-0` KALDIRILDI: yerine hiçbir
+             görünür odak göstergesi konmamıştı, dolayısıyla klavyeyle
+             gezinen kullanıcı menü butonuna geldiğini anlayamıyordu
+             (WCAG 2.4.7). Odak halkası artık global :focus-visible
+             kuralından geliyor (bkz. assets/css/main.css). -->
         <button
-          class="navbar-toggler lg:hidden border-none focus:outline-none focus:ring-0 p-2"
+          class="navbar-toggler lg:hidden border-none p-2"
           :class="{ 'is-active': isMenuOpen }"
           @click="toggleMenu"
-          aria-label="Toggle navigation"
+          aria-label="Menüyü aç/kapat"
           :aria-expanded="isMenuOpen.toString()"
         >
           <span class="navbar-toggler-icon"></span>
