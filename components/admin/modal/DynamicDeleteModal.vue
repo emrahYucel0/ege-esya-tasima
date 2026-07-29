@@ -20,6 +20,12 @@ const props = defineProps({
     type: String,
     default: 'İptal',
   },
+  // Silme isteği sürerken true — onay butonunu devre dışı bırakıp çift
+  // tıklamayla aynı kaydın iki kez silinmeye çalışılmasını engeller.
+  loading: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const emits = defineEmits(['confirm', 'cancel']);
@@ -31,11 +37,20 @@ const emits = defineEmits(['confirm', 'cancel']);
       <h2 class="text-xl font-bold mb-4">{{ title }}</h2>
       <p class="mb-6">{{ message }}</p>
       <div class="flex justify-end space-x-4">
-        <button @click="$emit('cancel')" class="px-4 py-2 bg-gray-300 text-black rounded">
+        <button
+          @click="$emit('cancel')"
+          :disabled="loading"
+          class="px-4 py-2 bg-gray-300 text-black rounded disabled:opacity-50 disabled:cursor-not-allowed"
+        >
           {{ cancelText }}
         </button>
-        <button @click="$emit('confirm')" class="px-4 py-2 bg-red-500 text-white rounded">
-          {{ confirmText }}
+        <button
+          @click="$emit('confirm')"
+          :disabled="loading"
+          :aria-busy="loading"
+          class="px-4 py-2 bg-red-500 text-white rounded disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {{ loading ? 'Siliniyor...' : confirmText }}
         </button>
       </div>
     </div>

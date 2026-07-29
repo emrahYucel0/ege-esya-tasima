@@ -1,5 +1,5 @@
 <script setup>
-const { form, message, showDeleteModal, recordId, save, remove } = useSectionCrud('testimonials-section', 'testimonials-section', {
+const { form, message, showDeleteModal, recordId, isSaving, isDeleting, save, remove } = useSectionCrud('testimonials-section', 'testimonials-section', {
   mainTitle: '',
   subtitle: '',
   tag: '',
@@ -280,10 +280,10 @@ const setServiceType = (testimonial, serviceType) => {
       </button>
 
       <div class="flex space-x-4 pt-6 border-t mt-6">
-        <button type="submit" class="px-6 py-3 bg-[#3b5d50] text-white rounded-lg hover:bg-[#2d473d] transition duration-150 font-semibold">
+        <button type="submit" :disabled="isSaving" :aria-busy="isSaving" class="px-6 py-3 bg-[#3b5d50] text-white rounded-lg hover:bg-[#2d473d] transition duration-150 font-semibold disabled:opacity-50 disabled:cursor-not-allowed">
           {{ recordId ? 'Tümünü Güncelle' : 'Oluştur' }}
         </button>
-        <button v-if="recordId" type="button" @click="showDeleteModal = true" class="px-6 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition duration-150 font-semibold">
+        <button v-if="recordId" type="button" @click="showDeleteModal = true" :disabled="isSaving" class="px-6 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition duration-150 font-semibold disabled:opacity-50 disabled:cursor-not-allowed">
           Kaydı Sil
         </button>
       </div>
@@ -291,6 +291,7 @@ const setServiceType = (testimonial, serviceType) => {
 
     <AdminModalDynamicDeleteModal
       :show="showDeleteModal"
+      :loading="isDeleting"
       title="Testimonial Bölümünü Sil"
       message="Bu bölümdeki tüm verileri (ana metinler ve müşteri yorumları) silmek istediğinize emin misiniz? Bu işlem geri alınamaz!"
       confirmText="Evet, Kaydı Sil"
