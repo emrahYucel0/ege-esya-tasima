@@ -54,11 +54,13 @@
             <!-- Sosyal Medya İkonları (API'den) -->
             <div class="flex space-x-3">
               <a
-                v-for="social in footerData?.socialLinks"
+                v-for="social in validSocialLinks"
                 :key="social.id"
                 :href="social.url"
+                target="_blank"
+                rel="noopener noreferrer"
                 class="w-10 h-10 rounded-full bg-gray-100 hover:bg-primary hover:text-white flex items-center justify-center text-gray-600 transition-colors"
-                :aria-label="`Bizi ${social.name} üzerinden takip edin`"
+                :aria-label="`Bizi ${social.name || 'sosyal medya'} üzerinden takip edin`"
               >
                 <base-social-icon :name="social.name" class="w-5 h-5" />
               </a>
@@ -70,7 +72,7 @@
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
               <!-- Menü (quickLinks) -->
               <div>
-                <h4 class="font-semibold text-gray-800 mb-4">Menü</h4>
+                <h3 class="font-semibold text-gray-800 mb-4">Menü</h3>
                 <ul class="space-y-3">
                   <li v-for="link in footerData?.quickLinks" :key="link.id">
                     <NuxtLink :to="link.url" class="text-gray-500 hover:text-primary transition">
@@ -82,7 +84,7 @@
 
               <!-- Bölgelerimiz (regionLinks) -->
               <div>
-                <h4 class="font-semibold text-gray-800 mb-4">Bölgelerimiz</h4>
+                <h3 class="font-semibold text-gray-800 mb-4">Bölgelerimiz</h3>
                 <ul class="space-y-3">
                   <li v-for="link in footerData?.regionLinks" :key="link.id">
                     <NuxtLink :to="link.url" class="text-gray-500 hover:text-primary transition">
@@ -94,7 +96,7 @@
 
               <!-- Diğer Hizmetler (blogLinks) -->
               <div>
-                <h4 class="font-semibold text-gray-800 mb-4">Diğer Hizmetler</h4>
+                <h3 class="font-semibold text-gray-800 mb-4">Diğer Hizmetler</h3>
                 <ul class="space-y-3">
                   <li v-for="link in footerData?.blogLinks" :key="link.id">
                     <NuxtLink :to="link.url" class="text-gray-500 hover:text-primary transition">
@@ -110,17 +112,17 @@
         <!-- Alt Bilgi (copyright & yasal linkler) -->
         <div class="border-t border-gray-200 pt-6 mt-6 text-sm">
           <div class="flex flex-col md:flex-row justify-between items-center gap-4">
-            <p class="text-gray-400 text-center md:text-left">
+            <p class="text-gray-500 text-center md:text-left">
               {{ footerData?.copyright || siteSettings?.copyrightText || `© ${new Date().getFullYear()} ${brandName}. Tüm Hakları Saklıdır.` }}
             </p>
             <div class="flex flex-wrap justify-center gap-4 md:gap-6">
-              <NuxtLink to="/gizlilik-politikasi" class="text-gray-400 hover:text-primary transition">
+              <NuxtLink to="/gizlilik-politikasi" class="text-gray-500 hover:text-primary transition">
                 Gizlilik Politikası
               </NuxtLink>
-              <NuxtLink to="/kullanim-sartlari" class="text-gray-400 hover:text-primary transition">
+              <NuxtLink to="/kullanim-sartlari" class="text-gray-500 hover:text-primary transition">
                 Kullanım Şartları
               </NuxtLink>
-              <NuxtLink to="/cerez-politikasi" class="text-gray-400 hover:text-primary transition">
+              <NuxtLink to="/cerez-politikasi" class="text-gray-500 hover:text-primary transition">
                 Çerez Politikası
               </NuxtLink>
             </div>
@@ -146,6 +148,13 @@ if (error.value) {
 }
 
 const { brandName, settings: siteSettings } = await useSiteSettings()
+
+// Admin bir sosyal medya satırı ekleyip url'siz bırakabiliyor — url'siz kayıt
+// gerçek bir bağlantı değil, boş href üretiyordu (bkz. components/fixed/Navbar.vue
+// içindeki aynı düzeltme). Sadece gerçek url'si olan kayıtlar render edilir.
+const validSocialLinks = computed(
+  () => footerData.value?.socialLinks?.filter((social) => social.url) || []
+)
 </script>
 
 <style scoped>
