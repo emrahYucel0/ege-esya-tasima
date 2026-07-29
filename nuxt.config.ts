@@ -65,31 +65,24 @@ export default defineNuxtConfig({
 
   plugins: ["~/plugins/gsap.client.js"],
 
-  // app: {
-  //   head: {
-  //     htmlAttrs: { lang: "tr" },
-  //     link: [
-  //       {
-  //         rel: "preconnect",
-  //         href: "https://fonts.googleapis.com",
-  //         crossorigin: "anonymous",
-  //       },
-  //       {
-  //         rel: "stylesheet",
-  //         href: "/css/style.css",
-  //       },
-  //     ],
-  //   },
-  // },
-
   app: {
     head: {
       htmlAttrs: { lang: "tr" },
 
+      // Google Fonts (Inter) buradan <link> olarak yükleniyor — daha önce
+      // assets/css/main.css içinde @import ile yükleniyordu, bu da CSSOM
+      // oluşumunu tamamen durdurup render-blocking'e yol açıyordu. Tarayıcı
+      // artık bunu HTML <head> taranırken erken keşfedip paralel indirebiliyor.
+      // Font Awesome CDN linki kaldırıldı: kod tabanında hiçbir yerde
+      // fa-/fas/far/fab class'ı kullanılmıyor (site tamamen inline SVG
+      // ikonlar kullanıyor) — tamamen kullanılmayan, render-blocking bir
+      // harici stylesheet'ti.
       link: [
+        { rel: "preconnect", href: "https://fonts.googleapis.com" },
+        { rel: "preconnect", href: "https://fonts.gstatic.com", crossorigin: "anonymous" },
         {
           rel: "stylesheet",
-          href: "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css",
+          href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap",
         },
       ],
     },
