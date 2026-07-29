@@ -1,86 +1,451 @@
-/* Inter fontu artık nuxt.config.ts -> app.head.link üzerinden <link>
-   olarak yükleniyor (render-blocking @import yerine, erken keşif için). */
+/* Inter fontu nuxt.config.ts -> app.head.link üzerinden <link> olarak
+   yükleniyor (render-blocking @import yerine, erken keşif için).
+   Design token'ları assets/css/tokens.css içinde; nuxt.config.ts'teki css
+   dizisinde bu dosyadan ÖNCE yükleniyor. */
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* ===========================================================================
+   BASE
+   ======================================================================== */
 @layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+  }
+
+  /* Hareket hassasiyeti olan kullanıcı için yumuşak kaydırmayı kapat. */
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+  }
+
   body {
-    @apply overflow-x-hidden relative font-inter font-normal text-dark-light text-sm leading-7 bg-background;
+    @apply overflow-x-hidden relative font-inter font-normal text-ink antialiased;
+    /* 16px taban. Önceki 14px (text-sm) gövde metni için okunabilirlik
+       sınırının altındaydı ve mobilde WCAG uyarısı üretiyordu. */
+    font-size: 1rem;
+    line-height: 1.75;
+
+    /* Sayfa zemini. Önceden app.vue içinde katmanlı bir "mermer" gradient
+       vardı; üç sorunu birden taşıyordu:
+         1) Bej/gri tonlar yeşil marka paletiyle çakışıyordu,
+         2) `background-attachment: fixed` + çok katmanlı radial-gradient
+            kombinasyonu her kaydırmada yeniden boyama tetikleyen, mobilde
+            gözle görülür şekilde kare düşüren bir kalıptır,
+         3) Katmansız (unlayered) yazıldığı için token tabanlı zemini
+            sessizce eziyordu.
+       Yerine düz, token tabanlı bir yüzey: kontrast gereken bölümler
+       kendi zeminini (bg-surface / bg-surface-sunken) kullanır. */
+    background-color: rgb(var(--c-surface-muted));
+    min-height: 100vh;
+    min-height: 100svh;
+  }
+
+  /* Başlıklar Inter'ın optik boyutlandırmasından faydalansın; büyük
+     puntoda harf aralığı otomatik daralmadığı için ölçek token'larında
+     letter-spacing tanımlı (bkz. tailwind.config.js fontSize). */
+  h1,
+  h2,
+  h3,
+  h4 {
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
   }
 
   a {
-    @apply transition-all duration-300 ease-in-out text-dark ;
-    
-    &:hover {
-      @apply no-underline;
-    }
+    @apply text-ink transition-colors duration-fast ease-out;
+  }
 
-    &.more {
-      @apply font-semibold;
-    }
+  a:hover {
+    @apply no-underline;
+  }
+
+  a.more {
+    @apply font-semibold;
+  }
+
+  /* Erişilebilirlik: klavye ile gezinen kullanıcı odak halkasını GÖRMELİ.
+     Önceki `.btn { &:focus { outline-none } }` kuralı bunu tüm butonlarda
+     yok ediyordu — WCAG 2.4.7 ihlali. :focus-visible sayesinde halka fare
+     tıklamasında görünmez, klavyede görünür olur. */
+  :focus-visible {
+    outline: 2px solid rgb(var(--c-brand-600));
+    outline-offset: 3px;
+    border-radius: var(--r-xs);
+  }
+
+  /* Hash linkiyle bir bölüme atlandığında başlık sabit navbar'ın altında
+     kalmasın. */
+  :target {
+    scroll-margin-top: 6rem;
+  }
+
+  ::selection {
+    background: rgb(var(--c-brand-600) / 0.18);
+    color: rgb(var(--c-ink));
+  }
+
+  /* Görsellerin taşmasını global olarak engelle — her component'te
+     `max-w-full` tekrarına gerek kalmaz. */
+  img,
+  svg,
+  video {
+    max-width: 100%;
+    height: auto;
+  }
+
+  /* Alıntı bloğu. Önceden app.vue'da global olarak tanımlıydı ve
+     ::before/::after ile SARI (#ffff00) tırnak işaretleri basıyordu —
+     palette hiç olmayan bir renk, üstelik Card.vue zaten kendi tırnak
+     ikonunu çizdiği için çift görünüyordu. Sahte tırnaklar kaldırıldı,
+     stil token'lara bağlandı. */
+  blockquote {
+    @apply text-lead italic text-ink-muted;
+    border-left: 3px solid rgb(var(--c-accent-400));
+    padding-left: 1.25rem;
   }
 }
 
+/* ===========================================================================
+   COMPONENTS
+   ======================================================================== */
 @layer components {
+  /* ---- Buton ------------------------------------------------------------
+     Tek bir buton dili. Boyut, yarıçap, geçiş ve basma geri bildirimi
+     burada; varyantlar sadece rengi değiştirir. */
   .btn {
-    @apply font-semibold py-3 px-8 rounded-full text-white bg-dark border-dark border transition-all duration-300 ease-in-out;
-
-    &:hover {
-      @apply bg-dark/90 -translate-y-0.5 shadow-lg;
-    }
-
-    &:active {
-      @apply translate-y-0 shadow-none;
-    }
-
-    &:active, &:focus {
-      @apply outline-none ring-0;
-    }
-
-    &-primary {
-      @apply bg-primary border-primary;
-
-      &:hover {
-        @apply bg-primary-dark border-primary-dark;
-      }
-    }
-
-    &-secondary {
-      @apply text-dark bg-secondary border-secondary;
-
-      &:hover {
-        @apply bg-secondary-dark border-secondary-dark;
-      }
-    }
-
-    &-white-outline {
-      @apply bg-transparent border-2 border-white/30;
-
-      &:hover {
-        @apply border-white text-white;
-      }
-    }
+    @apply inline-flex shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-pill border font-semibold;
+    @apply px-8 py-3 text-center leading-none;
+    @apply border-ink bg-ink text-ink-inverse;
+    @apply transition-[background-color,border-color,color,transform,box-shadow] duration-base ease-out;
+    /* Metnin dikey optik merkezi: leading-none + eşit padding */
+    padding-block: 0.9375rem;
   }
 
-  /* Ana sayfadaki tüm kart benzeri elemanlar (hizmet kartı, özellik kartı,
-     fiyat kartı, yorum kartı) için tek, paylaşılan hover dili — her
-     component kendi hover efektini icat etmek yerine bunu kullanır. */
+  .btn:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+  }
+
+  .btn:active {
+    transform: translateY(0);
+    box-shadow: var(--shadow-xs);
+  }
+
+  .btn-sm {
+    @apply px-5 text-sm;
+    padding-block: 0.625rem;
+  }
+
+  .btn-lg {
+    @apply px-9 text-[1.0625rem];
+    padding-block: 1.0625rem;
+  }
+
+  .btn-primary {
+    @apply border-brand-600 bg-brand-600 text-ink-inverse;
+  }
+
+  .btn-primary:hover {
+    @apply border-brand-700 bg-brand-700;
+  }
+
+  .btn-secondary {
+    @apply border-accent-400 bg-accent-400 text-ink;
+  }
+
+  .btn-secondary:hover {
+    @apply border-accent-500 bg-accent-500;
+  }
+
+  .btn-outline {
+    @apply border-line-strong bg-transparent text-ink;
+  }
+
+  .btn-outline:hover {
+    @apply border-brand-600 bg-brand-600/5 text-brand-700;
+  }
+
+  .btn-white-outline {
+    @apply border-2 border-white/30 bg-transparent text-white;
+  }
+
+  .btn-white-outline:hover {
+    @apply border-white bg-white/10 text-white;
+  }
+
+  .btn-ghost {
+    @apply border-transparent bg-transparent text-brand-700 shadow-none;
+  }
+
+  .btn-ghost:hover {
+    @apply bg-brand-600/10 text-brand-800;
+    box-shadow: none;
+    transform: none;
+  }
+
+  /* ---- Kart -------------------------------------------------------------
+     Kural: `border` ve `shadow` AYNI ANDA kullanılmaz. Gölge zaten kenarı
+     tanımlar; ikisi birlikte karta ucuz bir çerçeve hissi verir. */
+  .card {
+    @apply bg-surface rounded-card;
+    box-shadow: var(--shadow-sm), var(--shadow-hairline);
+  }
+
+  .card-sunken {
+    @apply bg-surface-sunken rounded-card;
+    box-shadow: var(--shadow-hairline);
+  }
+
+  /* Etkileşimli kart: kalkma + gölge derinleşmesi. Sadece transform ve
+     box-shadow animasyonlanır → compositor'da kalır, layout tetiklemez. */
+  .card-interactive {
+    @apply transition-[transform,box-shadow] duration-base ease-out;
+  }
+
+  .card-interactive:hover {
+    transform: translateY(var(--lift));
+    box-shadow: var(--shadow-lg), var(--shadow-hairline);
+  }
+
+  /* Eski isim — henüz dönüştürülmemiş bölümler kullanmaya devam ediyor. */
   .card-hover {
-    @apply transition-all duration-300 ease-out hover:-translate-y-1.5 hover:shadow-xl;
+    @apply transition-[transform,box-shadow] duration-base ease-out;
+  }
+
+  .card-interactive:focus-within,
+  .card-hover:focus-within {
+    box-shadow: var(--shadow-lg), var(--shadow-hairline);
+  }
+
+  .card-hover:hover {
+    transform: translateY(var(--lift));
+    box-shadow: var(--shadow-lg);
+  }
+
+  /* ---- Bölüm üstü küçük etiket ------------------------------------------ */
+  .eyebrow {
+    @apply inline-flex items-center gap-2 text-eyebrow uppercase text-brand-600;
+  }
+
+  .eyebrow::before {
+    content: "";
+    @apply inline-block h-px w-6 bg-accent-400;
+  }
+
+  .eyebrow-center::before {
+    @apply hidden;
+  }
+
+  /* ---- Okunabilir metin genişliği --------------------------------------- */
+  .measure {
+    max-width: var(--measure);
   }
 }
 
+/* ===========================================================================
+   HAREKET SİSTEMİ  (@layer dışında — attribute selector'lar purge edilmesin)
+   ---------------------------------------------------------------------------
+   İki mekanizma var:
+
+   1) data-reveal + IntersectionObserver  → scroll'a giren içerik için.
+      Gizleme sınıfını (.is-hidden) JS ekler. JS çalışmazsa içerik NORMAL
+      GÖRÜNÜR kalır — "kalıcı görünmez" hatası yapısal olarak imkânsız.
+      Sunucudan gelen HTML'de gizleme yok → SEO/tarayıcı-kapalı-JS güvenli.
+
+   2) .enter-*  → sayfa açılışında zaten ekranda olan içerik için (Hero).
+      Saf CSS animasyonu, JS yok, gecikme yok, flash yok.
+   ======================================================================== */
+
+/* ---- 1) Scroll ile belirme ------------------------------------------------ */
+[data-reveal] {
+  transition-property: opacity, transform, filter, clip-path;
+  transition-duration: var(--dur-reveal);
+  transition-timing-function: var(--ease-out);
+  transition-delay: calc(var(--reveal-i, 0) * var(--stagger));
+}
+
+[data-reveal].is-hidden {
+  opacity: 0;
+  transform: translate3d(0, var(--reveal-y), 0);
+  will-change: opacity, transform;
+}
+
+[data-reveal="fade"].is-hidden {
+  transform: none;
+}
+
+[data-reveal="down"].is-hidden {
+  transform: translate3d(0, calc(var(--reveal-y) * -1), 0);
+}
+
+/* "left" = soldan gelir */
+[data-reveal="left"].is-hidden {
+  transform: translate3d(calc(var(--reveal-x) * -1), 0, 0);
+}
+
+[data-reveal="right"].is-hidden {
+  transform: translate3d(var(--reveal-x), 0, 0);
+}
+
+[data-reveal="scale"].is-hidden {
+  transform: scale(0.94);
+}
+
+[data-reveal="blur"].is-hidden {
+  filter: blur(10px);
+  transform: translate3d(0, 12px, 0);
+}
+
+/* Görseller için: alttan yukarı açılan maske + hafif yerleşme. */
+[data-reveal="clip"] {
+  transition-duration: calc(var(--dur-reveal) * 1.25);
+}
+
+[data-reveal="clip"].is-hidden {
+  opacity: 1;
+  clip-path: inset(0 0 100% 0);
+  transform: scale(1.04);
+}
+
+/* ---- 2) Açılışta beliren içerik (saf CSS) --------------------------------- */
+.enter-up,
+.enter-fade,
+.enter-rise,
+.enter-right,
+.enter-clip {
+  animation-duration: var(--dur-reveal);
+  animation-timing-function: var(--ease-out);
+  animation-fill-mode: both;
+  animation-delay: calc(var(--reveal-i, 0) * var(--stagger));
+}
+
+.enter-up {
+  animation-name: enter-up;
+}
+.enter-fade {
+  animation-name: enter-fade;
+}
+/* LCP güvenli: opaklığa DOKUNMAZ, sadece kaydırır. Hero başlığı gibi LCP
+   adayı elemanlarda kullanılır — opacity:0 ile başlayan bir animasyon
+   LCP ölçümünü animasyon bitişine kadar geciktirirdi. */
+.enter-rise {
+  animation-name: enter-rise;
+}
+.enter-right {
+  animation-name: enter-right;
+}
+.enter-clip {
+  animation-name: enter-clip;
+  animation-duration: calc(var(--dur-reveal) * 1.25);
+}
+
+@keyframes enter-up {
+  from {
+    opacity: 0;
+    transform: translate3d(0, var(--reveal-y), 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes enter-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes enter-rise {
+  from {
+    transform: translate3d(0, var(--reveal-y), 0);
+  }
+  to {
+    transform: none;
+  }
+}
+
+@keyframes enter-right {
+  from {
+    opacity: 0;
+    transform: translate3d(var(--reveal-x), 0, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes enter-clip {
+  from {
+    clip-path: inset(0 0 100% 0);
+    transform: scale(1.04);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+    transform: none;
+  }
+}
+
+/* ---- Ortak mikro-etkileşimler --------------------------------------------- */
+
+/* Link/buton içindeki okun hover'da ilerlemesi. */
+.nudge-x {
+  transition: transform var(--dur-base) var(--ease-out);
+}
+
+.group:hover .nudge-x {
+  transform: translateX(4px);
+}
+
+/* Manyetik buton (useMagnetic composable'ı bu değişkenleri günceller).
+   Sadece hassas işaretçili (fare) cihazlarda etkin — dokunmatikte anlamsız. */
+.magnetic {
+  transition: transform var(--dur-slow) var(--ease-out);
+}
+
+@media (pointer: fine) {
+  .magnetic {
+    transform: translate3d(var(--mx, 0px), var(--my, 0px), 0);
+  }
+  .magnetic:active {
+    transition-duration: var(--dur-fast);
+  }
+}
+
+/* Hareket hassasiyeti: tüm giriş animasyonlarını ve dönüşümleri sustur.
+   Token süreleri zaten 0.01ms'e düşüyor; bu blok clip-path/filter gibi
+   token'a bağlı olmayan başlangıç durumlarını da temizler. */
 @media (prefers-reduced-motion: reduce) {
-  .btn,
-  .card-hover {
-    @apply transition-none;
+  [data-reveal],
+  [data-reveal].is-hidden {
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+    clip-path: none !important;
+    transition: none !important;
   }
-  .btn:hover {
-    @apply translate-y-0;
+
+  .enter-up,
+  .enter-fade,
+  .enter-rise,
+  .enter-right,
+  .enter-clip {
+    animation: none !important;
   }
-  .card-hover:hover {
-    @apply translate-y-0;
+
+  .magnetic {
+    transform: none !important;
   }
 }

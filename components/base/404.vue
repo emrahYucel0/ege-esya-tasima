@@ -1,26 +1,7 @@
 <script setup>
-import { gsap } from "gsap";
-
-const titleText = ref(null);
-const isMobile = ref(false);
-
-onMounted(() => {
-  isMobile.value = window.innerWidth < 1024;
-
-  if (!isMobile.value) {
-    gsap.from(titleText.value, {
-      duration: 1.2,
-      y: -200,
-      opacity: 0,
-      ease: "slow(0.7, 0.7, false)",
-      delay: 0.5,
-      onStart: () => {
-        gsap.set(titleText.value, { opacity: 1 });
-      },
-    });
-  }
-});
-
+// "404" başlığının yukarıdan düşme animasyonu artık saf CSS
+// (bkz. aşağıdaki .drop-in). Sayfa açılışında zaten ekranda olduğu için
+// scroll gözlemcisine gerek yok; CSS animasyonu JS beklemeden başlar.
 const goBack = () => {
   window.history.length > 1 ? window.history.back() : navigateTo('/');
 };
@@ -43,9 +24,7 @@ const goBack = () => {
       <div class="flex flex-col lg:flex-row gap-12 items-center justify-center w-full">
         <div class="text-center lg:text-left max-w-2xl">
           <h1 class="text-6xl md:text-7xl lg:text-8xl font-light mb-4">
-            <span
-              ref="titleText"
-              class="font-serif italic text-stone-600 block lg:-skew-y-6"
+            <span class="drop-in font-serif italic text-stone-600 block lg:-skew-y-6"
               >404</span
             >
           </h1>
@@ -125,6 +104,36 @@ const goBack = () => {
     rgba(255, 255, 255, 0.95) 0%,
     rgba(250, 250, 249, 0.9) 100%
   );
+}
+
+/* "404" rakamının yukarıdan düşmesi. Yalnızca masaüstünde çalışır —
+   mobilde ekran zaten dar ve animasyon dikkat dağıtıcı oluyordu (eski
+   JS sürümü de `window.innerWidth < 1024` ile aynı ayrımı yapıyordu,
+   ancak bunu JS'te ölçüyordu; artık media query hallediyor). */
+@media (min-width: 1024px) {
+  .drop-in {
+    animation: drop-in 1.2s var(--ease-out) 0.35s both;
+  }
+}
+
+/* Bitiş karesi skewY'yi KORUR: element lg'de Tailwind'in `-skew-y-6`
+   sınıfını taşıyor ve animasyonun transform'u onu tamamen ezerdi
+   (animation-fill-mode: both nedeniyle animasyon bittikten sonra da). */
+@keyframes drop-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, -160px, 0) skewY(-6deg);
+  }
+  to {
+    opacity: 1;
+    transform: skewY(-6deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .drop-in {
+    animation: none !important;
+  }
 }
 
 @media (max-width: 1024px) {

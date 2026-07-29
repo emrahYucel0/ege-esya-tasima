@@ -1,9 +1,4 @@
 <script setup>
-import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-
-gsap.registerPlugin(ScrollTrigger);
-
 const { data: features } = await useFetch("/api/feature", {
   key: "features-data",
   // API artık {success,data} zarfı dönüyor; transform içinde tek noktadan unwrap ediyoruz.
@@ -17,64 +12,23 @@ const { data: features } = await useFetch("/api/feature", {
   },
 });
 
-let gsapContext = null;
-
-onMounted(() => {
-  if (!features.value) return;
-
-  gsapContext = gsap.context(() => {
-    gsap.utils.toArray(".feature-text > *").forEach((el, i) => {
-      gsap.from(el, {
-        opacity: 0,
-        y: 40,
-        duration: 0.8,
-        delay: i * 0.15,
-        ease: "power2.out",
-        scrollTrigger: {
-          trigger: el,
-          start: "top 90%",
-          end: "bottom 10%",
-          toggleActions: "play pause reverse pause",
-        },
-      });
-    });
-
-    gsap.from(".feature-image", {
-      x: 50,
-      opacity: 0,
-      duration: 1,
-      ease: "power2.out",
-      scrollTrigger: {
-        trigger: ".feature-image",
-        start: "top 90%",
-        end: "bottom 10%",
-        toggleActions: "play pause reverse pause",
-      },
-    });
-
-    gsap.to(".group:hover svg", {
-      rotate: 12,
-      duration: 0.4,
-      ease: "elastic.out(1.2, 0.5)",
-    });
-  });
-});
-
-// NOT: `onMounted`'dan bir fonksiyon return etmek React'teki useEffect'in
-// aksine Vue 3'te HİÇBİR ŞEY yapmaz (sessizce yok sayılır) — önceki kod
-// `return () => ctx.revert()` ile temizliğin çalıştığını sanıyordu ama
-// hiçbir zaman çalışmıyordu. Doğrusu ayrı bir `onUnmounted` hook'u.
-onUnmounted(() => {
-  gsapContext?.revert();
-});
+// Belirme animasyonu ortak animasyon dilinden geliyor
+// (bkz. composables/useReveal.ts). İkonun hover'da dönmesi zaten
+// template'teki `group-hover:rotate-12` sınıfıyla CSS tarafından yapılıyordu;
+// buradaki eski `gsap.to(".group:hover svg")` çağrısı hiçbir zaman
+// çalışmıyordu (":hover" bir CSS sözde sınıfıdır, querySelector ile
+// eşleşmez) — kaldırıldı.
+const sectionRef = ref(null);
+useReveal(sectionRef);
 </script>
 
 <template>
-  <section id="ycl-feature" class="min-h-screen">
+  <section ref="sectionRef" id="ycl-feature" class="min-h-screen">
     <div class="container mx-auto px-4 lg:px-0 overflow-hidden max-w-7xl">
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-        <div class="feature-text space-y-8">
+        <div data-reveal-group class="feature-text space-y-8">
           <div
+            data-reveal
             class="inline-block bg-white/90 backdrop-blur-md px-6 py-2 rounded-full shadow-md border border-stone-200/50 mb-5"
           >
             <p
@@ -85,6 +39,7 @@ onUnmounted(() => {
           </div>
 
           <h2
+            data-reveal
             class="text-4xl lg:text-5xl font-semibold text-stone-800 font-serif italic leading-tight"
           >
             <span class="font-serif italic text-stone-600 block mb-2">
@@ -92,7 +47,7 @@ onUnmounted(() => {
             </span>
           </h2>
 
-          <div class="space-y-6">
+          <div data-reveal class="space-y-6">
             <div
               v-for="(type, index) in features?.featureTypes"
               :key="index"
@@ -137,6 +92,7 @@ onUnmounted(() => {
         </div>
 
         <div
+          data-reveal="right"
           class="feature-image aspect-[4/3] overflow-hidden rounded-2xl shadow-[0_20px_25px_-5px_rgba(0,0,0,0.05),0_8px_10px_-6px_rgba(0,0,0,0.04)] hover:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.08)] transition-all duration-300 transform-style-preserve-3d"
         >
           <NuxtImg

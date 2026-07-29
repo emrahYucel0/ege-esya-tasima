@@ -1,71 +1,27 @@
 <script setup>
-import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-
-gsap.registerPlugin(ScrollTrigger);
-
 const { data: postData } = await useFetch("/api/posts?light=true");
 
 const posts = computed(() =>
   postData.value && postData.value.success ? postData.value.data : []
 );
-const recentPosts = computed(() => [...posts.value].reverse().slice(0,6));
+const recentPosts = computed(() => [...posts.value].reverse().slice(0, 6));
 
-const carouselRef = ref(null);
-const cards = ref([]);
-let infiniteTween = null;
-let scrollTriggerInstance = null;
-
-onMounted(() => {
-  cards.value = gsap.utils.toArray(".carousel-card");
-
-  const totalWidth = cards.value.reduce(
-    (acc, card) => acc + card.offsetWidth + 24,
-    0
-  );
-  infiniteTween = gsap.to(carouselRef.value, {
-    x: `-=${totalWidth}`,
-    duration: 60,
-    repeat: -1,
-    ease: "none",
-    modifiers: {
-      x: gsap.utils.unitize((x) => parseFloat(x) % totalWidth),
-    },
-  });
-
-  scrollTriggerInstance = ScrollTrigger.create({
-    trigger: ".carousel-section",
-    start: "top center",
-    onEnter: () => {
-      gsap.from(cards.value, {
-        duration: 1,
-        opacity: 0,
-        y: 50,
-        stagger: 0.15,
-        ease: "power2.out",
-      });
-    },
-  });
-});
-
-// Sonsuz tekrarlı (repeat:-1) tween ve ScrollTrigger, bileşen unmount
-// olduğunda (istemci-taraflı sayfa geçişlerinde) durdurulmazsa çalışmaya
-// devam eder — artık var olmayan bir DOM elementine referans tutarak
-// bellek sızıntısına ve gereksiz CPU kullanımına yol açar.
-onUnmounted(() => {
-  infiniteTween?.kill();
-  scrollTriggerInstance?.kill();
-});
+// Sonsuz kayan şerit artık saf CSS keyframe animasyonu (bkz. aşağıdaki
+// .carousel-track). Kartlar iki kez render edilip -50% kaydırıldığı için
+// döngü kesintisiz görünür; JS ölçüm/tween'ine gerek kalmaz.
+// aria-hidden'lı ikinci kopya ekran okuyucuya tekrar okutulmaz.
+const sectionRef = ref(null);
+useReveal(sectionRef);
 </script>
 
 <template>
-  <section class="carousel-section container mx-auto px-4 py-20">
+  <section ref="sectionRef" class="carousel-section container mx-auto px-4 py-20">
     <div class="text-center mb-16">
-      <h3 class="text-4xl md:text-5xl font-light text-stone-800">
+      <h3 data-reveal class="text-4xl md:text-5xl font-light text-stone-800">
         <span class="font-serif italic text-stone-600">Öne Çıkan</span>
         Yazılarımız
       </h3>
-      <p class="text-stone-600 mt-4 max-w-2xl mx-auto">
+      <p data-reveal class="text-stone-600 mt-4 max-w-2xl mx-auto">
         Eşya taşıma sektörüyle ilgili en güncel blog yazılarımızı keşfedin.
         Taşınma sürecinde dikkat edilmesi gerekenler, şehir içi ve şehirler
         arası nakliyat ipuçları, evden eve taşıma rehberleri ve nakliyat
@@ -78,35 +34,39 @@ onUnmounted(() => {
       message="Henüz yayınlanmış bir blog yazısı bulunmuyor."
     />
     <div v-else class="carousel-wrapper relative overflow-hidden py-8">
-      <div ref="carouselRef" class="carousel flex gap-6">
-        <div
-          v-for="post in recentPosts"
-          :key="post.id"
-          class="carousel-card relative flex-shrink-0 w-80"
-        >
+      <div class="carousel-track flex gap-6">
+        <template v-for="copy in 2" :key="`copy-${copy}`">
           <div
-            class="card-inner bg-white rounded-xl shadow-md hover:shadow-lg transition-all"
+            v-for="post in recentPosts"
+            :key="`${copy}-${post.id}`"
+            class="carousel-card relative flex-shrink-0 w-80"
+            :aria-hidden="copy === 2 ? 'true' : undefined"
           >
-            <NuxtImg
-              provider="imgix"
-              format="webp"
-              quality="70"
-              loading="lazy"
-              :src="post.image || '/img/default-blog.jpg'"
-              class="carousel-img w-full h-48 object-cover rounded-t-xl"
-              :alt="post.title"
-            />
-            <div class="p-6">
-              <NuxtLink
-                :to="`/${post.slug}`"
-                class="text-xl font-medium text-stone-800 mb-2 hover:underline line-clamp-2"
-                :aria-label="`${post.title} yazısı için detaylar`"
-              >
-                {{ post.shortTitle }}
-              </NuxtLink>
+            <div
+              class="card-inner bg-white rounded-xl shadow-md hover:shadow-lg transition-all"
+            >
+              <NuxtImg
+                provider="imgix"
+                format="webp"
+                quality="70"
+                loading="lazy"
+                :src="post.image || '/img/default-blog.jpg'"
+                class="carousel-img w-full h-48 object-cover rounded-t-xl"
+                :alt="post.title"
+              />
+              <div class="p-6">
+                <NuxtLink
+                  :to="`/${post.slug}`"
+                  class="text-xl font-medium text-stone-800 mb-2 hover:underline line-clamp-2"
+                  :tabindex="copy === 2 ? -1 : undefined"
+                  :aria-label="`${post.title} yazısı için detaylar`"
+                >
+                  {{ post.shortTitle }}
+                </NuxtLink>
+              </div>
             </div>
           </div>
-        </div>
+        </template>
       </div>
 
       <div
@@ -136,6 +96,31 @@ onUnmounted(() => {
     black 95%,
     transparent 100%
   );
+}
+
+/* Sonsuz kayan şerit — saf CSS.
+   Şerit iki özdeş kart kümesi içerir; -50% kaydığında ikinci küme birincinin
+   başlangıç konumuna denk gelir, böylece döngü sıçramasız görünür. */
+.carousel-track {
+  width: max-content;
+  animation: carousel-scroll 60s linear infinite;
+  will-change: transform;
+}
+
+/* Üzerine gelince dursun: kullanıcı bir karta tıklamak istediğinde hedefin
+   kaçması kötü bir deneyimdir. */
+.carousel-wrapper:hover .carousel-track,
+.carousel-wrapper:focus-within .carousel-track {
+  animation-play-state: paused;
+}
+
+@keyframes carousel-scroll {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
 }
 
 .carousel-card {
@@ -179,6 +164,12 @@ onUnmounted(() => {
   .card-inner {
     transition: none !important;
     transform: none !important;
+  }
+
+  /* Sürekli hareket, hareket hassasiyeti olan kullanıcı için en rahatsız
+     edici animasyon türüdür — tamamen durdurulur. */
+  .carousel-track {
+    animation: none !important;
   }
 }
 </style>
