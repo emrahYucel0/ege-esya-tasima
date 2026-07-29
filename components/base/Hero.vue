@@ -12,7 +12,7 @@
         provider="imgix"
         format="webp"
         quality="60"
-        loading="lazy"
+        loading="eager"
         sizes="sm:100vw md:100vw lg:100vw xl:100vw 2xl:1536px"
         decoding="async"
         fetchpriority="high"
@@ -71,10 +71,9 @@
               provider="imgix"
               format="webp"
               quality="70"
-              loading="lazy"
+              loading="eager"
               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 100vw, 780px"
               decoding="async"
-              fetchpriority="high"
             />
             <div v-else class="w-full h-64 bg-gray-200 rounded-lg"></div>
           </div>
