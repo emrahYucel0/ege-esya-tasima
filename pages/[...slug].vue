@@ -18,8 +18,11 @@ const [
 ] = await Promise.all([
   useFetch(`/api/posts?slug=${slug}`),
   useFetch(`/api/regions?slug=${slug}`),
-  useFetch("/api/regions"),
-  useFetch("/api/posts"),
+  // "İlgili bölgeler" / gezinme listeleri için sadece slug/başlık/görsel
+  // gibi hafif alanlar gerekiyor — ?light=true, ağır `content` (zengin
+  // metin HTML gövdesi) sütununu sorgudan tamamen çıkarır.
+  useFetch("/api/regions?light=true"),
+  useFetch("/api/posts?light=true"),
 ]);
 
 // Computed özellikler
@@ -76,90 +79,10 @@ const relatedRegions = computed(() => {
   });
 });
 
-// Türkiye illeri listesi
-const turkishCities = [
-  { id: 1, name: 'Adana' },
-  { id: 6, name: 'Ankara' },
-  { id: 7, name: 'Antalya' },
-  { id: 34, name: 'İstanbul' },
-  { id: 35, name: 'İzmir' },
-  { id: 16, name: 'Bursa' },
-  { id: 26, name: 'Eskişehir' },
-  { id: 55, name: 'Samsun' },
-  { id: 10, name: 'Balıkesir' },
-  { id: 38, name: 'Kayseri' },
-  { id: 46, name: 'Kahramanmaraş' },
-  { id: 42, name: 'Konya' },
-  { id: 21, name: 'Diyarbakır' },
-  { id: 61, name: 'Trabzon' },
-  { id: 25, name: 'Erzurum' },
-  { id: 27, name: 'Gaziantep' },
-  { id: 33, name: 'Mersin' },
-  { id: 40, name: 'Kırşehir' },
-  { id: 41, name: 'Kocaeli' },
-  { id: 45, name: 'Manisa' },
-  { id: 48, name: 'Muğla' },
-  { id: 49, name: 'Muş' },
-  { id: 51, name: 'Niğde' },
-  { id: 52, name: 'Ordu' },
-  { id: 54, name: 'Sakarya' },
-  { id: 60, name: 'Tokat' },
-  { id: 63, name: 'Şanlıurfa' },
-  { id: 65, name: 'Van' },
-  { id: 66, name: 'Yozgat' },
-  { id: 67, name: 'Zonguldak' },
-  { id: 2, name: 'Adıyaman' },
-  { id: 3, name: 'Afyonkarahisar' },
-  { id: 4, name: 'Ağrı' },
-  { id: 5, name: 'Amasya' },
-  { id: 8, name: 'Artvin' },
-  { id: 9, name: 'Aydın' },
-  { id: 11, name: 'Bilecik' },
-  { id: 12, name: 'Bingöl' },
-  { id: 13, name: 'Bitlis' },
-  { id: 14, name: 'Bolu' },
-  { id: 15, name: 'Burdur' },
-  { id: 17, name: 'Çanakkale' },
-  { id: 18, name: 'Çankırı' },
-  { id: 19, name: 'Çorum' },
-  { id: 20, name: 'Denizli' },
-  { id: 22, name: 'Edirne' },
-  { id: 23, name: 'Elazığ' },
-  { id: 24, name: 'Erzincan' },
-  { id: 28, name: 'Giresun' },
-  { id: 29, name: 'Gümüşhane' },
-  { id: 30, name: 'Hakkari' },
-  { id: 31, name: 'Hatay' },
-  { id: 32, name: 'Isparta' },
-  { id: 36, name: 'Kars' },
-  { id: 37, name: 'Kastamonu' },
-  { id: 39, name: 'Kırklareli' },
-  { id: 43, name: 'Kütahya' },
-  { id: 44, name: 'Malatya' },
-  { id: 47, name: 'Karaman' },
-  { id: 50, name: 'Nevşehir' },
-  { id: 53, name: 'Rize' },
-  { id: 56, name: 'Siirt' },
-  { id: 57, name: 'Sinop' },
-  { id: 58, name: 'Sivas' },
-  { id: 59, name: 'Tekirdağ' },
-  { id: 62, name: 'Tunceli' },
-  { id: 64, name: 'Uşak' },
-  { id: 68, name: 'Aksaray' },
-  { id: 69, name: 'Bayburt' },
-  { id: 70, name: 'Karaman' },
-  { id: 71, name: 'Kırıkkale' },
-  { id: 72, name: 'Batman' },
-  { id: 73, name: 'Şırnak' },
-  { id: 74, name: 'Bartın' },
-  { id: 75, name: 'Ardahan' },
-  { id: 76, name: 'Iğdır' },
-  { id: 77, name: 'Yalova' },
-  { id: 78, name: 'Karabük' },
-  { id: 79, name: 'Kilis' },
-  { id: 80, name: 'Osmaniye' },
-  { id: 81, name: 'Düzce' }
-];
+// Türkiye illeri listesi artık utils/turkishCities.ts'de tek bir yerde
+// tanımlı (önceden bu dosya ve RegionPanel.vue'da birbirinden bağımsız
+// iki kopya olarak duruyordu, üstelik burada her bileşen render'ında
+// yeniden oluşturuluyordu).
 
 // Region'ın bağlı olduğu il isimlerini getir
 const regionCityNames = computed(() => {

@@ -51,17 +51,18 @@ export default defineEventHandler(async (event) => {
   }
 
   if (method === 'GET') {
-    const { slug, city } = getQuery(event)
+    const { slug, city, light } = getQuery(event)
+    const isLight = light === 'true'
 
     if (city) {
       const cityId = parseInt(city as string)
       if (isNaN(cityId)) {
         return { success: false, error: 'Geçersiz şehir ID' }
       }
-      return regionsService.get({ cityId, includeInactive: isAdminMode })
+      return regionsService.get({ cityId, includeInactive: isAdminMode, light: isLight })
     }
 
-    return regionsService.get({ slug: slug ? String(slug) : undefined, includeInactive: isAdminMode })
+    return regionsService.get({ slug: slug ? String(slug) : undefined, includeInactive: isAdminMode, light: isLight })
   }
 
   if (method === 'POST') {

@@ -17,10 +17,12 @@ const { data: features } = await useFetch("/api/feature", {
   },
 });
 
+let gsapContext = null;
+
 onMounted(() => {
   if (!features.value) return;
 
-  const ctx = gsap.context(() => {
+  gsapContext = gsap.context(() => {
     gsap.utils.toArray(".feature-text > *").forEach((el, i) => {
       gsap.from(el, {
         opacity: 0,
@@ -56,8 +58,14 @@ onMounted(() => {
       ease: "elastic.out(1.2, 0.5)",
     });
   });
+});
 
-  return () => ctx.revert();
+// NOT: `onMounted`'dan bir fonksiyon return etmek React'teki useEffect'in
+// aksine Vue 3'te HİÇBİR ŞEY yapmaz (sessizce yok sayılır) — önceki kod
+// `return () => ctx.revert()` ile temizliğin çalıştığını sanıyordu ama
+// hiçbir zaman çalışmıyordu. Doğrusu ayrı bir `onUnmounted` hook'u.
+onUnmounted(() => {
+  gsapContext?.revert();
 });
 </script>
 
