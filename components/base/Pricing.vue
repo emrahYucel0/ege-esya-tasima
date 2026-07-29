@@ -3,7 +3,7 @@
     <div class="container mx-auto px-4">
       <!-- Başlık ve Açıklama -->
       <div class="text-center max-w-3xl mx-auto mb-12">
-        <h1 class="text-3xl md:text-4xl font-bold text-gray-800 mb-4">{{ data?.mainTitle || 'Şeffaf Nakliyat Fiyatları' }}</h1>
+        <h2 class="text-3xl md:text-4xl font-bold text-gray-800 mb-4">{{ data?.mainTitle || 'Şeffaf Nakliyat Fiyatları' }}</h2>
         <p class="text-lg text-gray-600" v-if="data?.description" v-html="sanitizeHtml(data.description)"></p>
         <p v-else class="text-lg text-gray-600">
           <strong>%100 fiyat garantili</strong> ev taşıma paketlerimiz. Eşyalarınızın güvenli taşınması için özel çözümler
@@ -85,14 +85,14 @@
 
             <!-- Buton -->
             <div class="mt-8">
-              <NuxtLink 
-                :to="plan.buttonLink" 
+              <NuxtLink
+                :to="plan.buttonLink || '/iletisim'"
                 class="block w-full px-6 py-3 text-center font-medium rounded-lg transition-colors"
                 :class="plan.isFeatured 
                   ? 'bg-[#3b5d50] text-white hover:bg-[#2d473d]' 
                   : 'bg-gray-100 text-[#3b5d50] hover:bg-[#3b5d50] hover:text-white'
                 "
-                :aria-label="plan.buttonAriaLabel || `${plan.name} paketi detayları`"
+                :aria-label="plan.buttonAriaLabel || `${plan.buttonText} - ${plan.name} paketi detayları`"
               >
                 {{ plan.buttonText }}
               </NuxtLink>

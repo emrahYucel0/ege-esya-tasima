@@ -82,15 +82,15 @@
 
         <!-- Sosyal Medya İkonları -->
         <div
-          v-if="navbarData?.socialLinks?.length"
+          v-if="validSocialLinks.length"
           class="flex items-center gap-3 sm:gap-4"
         >
           <a
-            v-for="socialLink in navbarData.socialLinks"
+            v-for="socialLink in validSocialLinks"
             :key="socialLink.id"
-            :href="socialLink.url || '#'"
+            :href="socialLink.url"
             class="hover:text-[#f9bf29] text-white transition-colors"
-            :aria-label="socialLink.name"
+            :aria-label="socialLink.name || 'Sosyal medya hesabımız'"
             target="_blank"
             rel="noopener noreferrer"
           >
@@ -278,6 +278,13 @@ const isMenuOpen = ref(false);
 const navbarData = ref(null);
 const pending = ref(true);
 const error = ref(null);
+
+// Admin bir sosyal medya satırı ekleyip url'siz bırakabiliyor — url'siz kayıt
+// gerçek bir bağlantı değil, tıklanamaz "#" href'i ve isimsiz erişilebilir ad
+// (aria-label="") üretiyordu. Sadece gerçek url'si olan kayıtlar render edilir.
+const validSocialLinks = computed(
+  () => navbarData.value?.socialLinks?.filter((social) => social.url) || []
+);
 
 // Navigation links (static - you might want to make these dynamic too)
 const navLinks = [

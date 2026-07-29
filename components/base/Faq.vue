@@ -12,9 +12,9 @@
         <!-- Sol Kolon - SSS İçeriği -->
         <div class="lg:col-span-2">
           <div class="mb-10 md:mb-12 text-left">
-            <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-800 mb-4">
+            <h2 class="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-800 mb-4">
               {{ mainTitle }}
-            </h1>
+            </h2>
             <p class="text-gray-600 text-base md:text-lg">
               {{ description }}
             </p>
