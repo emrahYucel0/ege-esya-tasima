@@ -13,14 +13,28 @@ useHead({
   script: [
     {
       type: "application/ld+json",
+      // MovingCompany (schema.org'da LocalBusiness alt tipi) — jenerik
+      // Organization yerine kullanılıyor; bir nakliyat firması için yerel
+      // aramalarda ("İstanbul evden eve nakliyat" vb.) görünürlüğü doğrudan
+      // etkileyen adres/telefon gibi alanları destekliyor.
       innerHTML: () =>
         JSON.stringify({
           "@context": "https://schema.org",
-          "@type": "Organization",
+          "@type": "MovingCompany",
           name: brandName.value,
           url: siteUrl.value,
           logo: settings.value?.logo || undefined,
+          image: settings.value?.ogImage || undefined,
           telephone: settings.value?.phone || undefined,
+          email: settings.value?.email || undefined,
+          address: settings.value?.address
+            ? {
+                "@type": "PostalAddress",
+                streetAddress: settings.value.address,
+                addressCountry: "TR",
+              }
+            : undefined,
+          areaServed: "TR",
           sameAs: socialLinks.value,
         }),
     },
