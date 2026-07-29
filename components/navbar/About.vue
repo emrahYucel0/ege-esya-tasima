@@ -22,7 +22,7 @@ const mainTitle = computed(() => aboutData.value?.mainTitle || "Nakliyat Sektör
 const description1 = computed(() => aboutData.value?.description1 || "2008 yılından bu yana İstanbul'un tüm ilçeleri ve çevre illerde (Kocaeli, Sakarya, Tekirdağ, Bursa) profesyonel evden eve nakliyat hizmeti sunmaktayız. Eşyalarınızı kendi eşyamız gibi özenle taşıyor, her detayı önceden planlıyoruz.")
 const description2 = computed(() => aboutData.value?.description2 || "Alanında uzman kadromuz ve son teknoloji ekipmanlarımızla; apartman dairesi, villa, ofis, fabrika taşımacılığı gibi her türlü nakliye işlemini sigortalı olarak gerçekleştiriyoruz. Müşteri memnuniyetini ön planda tutarak, sektörde kalitemizle fark yaratıyoruz.")
 const description3 = computed(() => aboutData.value?.description3 || "Nakliye öncesi ücretsiz keşif hizmetimizle eşyalarınızın en güvenli şekilde nasıl taşınacağını planlıyor, şeffaf fiyat politikamızla sürpriz maliyetlerin önüne geçiyoruz.")
-const teamImage = computed(() => aboutData.value?.teamImage || "~/assets/images/team.jpg")
+const teamImage = computed(() => aboutData.value?.teamImage || "/images/team.jpg")
 const teamImageAlt = computed(() => aboutData.value?.teamImageAlt || "Profesyonel Nakliyat Ekibimiz İş Başında")
 const historyTitle = computed(() => aboutData.value?.historyTitle || "15 Yıllık Deneyimle Geleceğe Taşıyoruz")
 const historyText1 = computed(() => aboutData.value?.historyText1 || "Küçük bir ekip ve 2 araçla Pendik'te başladığımız bu yolculukta, bugün 50'den fazla profesyonel çalışan ve 20 araçlık modern filomuzla hizmet veriyoruz. Her geçen yıl büyüyerek İstanbul'un en çok tercih edilen nakliyat firmalarından biri olduk.")
@@ -81,12 +81,17 @@ const historyText3 = computed(() => aboutData.value?.historyText3 || "Bugün yı
 
         <!-- Full-width Resim -->
         <div class="mb-16 rounded-xl overflow-hidden shadow-lg" v-if="teamImage">
-          <img 
-            :src="teamImage" 
+          <NuxtImg
+            provider="imgix"
+            :src="teamImage"
             :alt="teamImageAlt"
             class="w-full h-80 object-cover"
+            format="webp"
+            quality="70"
+            sizes="sm:100vw md:100vw lg:100vw"
             loading="lazy"
-          >
+            decoding="async"
+          />
         </div>
 
         <!-- Şirket Tarihçesi -->

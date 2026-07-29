@@ -375,11 +375,17 @@ useHead(metaData);
   <div class="bg-stone-50 rounded-2xl p-6 md:p-8 border border-stone-200">
     <div class="flex flex-col md:flex-row gap-8 items-start">
       <div class="md:w-1/4 flex justify-center">
-        <img 
+        <NuxtImg
+          provider="imgix"
           :src="region.priceFactorsImage || '/images/price.svg'"
           :alt="region.priceFactorsTitle || 'Fiyatı Etkileyen Faktörler'"
           class="w-full max-w-[200px] h-auto object-contain"
-        >
+          format="webp"
+          quality="70"
+          sizes="200px"
+          loading="lazy"
+          decoding="async"
+        />
       </div>
       <div class="md:w-3/4">
         <h3 class="text-2xl md:text-3xl font-bold text-primary mb-6">

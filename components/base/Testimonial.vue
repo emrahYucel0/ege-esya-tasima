@@ -52,12 +52,18 @@
               <div class="flex items-center mb-4">
                 <!-- Müşteri Fotoğrafı -->
                 <div class="w-12 h-12 rounded-full overflow-hidden border-2 border-[#3b5d50]">
-                  <img
+                  <NuxtImg
+                    provider="imgix"
                     :src="testimonial.customerImage || '/images/testimonial-placeholder.svg'"
                     :alt="testimonial.customerName || 'Müşteri fotoğrafı'"
                     class="w-full h-full object-cover"
+                    format="webp"
+                    quality="70"
+                    sizes="48px"
+                    loading="lazy"
+                    decoding="async"
                     @error="handleImageError"
-                  >
+                  />
                 </div>
                 <div class="ml-4">
                   <!-- Müşteri Adı -->
