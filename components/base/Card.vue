@@ -3,7 +3,8 @@ const cardData = ref(null);
 const cards = ref([]);
 const isLoading = ref(true);
 
-const { data, error } = await useFetch("/api/card", {});
+const { data: cardResponse, error } = await useFetch("/api/card", {});
+const data = computed(() => cardResponse.value?.data ?? null);
 
 if (!error.value && data.value) {
   cardData.value = {

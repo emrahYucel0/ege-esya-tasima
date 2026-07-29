@@ -23,7 +23,7 @@
         </span>
         <h2 class="text-3xl md:text-4xl font-bold text-gray-800 mb-4">
           <template v-if="data?.mainTitle">
-            <span v-html="formatTitle(data.mainTitle)"></span>
+            <span v-html="sanitizeHtml(formatTitle(data.mainTitle))"></span>
           </template>
           <template v-else>
             Müşterilerimizin <span class="text-[#3b5d50]">Deneyimleri</span>
@@ -91,13 +91,14 @@
               <div class="flex items-center">
                 <!-- Hizmet Tipi İkonu -->
                 <div class="w-8 h-8 rounded-full bg-[#3b5d50] flex items-center justify-center mr-3">
-                  <svg 
-                    class="w-4 h-4 text-white" 
-                    fill="none" 
-                    stroke="currentColor" 
+                  <svg
+                    class="w-4 h-4 text-white"
+                    fill="none"
+                    stroke="currentColor"
                     viewBox="0 0 24 24"
-                    v-html="getServiceIcon(testimonial.serviceType, testimonial.serviceTypeIcon)"
-                  ></svg>
+                  >
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" :d="getServiceIcon(testimonial.serviceType, testimonial.serviceTypeIcon)" />
+                  </svg>
                 </div>
                 <!-- Hizmet Tipi Metni -->
                 <span class="text-sm font-medium text-gray-700">{{ testimonial.serviceType }}</span>
@@ -121,7 +122,10 @@
 // ------------------------------------
 
 // API'den veriyi çekmek için reactive state
-const { data, pending, error } = await useFetch('/api/testimonials-section')
+const { data: testimonialResponse, pending, error } = await useFetch('/api/testimonials-section')
+// API artık {success,data} zarfı dönüyor; template'in geri kalanı değişmeden
+// çalışabilsin diye burada tek noktadan unwrap ediyoruz.
+const data = computed(() => testimonialResponse.value?.data ?? null)
 
 // Hata durumunda fallback
 if (error.value) {

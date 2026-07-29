@@ -21,13 +21,14 @@ const loadWhyChooseUs = async () => {
     // API rotasından veriyi çekiyoruz
     // Nuxt 3'te, bu kullanım sunucu tarafında çalışacaktır (SSR)
     const { data, error } = await useFetch('/api/why-choose-us')
-    
+    const record = data.value?.data
+
     if (error.value) {
       fetchError.value = 'Veriler yüklenirken bir sorun oluştu.'
       console.error('Veri çekme hatası:', error.value)
-    } else if (data.value && data.value.id) { // Başarılı veri ve geçerli ID kontrolü
-      whyChooseUsData.value = data.value
-      featuresList.value = data.value.features || []
+    } else if (record && record.id) { // Başarılı veri ve geçerli ID kontrolü
+      whyChooseUsData.value = record
+      featuresList.value = record.features || []
     } else {
       // API'den success:false, error: 'kayıt bulunamadı' gibi bir yanıt gelirse
       fetchError.value = data.value?.error || 'Bölüm verisi veritabanında bulunamadı.'
@@ -73,7 +74,7 @@ const mainImage = computed(() => whyChooseUsData.value?.mainImage || "")
           
           <h2
             class="section-title text-3xl md:text-4xl font-bold text-gray-800 mb-6"
-            v-html="mainTitle.replace(/\n/g, '<br class=\'block lg:hidden\' />')" 
+            v-html="sanitizeHtml(mainTitle.replace(/\n/g, '<br class=\'block lg:hidden\' />'))"
             >
           </h2>
           

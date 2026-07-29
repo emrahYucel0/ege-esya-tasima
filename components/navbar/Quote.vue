@@ -3,7 +3,10 @@ import { Field, Form, ErrorMessage } from "vee-validate";
 import * as yup from "yup";
 import { useMail, useFetch } from "#imports";
 
-const { data: quoteData, pending } = await useFetch("/api/quote");
+const { data: quoteResponse, pending } = await useFetch("/api/quote");
+// API artık {success,data} zarfı dönüyor; template'in geri kalanı değişmeden
+// çalışabilsin diye burada tek noktadan unwrap ediyoruz.
+const quoteData = computed(() => quoteResponse.value?.data ?? null);
 
 const formData = ref({
   name: "",

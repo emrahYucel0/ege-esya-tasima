@@ -4,7 +4,7 @@
       <!-- Başlık ve Açıklama -->
       <div class="text-center max-w-3xl mx-auto mb-12">
         <h1 class="text-3xl md:text-4xl font-bold text-gray-800 mb-4">{{ data?.mainTitle || 'Şeffaf Nakliyat Fiyatları' }}</h1>
-        <p class="text-lg text-gray-600" v-if="data?.description" v-html="data.description"></p>
+        <p class="text-lg text-gray-600" v-if="data?.description" v-html="sanitizeHtml(data.description)"></p>
         <p v-else class="text-lg text-gray-600">
           <strong>%100 fiyat garantili</strong> ev taşıma paketlerimiz. Eşyalarınızın güvenli taşınması için özel çözümler
           ve <span class="text-[#3b5d50] font-semibold">kurumsal fiyat avantajları</span> sunuyoruz.
@@ -123,7 +123,10 @@
 // ------------------------------------
 
 // API'den veriyi çekmek için reactive state
-const { data, pending, error } = await useFetch('/api/pricing-section')
+const { data: pricingResponse, pending, error } = await useFetch('/api/pricing-section')
+// API artık {success,data} zarfı dönüyor; template'in geri kalanı değişmeden
+// çalışabilsin diye burada tek noktadan unwrap ediyoruz.
+const data = computed(() => pricingResponse.value?.data ?? null)
 
 // Hata durumunda fallback
 if (error.value) {

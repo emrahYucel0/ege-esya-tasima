@@ -18,14 +18,15 @@ const loadServices = async () => {
   try {
     // API rotasından veriyi çekiyoruz
     const { data, error } = await useFetch('/api/services')
-    
+    const record = data.value?.data
+
     if (error.value) {
       fetchError.value = 'Servis verileri yüklenirken bir sorun oluştu.'
       console.error('Veri çekme hatası:', error.value)
-    } else if (data.value && data.value.id) {
-      servicesData.value = data.value
-      servicesList.value = data.value.services || []
-      statisticsList.value = data.value.statistics || []
+    } else if (record && record.id) {
+      servicesData.value = record
+      servicesList.value = record.services || []
+      statisticsList.value = record.statistics || []
     } else {
       fetchError.value = data.value?.error || 'Servis verisi veritabanında bulunamadı.'
       servicesData.value = null
@@ -78,8 +79,9 @@ const statisticsWithIcons = computed(() => {
 
   return statisticsList.value.map((stat, index) => ({
     ...stat,
-    // Eğer özel iconPath varsa onu kullan, yoksa default icon'ları kullan
-    displayIcon: stat.iconPath ? `<img src="${stat.iconPath}" alt="${stat.label1} ikonu" class="w-12 h-12 drop-shadow-md" />` : defaultIcons[index]?.icon || defaultIcons[0].icon
+    // Özel iconPath varsa şablonda gerçek <img :src> ile render edilir (bkz. template);
+    // displayIcon burada SADECE varsayılan, sabit kod içindeki güvenli SVG'ler için kullanılır.
+    displayIcon: defaultIcons[index]?.icon || defaultIcons[0].icon
   }))
 })
 
@@ -235,7 +237,9 @@ const displayServices = computed(() => {
           <!-- Hover Glow Effect -->
           <div class="absolute inset-0 bg-gradient-to-br from-[#3b5d50]/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl"></div>
           
-          <div class="mb-2 text-[#3b5d50] text-4xl relative z-10 group-hover:scale-110 transition-transform duration-300" v-html="statistic.displayIcon">
+          <div class="mb-2 text-[#3b5d50] text-4xl relative z-10 group-hover:scale-110 transition-transform duration-300">
+            <img v-if="statistic.iconPath" :src="statistic.iconPath" :alt="`${statistic.label1} ikonu`" class="w-12 h-12 drop-shadow-md mx-auto" />
+            <div v-else v-html="statistic.displayIcon"></div>
           </div>
           <p class="text-black text-3xl font-bold relative z-10">{{ statistic.value }}</p>
           <p class="text-gray-600 text-sm font-semibold relative z-10">{{ statistic.label1 }}</p>

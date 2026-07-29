@@ -181,14 +181,15 @@ const loadWeHelpSection = async () => {
   
   try {
     const { data, error } = await useFetch('/api/we-help-section')
-    
+    const record = data.value?.data
+
     if (error.value) {
       fetchError.value = 'Veriler yüklenirken bir sorun oluştu.'
       console.error('Veri çekme hatası:', error.value)
-    } else if (data.value && data.value.id) {
-      weHelpData.value = data.value
-      featuresList.value = data.value.features || []
-      imagesList.value = data.value.images || []
+    } else if (record && record.id) {
+      weHelpData.value = record
+      featuresList.value = record.features || []
+      imagesList.value = record.images || []
     } else {
       fetchError.value = data.value?.error || 'Bölüm verisi veritabanında bulunamadı.'
       weHelpData.value = null
@@ -215,7 +216,7 @@ const buttonLink = computed(() => weHelpData.value?.buttonLink || "/hizmetlerimi
 // Formatlanmış başlık için computed property
 const formattedMainTitle = computed(() => {
   const title = mainTitle.value
-  return title.replace(/\n/g, '<br class="block lg:hidden" />')
+  return sanitizeHtml(title.replace(/\n/g, '<br class="block lg:hidden" />'))
 })
 
 /**

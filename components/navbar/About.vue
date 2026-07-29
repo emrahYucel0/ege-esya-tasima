@@ -19,25 +19,25 @@ const loadAboutSection = async () => {
   try {
     // API rotasından veriyi çekiyoruz
     const { data, error } = await useFetch('/api/about-section')
-    
+    const record = data.value?.data
+
     if (error.value) {
       fetchError.value = 'Veriler yüklenirken bir sorun oluştu.'
       console.error('Veri çekme hatası:', error.value)
-    } else if (data.value && (data.value.id || data.value.sectionName)) { 
-      // data.value doğrudan veriyi içeriyor (success olmayan dönen veri)
-      aboutData.value = data.value
-      servicesList.value = data.value.services || []
-      statsList.value = data.value.stats || []
     } else if (data.value && data.value.success === false) {
       // API'den hata mesajı geldiyse
       fetchError.value = data.value?.error || 'Bölüm verisi veritabanında bulunamadı.'
       aboutData.value = null
       servicesList.value = []
       statsList.value = []
+    } else if (record && (record.id || record.sectionName)) {
+      aboutData.value = record
+      servicesList.value = record.services || []
+      statsList.value = record.stats || []
     } else {
-      aboutData.value = data.value
-      servicesList.value = data.value?.services || []
-      statsList.value = data.value?.stats || []
+      aboutData.value = null
+      servicesList.value = []
+      statsList.value = []
     }
   } catch (err) {
     fetchError.value = 'Sunucuya erişilemedi.'
