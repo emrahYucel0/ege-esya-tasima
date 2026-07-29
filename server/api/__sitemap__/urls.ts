@@ -1,23 +1,35 @@
 import { defineSitemapEventHandler } from '#imports';
 
-export default defineSitemapEventHandler(async () => {
+// posts ve regions fetch'leri birbirinden bağımsız try/catch'lere sahip:
+// önceden tek bir try/catch ikisini de sarıyordu, yani regions çekimi
+// başarısız olduğunda (geçici bir hata bile olsa) başarıyla çekilmiş
+// posts verisi de sessizce sitemap'ten düşüyordu. Artık bir kaynağın
+// hatası diğerini etkilemiyor.
+async function fetchPostUrls() {
   try {
-    // Fetch posts
     const postsResponse = await $fetch('/api/posts');
-    const posts = postsResponse.success
-      ? postsResponse.data.map(p => ({ url: `/${p.slug}`, lastmod: p.createdAt }))
+    return postsResponse.success
+      ? postsResponse.data.map((p: any) => ({ url: `/${p.slug}`, lastmod: p.createdAt }))
       : [];
-
-    // Fetch regions
-    const regionsResponse = await $fetch('/api/regions');
-    const regions = regionsResponse.success
-      ? regionsResponse.data.map(r => ({ url: `/${r.slug}`, lastmod: r.createdAt }))
-      : [];
-
-    // Combine and return all URLs
-    return [...posts, ...regions];
   } catch (error) {
-    console.error('Error fetching sitemap data:', error);
-    return []; // Fallback to empty array on error
+    console.error('Sitemap: posts verisi çekilirken hata oluştu:', error);
+    return [];
   }
+}
+
+async function fetchRegionUrls() {
+  try {
+    const regionsResponse = await $fetch('/api/regions');
+    return regionsResponse.success
+      ? regionsResponse.data.map((r: any) => ({ url: `/${r.slug}`, lastmod: r.createdAt }))
+      : [];
+  } catch (error) {
+    console.error('Sitemap: regions verisi çekilirken hata oluştu:', error);
+    return [];
+  }
+}
+
+export default defineSitemapEventHandler(async () => {
+  const [posts, regions] = await Promise.all([fetchPostUrls(), fetchRegionUrls()]);
+  return [...posts, ...regions];
 });

@@ -453,7 +453,7 @@ useHead(metaData);
     <div class="flex flex-col md:flex-row gap-8 items-start">
       <div class="md:w-1/4 flex justify-center">
         <img 
-          :src="region.priceFactorsImage || 'https://cdn.armut.com/images/seo-pages/tr-TR/price-factors.svg'" 
+          :src="region.priceFactorsImage || '/images/price.svg'"
           :alt="region.priceFactorsTitle || 'Fiyatı Etkileyen Faktörler'"
           class="w-full max-w-[200px] h-auto object-contain"
         >
