@@ -1,103 +1,40 @@
-<template>
-  <section
-    class="hero relative overflow-hidden pt-[calc(4rem-30px)] md:pt-[calc(4rem-30px)] md:pb-16 lg:pt-[calc(8rem-30px)] lg:pb-0"
-  >
-    <!-- Background Image -->
-    <div class="absolute inset-0 z-0">
-      <NuxtImg
-        v-if="heroData.backgroundImage"
-        :src="heroData.backgroundImage"
-        alt="Evden eve nakliyat arka plan görseli"
-        class="w-full h-full object-cover object-center"
-        provider="imgix"
-        format="webp"
-        quality="60"
-        loading="eager"
-        sizes="sm:100vw md:100vw lg:100vw xl:100vw 2xl:1536px"
-        decoding="async"
-        fetchpriority="high"
-      />
-      <div v-else class="w-full h-full bg-gray-300"></div>
-      <div class="absolute inset-0 bg-primary/50 backdrop-blur-sm"></div>
-    </div>
-
-    <div class="container mx-auto px-4 relative z-10">
-      <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center min-h-[600px] lg:min-h-[700px]">
-        <!-- Text Content -->
-        <div ref="textRef" class="lg:w-5/12 mb-10 lg:mb-0 text-center lg:text-left lg:self-center">
-          <div class="intro-excerpt">
-            <h1
-              class="reveal-item text-white font-bold text-4xl sm:text-5xl xl:text-[54px] mb-6 sm:mb-8 leading-tight"
-            >
-              {{ heroData.title || "Evden Eve Nakliyat:" }}<br />
-              <span class="block">{{
-                heroData.subtitle ||
-                "Hızlı, Güvenilir ve Profesyonel Taşımacılık"
-              }}</span>
-            </h1>
-            <p class="reveal-item text-white/90 mb-6 lg:mb-8 text-base lg:text-lg leading-relaxed max-w-2xl mx-auto lg:mx-0 line-clamp-6">
-              {{
-                heroData.description ||
-                "Yeni bir eve taşınmanın heyecanını yaşarken, eşyalarınızın güvenliği ve taşınma sürecinin stresi gözünüzü korkutmasın. Firmamız, İstanbul evden eve nakliyat sektöründeki köklü deneyimiyle, bu zorlu süreci sizler için başından sona kadar kolay ve sorunsuz bir deneyime dönüştürüyor. Alanında uzman ekibimiz ve modern taşıma tekniklerimizle, güvenilir evden eve nakliyat hizmetinin kapılarını aralıyoruz. Sunduğumuz sigortalı nakliyat güvencesi ile tüm eşyalarınızı titizlikle paketliyor, potansiyel hasarlara karşı koruma altına alıyoruz. Yüksek katlarda bile hızlı ve emniyetli çözümler sunan asansörlü nakliyat seçeneğimizle, taşınma işlemini maksimum verimlilikle gerçekleştiriyoruz. Sadece İstanbul içi değil, şehirler arası nakliyat hizmetimizle de Türkiye'nin dört bir yanına güvenle taşınmanızı sağlıyoruz. Şeffaf fiyat politikamız gereği, evden eve nakliyat fiyatları hakkında bilgi almak ve size özel ücretsiz ekspertiz hizmetimizden yararlanmak için bizimle hemen iletişime geçin. Profesyonel, hızlı ve stressiz bir taşınma deneyimi için doğru adrestesiniz."
-              }}
-            </p>
-            <div class="reveal-item flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-              <NuxtLink
-                v-if="heroData.primaryLink && heroData.primaryButton"
-                :to="heroData.primaryLink"
-                class="btn btn-secondary"
-              >
-                {{ heroData.primaryButton }}
-              </NuxtLink>
-              <NuxtLink
-                v-if="heroData.secondaryLink && heroData.secondaryButton"
-                :to="heroData.secondaryLink"
-                class="btn btn-white-outline"
-              >
-                {{ heroData.secondaryButton }}
-              </NuxtLink>
-            </div>
-          </div>
-        </div>
-
-        <!-- Hero Image -->
-        <div ref="imageRef" class="lg:w-7/12 relative mt-8 lg:mt-0 lg:self-end">
-          <div class="hero-img-wrap">
-            <NuxtImg
-              v-if="heroData.image"
-              :src="heroData.image"
-              alt="Evden eve nakliyat kamyonu ve hizmet görseli"
-              class="hero-image"
-              provider="imgix"
-              format="webp"
-              quality="70"
-              loading="eager"
-              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 100vw, 780px"
-              decoding="async"
-            />
-            <div v-else class="w-full h-64 bg-gray-200 rounded-lg"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-</template>
-
 <script setup>
-// Fetch hero data from API
+/**
+ * HERO — ana sayfanın ilk ekranı.
+ *
+ * TASARIM KARARLARI
+ *
+ * 1. Perde (scrim) yerine YÖNLÜ GRADIENT.
+ *    Önceki sürüm arka plan fotoğrafını `bg-primary/50 backdrop-blur-sm` ile
+ *    baştan sona örtüyordu: fotoğraf tanınmaz hale geliyor, buna rağmen
+ *    metnin kontrastı fotoğrafın hangi bölgeye denk geldiğine göre
+ *    değişiyordu. Artık gradient soldan (metnin olduğu yer) koyu başlayıp
+ *    sağa doğru açılıyor — hem metin kontrastı GARANTİ (WCAG AA), hem
+ *    fotoğraf sağ tarafta görünür kalıyor. Blur tamamen kalktı
+ *    (backdrop-blur tam ekran alanda pahalı bir efekttir).
+ *
+ * 2. Metin ve görsel ayrı katmanlarda.
+ *    Görsel kabı iki iç içe elemandan oluşuyor: dıştaki fare parallax'ını
+ *    (transform) taşır, içteki clip-reveal animasyonunu. Aynı elemana
+ *    verilseydi CSS animasyonu transform'u ezerdi.
+ *
+ * 3. Giriş animasyonu saf CSS (.enter-*), scroll gözlemcisi YOK.
+ *    Hero sayfa açılışında zaten ekranda; gözlemci beklemek gereksiz
+ *    gecikme ve "önce görünüp sonra kaybolma" (flash) riski demek.
+ *    Başlık .enter-rise kullanır: opaklığa dokunmaz, yalnızca kaydırır —
+ *    başlık LCP adayı olduğu için opacity:0 ile başlayan bir animasyon
+ *    LCP ölçümünü animasyonun bitişine kadar geciktirirdi.
+ *
+ * 4. Açıklama KIRPILMIYOR — çünkü artık kırpılacak kadar uzun değil.
+ *    Veritabanındaki metin 695 karakterdi ve hero'da 8-11 satır tutuyordu.
+ *    İkiye bölündü: kanca cümleleri (223 karakter) burada kaldı, detay
+ *    cümleleri (471 karakter) Hero'nun hemen altındaki güven bandına
+ *    taşındı (bkz. components/base/TrustBar.vue). Toplam metin birebir
+ *    aynı; ana sayfadan tek kelime eksilmedi.
+ */
 const { data: heroResponse } = await useFetch("/api/hero");
 const { brandName } = await useSiteSettings();
 
-// Giriş animasyonu: metin bloğu (başlık → açıklama → butonlar) sırayla
-// belirir, görsel sağdan hafifçe kayarak gelir. immediate:true kullanılıyor
-// (ScrollTrigger değil) çünkü Hero sayfa yüklendiğinde zaten görünür — bkz.
-// composables/useScrollReveal.ts'teki immediate açıklaması.
-const textRef = ref(null);
-const imageRef = ref(null);
-useScrollReveal(textRef, { targets: ".reveal-item", y: 30, stagger: 0.15, immediate: true });
-useScrollReveal(imageRef, { x: 60, y: 0, duration: 1, delay: 0.3, immediate: true });
-
-// Set default values if no data exists
 const heroData = ref({
   title: "",
   subtitle: "",
@@ -111,7 +48,7 @@ const heroData = ref({
   ...heroResponse.value?.data,
 });
 
-// Fallback to default values if API returns null
+// API'den kayıt gelmezse varsayılanlar
 if (!heroResponse.value?.data) {
   heroData.value = {
     title: `${brandName.value} İle`,
@@ -126,85 +63,262 @@ if (!heroResponse.value?.data) {
     backgroundImage: "/images/nakliye2.jpg",
   };
 }
+
+/**
+ * Güven rozetleri — ilk ekranda "bu firmaya neden güveneyim?" sorusuna
+ * verilen en kısa cevap. Şu an sabit; hizmet vaadi bildirdikleri için
+ * (istatistik/puan DEĞİL) uydurma bir iddia içermezler. İleride admin
+ * panelinden yönetilmeleri gerekirse Hero modeline bir alt liste eklenir —
+ * kod tabanındaki `defaultServices` / `defaultFaqs` deseniyle aynı mantık.
+ */
+const trustBadges = [
+  { icon: "shield-check", label: "Sigortalı taşıma" },
+  { icon: "check-circle", label: "Yazılı sözleşme" },
+  { icon: "truck", label: "Kendi araç filomuz" },
+];
+
+// Fare parallax'ı: görsel, imleç HERO BOYUNCA gezinirken en fazla 10px
+// kayar. Composable dokunmatik cihazlarda ve reduced-motion'da hiç
+// devreye girmez.
+const heroRef = ref(null);
+const imageRef = ref(null);
+useMagnetic(imageRef, { strength: 10, area: heroRef });
+
+// Birincil CTA'nın imleci hafifçe çekmesi.
+const ctaRef = ref(null);
+useMagnetic(ctaRef, { strength: 6 });
 </script>
+
+<template>
+  <section
+    ref="heroRef"
+    class="hero relative isolate flex items-center overflow-hidden"
+  >
+    <!-- Arka plan görseli -->
+    <div class="absolute inset-0 -z-10">
+      <NuxtImg
+        v-if="heroData.backgroundImage"
+        :src="heroData.backgroundImage"
+        alt=""
+        aria-hidden="true"
+        class="h-full w-full object-cover object-center"
+        provider="imgix"
+        format="webp"
+        quality="60"
+        loading="eager"
+        sizes="100vw"
+        decoding="async"
+        fetchpriority="high"
+      />
+      <div v-else class="h-full w-full bg-brand-800"></div>
+
+      <!-- Yönlü perde: metin tarafı koyu, fotoğraf tarafı açık.
+           Mobilde metin ortalandığı için perde dikey ve daha yoğun. -->
+      <div class="hero-scrim absolute inset-0"></div>
+    </div>
+
+    <div class="container relative py-16 md:py-20 lg:py-24">
+      <div
+        class="grid items-center gap-12 lg:grid-cols-12 lg:gap-8 xl:gap-12"
+      >
+        <!-- ── Metin ─────────────────────────────────────────────── -->
+        <div class="text-center lg:col-span-7 lg:text-left xl:col-span-6">
+          <p class="enter-fade hero-eyebrow">
+            <ui-icon name="map-pin" :size="14" />
+            <span>Şehir içi ve şehirler arası evden eve nakliyat</span>
+          </p>
+
+          <!-- Başlık `text-display` DEĞİL `text-h1` ölçeğinde: veritabanındaki
+               gerçek başlık+alt başlık ~90 karakter ve display ölçeğinde
+               (72px) sol sütunda 12 satıra çıkıyordu. Alt başlık da H1'in
+               içinde kalıyor (anahtar kelime değeri korunsun diye) ama
+               tipografik olarak destekleyici satır seviyesine indirildi. -->
+          <h1 class="enter-rise mt-6 text-h1 text-white" style="--reveal-i: 1">
+            {{ heroData.title || "Evden Eve Nakliyat:" }}
+            <span
+              class="mt-3 block text-lead font-semibold leading-snug tracking-normal text-accent-300 sm:text-xl"
+            >
+              {{
+                heroData.subtitle ||
+                "Hızlı, Güvenilir ve Profesyonel Taşımacılık"
+              }}
+            </span>
+          </h1>
+
+          <p
+            class="enter-up mx-auto mt-6 max-w-xl text-lead text-white/85 lg:mx-0"
+            style="--reveal-i: 2"
+          >
+            {{
+              heroData.description ||
+              "Evden eve taşınma süreci gözünüzde büyümesin. Eşyalarınızı sigortalı, ambalajlı ve uzman ekibimizle yeni adresinize güvenle taşıyoruz."
+            }}
+          </p>
+
+          <div
+            class="enter-up mt-9 flex flex-col justify-center gap-3 sm:flex-row lg:justify-start"
+            style="--reveal-i: 3"
+          >
+            <ui-button
+              v-if="heroData.primaryLink && heroData.primaryButton"
+              ref="ctaRef"
+              :to="heroData.primaryLink"
+              variant="secondary"
+              size="lg"
+              trailing-icon="arrow-right"
+            >
+              {{ heroData.primaryButton }}
+            </ui-button>
+            <ui-button
+              v-if="heroData.secondaryLink && heroData.secondaryButton"
+              :to="heroData.secondaryLink"
+              variant="white-outline"
+              size="lg"
+            >
+              {{ heroData.secondaryButton }}
+            </ui-button>
+          </div>
+
+          <!-- Güven rozetleri -->
+          <!-- Dar ekranda alt alta: 3 rozeti 375px'e sığdırmaya çalışmak
+               hem sıkışık görünüyor hem taşma riski taşıyor. -->
+          <ul
+            class="enter-up mt-10 flex flex-col items-center gap-3 border-t border-white/15 pt-6 sm:flex-row sm:flex-wrap sm:justify-center sm:gap-x-6 lg:justify-start"
+            style="--reveal-i: 4"
+          >
+            <li
+              v-for="badge in trustBadges"
+              :key="badge.label"
+              class="flex items-center gap-2 text-sm font-medium text-white/80"
+            >
+              <ui-icon :name="badge.icon" :size="18" class="text-accent-300" />
+              {{ badge.label }}
+            </li>
+          </ul>
+        </div>
+
+        <!-- ── Görsel ────────────────────────────────────────────── -->
+        <div class="lg:col-span-5 xl:col-span-6">
+          <!-- Dış kap: fare parallax'ı (transform) -->
+          <div ref="imageRef" class="hero-visual relative mx-auto max-w-xl lg:max-w-none">
+            <!-- İç kap: clip-reveal animasyonu -->
+            <div class="enter-clip overflow-hidden rounded-hero shadow-deep" style="--reveal-i: 2">
+              <NuxtImg
+                v-if="heroData.image"
+                :src="heroData.image"
+                alt="Profesyonel nakliyat ekibimiz eşyaları paketlerken"
+                class="aspect-[4/3] w-full object-cover lg:aspect-[5/4]"
+                provider="imgix"
+                format="webp"
+                quality="70"
+                loading="eager"
+                sizes="(max-width: 1023px) 90vw, 55vw"
+                decoding="async"
+              />
+              <div v-else class="aspect-[4/3] w-full bg-brand-700"></div>
+            </div>
+
+            <!-- Cam bilgi kartı: sayısal bir iddia DEĞİL, hizmet vaadi.
+                 (Uydurma puan/yorum sayısı yazmıyoruz.) -->
+            <div
+              class="enter-up hero-glass absolute -bottom-5 left-4 right-4 sm:left-6 sm:right-auto sm:max-w-xs"
+              style="--reveal-i: 5"
+            >
+              <span class="hero-glass__icon">
+                <ui-icon name="search" :size="20" />
+              </span>
+              <span>
+                <strong class="block text-sm font-semibold text-white">
+                  Ücretsiz ekspertiz
+                </strong>
+                <span class="block text-xs leading-snug text-white/75">
+                  Eve gelip ölçüyor, net fiyat veriyoruz
+                </span>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</template>
 
 <style scoped>
 .hero {
-  min-height: 600px;
+  /* svh: mobil tarayıcı çubuğu açılıp kapandığında yüksekliğin zıplamasını
+     engeller. Üst sınır, çok uzun ekranlarda hero'nun absürt büyümemesi
+     için. Fallback (svh desteklemeyen tarayıcı) hemen üstte. */
+  min-height: 620px;
+  min-height: min(88svh, 820px);
 }
 
-.hero-image {
-  width: 100%;
-  height: auto;
-  max-width: 100%;
-  box-shadow: -5px  rgba(0, 0, 0, 0.25);
-  position: relative;
-  z-index: 5;
+/* Yönlü perde.
+   lg altı: metin ortalı olduğu için perde dikey ve daha yoğun.
+   lg üstü: metin solda olduğu için perde soldan sağa açılır. */
+.hero-scrim {
+  background:
+    linear-gradient(
+      to bottom,
+      rgb(var(--c-brand-950) / 0.82) 0%,
+      rgb(var(--c-brand-900) / 0.72) 55%,
+      rgb(var(--c-brand-950) / 0.86) 100%
+    );
 }
 
-/* Mobile: Görsel sağ alt köşede, küçük boyut */
-@media (max-width: 640px) {
-  .hero-image {
-    max-width: 280px;
-    margin-left: auto;
-    margin-right: -20px;
-    margin-bottom: -30px;
-  }
-}
-
-/* Tablet: Görsel sağ alt köşede, orta boyut */
-@media (min-width: 641px) and (max-width: 1023px) {
-  .hero-image {
-    max-width: 400px;
-    margin-left: auto;
-    margin-right: -40px;
-    margin-bottom: -60px;
-  }
-}
-
-/* Desktop: Görsel sağ alt köşeye konumlandırılmış */
 @media (min-width: 1024px) {
-  .hero {
-    min-height: 700px;
-  }
-  
-  .hero-image {
-    max-width: 580px;
-    margin-left: auto;
-    margin-right: -80px;
-    /* margin-bottom: -120px; */
-  }
-}
-
-/* Large Desktop: Daha fazla sağa kaydırma */
-@media (min-width: 1280px) {
-  .hero-image {
-    max-width: 680px;
-    margin-right: -120px;
-    /* margin-bottom: -150px; */
+  .hero-scrim {
+    background:
+      linear-gradient(
+        100deg,
+        rgb(var(--c-brand-950) / 0.94) 0%,
+        rgb(var(--c-brand-950) / 0.86) 34%,
+        rgb(var(--c-brand-900) / 0.55) 62%,
+        rgb(var(--c-brand-900) / 0.25) 100%
+      );
   }
 }
 
-/* Extra Large Desktop: Maksimum sağa kaydırma */
-@media (min-width: 1536px) {
-  .hero-image {
-    max-width: 780px;
-    margin-right: -150px;
-    /* margin-bottom: -180px; */
-  }
+.hero-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4375rem 0.875rem;
+  border-radius: var(--r-full);
+  background: rgb(var(--c-surface) / 0.1);
+  border: 1px solid rgb(var(--c-surface) / 0.18);
+  color: rgb(var(--c-surface) / 0.92);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  line-height: 1;
 }
 
-/* Ultra Wide Desktop */
-@media (min-width: 1920px) {
-  .hero-image {
-    margin-right: -200px;
-    /* margin-bottom: -220px; */
-  }
+/* Cam kart. backdrop-filter yalnızca bu küçük alanda kullanılıyor —
+   tam ekran uygulandığında ciddi bir render maliyeti oluyor. */
+.hero-glass {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  padding: 0.875rem 1.125rem;
+  border-radius: var(--r-lg);
+  background: rgb(var(--c-brand-950) / 0.55);
+  border: 1px solid rgb(var(--c-surface) / 0.16);
+  box-shadow: var(--shadow-lg);
+  backdrop-filter: blur(12px);
 }
 
-/* Fallback styles when Tailwind not available */
-.hero-img-wrap img {
-  max-width: 100%;
-  height: auto;
+.hero-glass__icon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: var(--r-full);
+  background: rgb(var(--c-accent-400) / 0.18);
+  color: rgb(var(--c-accent-300));
+}
+
+/* Görselin altındaki cam kart kabın dışına taştığı için alt boşluk. */
+.hero-visual {
+  margin-bottom: 1.75rem;
 }
 </style>

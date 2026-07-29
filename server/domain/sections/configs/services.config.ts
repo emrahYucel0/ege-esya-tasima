@@ -24,6 +24,9 @@ export interface ServicesInput {
   description?: string
   buttonText?: string
   buttonLink?: string
+  /** Ana sayfadaki güven bandının giriş paragrafı (istatistiklerle birlikte
+   *  Hero'nun hemen altında gösterilir). */
+  statsIntro?: string
   services?: ServiceItemInput[]
   statistics?: StatisticInput[]
 }
@@ -61,12 +64,14 @@ export const servicesCrudService = createSectionCrudService<any, ServicesInput>(
     description: b.description,
     buttonText: b.buttonText,
     buttonLink: b.buttonLink,
+    statsIntro: b.statsIntro,
   }),
   mapParentUpdate: (b) => ({
     mainTitle: b.mainTitle,
     description: b.description,
     buttonText: b.buttonText,
     buttonLink: b.buttonLink,
+    statsIntro: b.statsIntro,
   }),
   deleteStrategy: 'manual',
   manualDeleteDelegates: [

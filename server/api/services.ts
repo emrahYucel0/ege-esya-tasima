@@ -23,6 +23,7 @@ const servicesSchema = yup.object({
   description: yup.string().notRequired(),
   buttonText: yup.string().trim().notRequired(),
   buttonLink: yup.string().trim().notRequired(),
+  statsIntro: yup.string().notRequired(),
   services: yup.array().of(serviceItemSchema).notRequired(),
   statistics: yup.array().of(statisticSchema).notRequired(),
 });

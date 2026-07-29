@@ -44,7 +44,10 @@ useHead({
 
 <template>
   <main class="flex flex-col justify-between">
-    <base-hero class="-mt-10" />
+    <!-- Hero kendi dikey boşluğunu yönetiyor; buradaki eski `-mt-10`
+         düzeltme hack'i kaldırıldı. -->
+    <base-hero />
+    <base-trust-bar />
     <base-services class="mb-20" />
     <base-process class="mb-20" />
     <base-choose class="mb-20 mt-20" />
