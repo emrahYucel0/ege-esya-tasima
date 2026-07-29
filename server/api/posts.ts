@@ -20,8 +20,12 @@ export default defineEventHandler(async (event) => {
   }
 
   if (method === 'GET') {
-    const { slug, light } = getQuery(event)
-    return postsService.get(slug ? String(slug) : undefined, light === 'true')
+    const { slug, light, page, pageSize } = getQuery(event)
+    return postsService.get(
+      slug ? String(slug) : undefined,
+      light === 'true',
+      page ? { page: Number(page), pageSize: pageSize ? Number(pageSize) : undefined } : undefined
+    )
   }
 
   if (method === 'POST') {

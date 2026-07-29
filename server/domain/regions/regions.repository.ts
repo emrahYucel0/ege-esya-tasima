@@ -10,12 +10,14 @@ export const regionsRepository = {
   // formunu doğrudan bu listeden doldurduğu için `content` hâlâ gerekli —
   // varsayılan davranış değişmedi, sadece `light: true` geçildiğinde
   // devre dışı bırakılıyor.
-  findMany: (where: any, options: { light?: boolean } = {}) =>
+  findMany: (where: any, options: { light?: boolean; take?: number; skip?: number } = {}) =>
     prisma.region.findMany({
       where,
       orderBy: { title: 'asc' },
       ...(options.light ? { omit: { content: true } } : {}),
+      ...(options.take !== undefined ? { take: options.take, skip: options.skip ?? 0 } : {}),
     }),
+  count: (where: any) => prisma.region.count({ where }),
   create: (data: any) => prisma.region.create({ data }),
   update: (slug: string, data: any) => prisma.region.update({ where: { slug }, data }),
   remove: (slug: string) => prisma.region.delete({ where: { slug } }),

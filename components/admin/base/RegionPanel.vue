@@ -17,7 +17,7 @@ import Image from '@tiptap/extension-image'
 // id 47 yanlışlıkla "Karaman" olarak etiketlenmişti, doğrusu "Mardin"dir;
 // 70 zaten doğru şekilde "Karaman"dı).
 
-const { form: region, message, items: allRegions, isSaving, isDeleting, resetForm: resetFormBase, selectItem, save, remove, replaceItem } = useListCrud('regions', {
+const { form: region, message, items: allRegions, isSaving, isDeleting, isLoadingItem, resetForm: resetFormBase, selectItem, save, remove, replaceItem } = useListCrud('regions', {
   id: null,
   title: '',
   subtitle: '',
@@ -67,8 +67,14 @@ const removePriceFactor = (index) => {
 }
 
 // --- Bölge Seçimi ---
-const selectRegion = (slug) => {
-  const selected = selectItem(slug)
+// selectItem artık listeden değil, doğrudan API'den (slug ile) tek kayıt
+// çekiyor (bkz. useListCrud.ts) — bu yüzden async. Not: bu panel bilinçli
+// olarak paginated:false kalıyor (bkz. useListCrud çağrısı) çünkü aşağıdaki
+// istatistik paneli ve arama/filtre (searchQuery/statusFilter) tüm bölge
+// listesinin bellekte olmasına bağımlı — sayfalama bunları (yanlış toplam
+// sayılar, sadece görünen sayfada arama) sessizce bozardı.
+const selectRegion = async (slug) => {
+  const selected = await selectItem(slug)
   if (selected) {
     // priceFactors'ı kontrol et
     if (selected.priceFactors) {
@@ -809,9 +815,10 @@ const updateImageUrl = (url) => {
           </button>
           
           <!-- Düzenle Butonu -->
-          <button 
+          <button
             @click="selectRegion(regionItem.slug)"
-            class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm font-medium transition-colors"
+            :disabled="isLoadingItem"
+            class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Düzenle
           </button>

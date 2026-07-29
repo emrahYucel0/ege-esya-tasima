@@ -14,13 +14,37 @@ export interface PostInput {
   image?: string
 }
 
-async function get(slug?: string, light?: boolean): Promise<ServiceResult<any>> {
+export interface PaginationInput {
+  page?: number
+  pageSize?: number
+}
+
+const DEFAULT_PAGE_SIZE = 20
+const MAX_PAGE_SIZE = 100
+
+// page/pageSize verilmezse (mevcut tüm tüketiciler: carousel'ler, navbar,
+// admin'in bugüne kadarki tam liste görünümü) davranış öncekiyle birebir
+// aynı kalır — bare bir dizi döner. Sadece `page` açıkça istendiğinde
+// {items,total,page,pageSize,totalPages} zarfına geçilir; bu yüzden bu
+// geriye dönük tam uyumlu, isteğe bağlı (opt-in) bir davranış.
+async function get(slug?: string, light?: boolean, pagination?: PaginationInput): Promise<ServiceResult<any>> {
   try {
     if (slug) {
       const post = await postsRepository.findBySlug(slug)
       if (!post) return fail('Post bulunamadı')
       return ok(post)
     }
+
+    if (pagination?.page) {
+      const page = Math.max(1, pagination.page)
+      const pageSize = Math.min(MAX_PAGE_SIZE, Math.max(1, pagination.pageSize || DEFAULT_PAGE_SIZE))
+      const [items, total] = await Promise.all([
+        postsRepository.findAll({ light, take: pageSize, skip: (page - 1) * pageSize }),
+        postsRepository.count(),
+      ])
+      return ok({ items, total, page, pageSize, totalPages: Math.max(1, Math.ceil(total / pageSize)) })
+    }
+
     return ok(await postsRepository.findAll({ light }))
   } catch (error) {
     return fail(getSafeErrorMessage(error))
