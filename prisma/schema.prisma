@@ -160,7 +160,12 @@ model Services {
   description      String?   @db.Text // "Evden eve nakliyat sürecinizde..." açıklama paragrafı
   buttonText       String?   @default("Tüm Hizmetler")
   buttonLink       String?   @default("/hizmetlerimiz")
-  
+
+  // Ana sayfada Hero'nun hemen altındaki güven bandında, istatistiklerin
+  // yanında gösterilen kısa giriş paragrafı. İstatistikler zaten bu modele
+  // bağlı olduğu için metin de burada tutuluyor.
+  statsIntro       String?   @db.Text
+
   services         Service[]
   statistics       Statistic[]
   

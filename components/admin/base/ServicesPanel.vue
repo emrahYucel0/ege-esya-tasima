@@ -4,6 +4,7 @@ const { form, message, showDeleteModal, recordId, isSaving, isDeleting, save, re
   description: '',
   buttonText: '',
   buttonLink: '',
+  statsIntro: '',
   services: [],
   statistics: [],
 });
@@ -147,8 +148,27 @@ const removeStatistic = (index) => {
         <span>Yeni Hizmet Ekle</span>
       </button>
 
-      <!-- İSTATİSTİKLER BÖLÜMÜ -->
-      <h2 class="text-xl font-semibold border-b pb-2 text-primary pt-8">İstatistikler</h2>
+      <!-- GÜVEN BANDI BÖLÜMÜ -->
+      <h2 class="text-xl font-semibold border-b pb-2 text-primary pt-8">Güven Bandı</h2>
+      <p class="text-sm text-gray-500">
+        Ana sayfada, giriş bölümünün (Hero) hemen altında görünen ince bant.
+        Aşağıdaki giriş metni ve istatistikler orada birlikte gösterilir.
+      </p>
+
+      <div>
+        <label for="statsIntro" class="block font-medium text-gray-700 mb-1">
+          Güven Bandı Giriş Metni
+        </label>
+        <textarea
+          id="statsIntro"
+          v-model="form.statsIntro"
+          rows="4"
+          class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+          placeholder="Firmanızı 2-3 cümleyle anlatan kısa bir giriş paragrafı."
+        ></textarea>
+      </div>
+
+      <h3 class="text-lg font-semibold text-gray-700 pt-2">İstatistikler</h3>
       <p class="text-sm text-gray-500">Sayısal değerler ve etiketler.</p>
 
       <div class="space-y-4">
