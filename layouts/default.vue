@@ -1,5 +1,6 @@
 <template>
-    <fixed-navbar />
-    <slot />
-    <fixed-footer />
+  <ui-scroll-progress />
+  <fixed-navbar />
+  <slot />
+  <fixed-footer />
 </template>

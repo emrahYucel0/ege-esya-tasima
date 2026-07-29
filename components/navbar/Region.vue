@@ -1,10 +1,6 @@
 <script setup>
-import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useRoute, navigateTo } from '#app'
-
-gsap.registerPlugin(ScrollTrigger);
 
 const route = useRoute();
 const currentPage = ref(Number(route.query.sayfa) || 1);
@@ -122,29 +118,11 @@ watch(searchQuery, () => {
   navigateTo({ query: { sayfa: 1 } });
 });
 
-let revealTween = null;
-
-onMounted(() => {
-  revealTween = gsap.from(".service-card", {
-    opacity: 0,
-    y: 50,
-    duration: 1,
-    stagger: 0.2,
-    scrollTrigger: {
-      trigger: ".container",
-      start: "top 90%",
-      end: "top 40%",
-      toggleActions: "play none none none",
-    },
-  });
-});
-
-// Tween'e bağlı ScrollTrigger, bileşen unmount olduğunda temizlenmezse
-// artık var olmayan bir DOM elementini dinlemeye devam eder.
-onUnmounted(() => {
-  revealTween?.scrollTrigger?.kill();
-  revealTween?.kill();
-});
+// Kart listesinin belirmesi ortak animasyon dilinden geliyor
+// (bkz. composables/useReveal.ts): kartlar [data-reveal-group] içinde
+// birlikte tetiklenip sırayla gelir.
+const listRef = ref(null);
+useReveal(listRef);
 
 const { siteUrl, brandName } = await useSiteSettings();
 
@@ -341,10 +319,11 @@ useHead({
       </div>
       
       <!-- Aktif bölgeler varsa göster -->
-      <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      <div v-else ref="listRef" data-reveal-group class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         <div
           v-for="region in paginatedRegions"
           :key="region.id"
+          data-reveal
           class="service-card group relative bg-white rounded-xl shadow-lg hover:shadow-xl transition-all overflow-hidden"
         >
           <div class="relative overflow-hidden">

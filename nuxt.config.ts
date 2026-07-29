@@ -36,34 +36,12 @@ export default defineNuxtConfig({
     },
   },
 
-  postcss: {
-    plugins: {
-      cssnano: {
-        preset: [
-          "default",
-          {
-            discardComments: { removeAll: true },
-            cssDeclarationSorter: true,
-          },
-        ],
-      },
-    },
-  },
-
   ssr: true,
   target: "server",
-
-  gsap: {
-    extraPlugins: {
-      scrollTrigger: true,
-    },
-  },
 
   sitemap: {
     sources: ["/api/__sitemap__/urls"],
   },
-
-  plugins: ["~/plugins/gsap.client.js"],
 
   app: {
     head: {
@@ -88,11 +66,21 @@ export default defineNuxtConfig({
     },
   },
 
-  css: ["~/assets/css/main.css"],
+  // tokens.css ÖNCE gelmeli: main.css (ve Tailwind'in ürettiği tüm sınıflar)
+  // içindeki var(--…) referansları bu dosyada tanımlanıyor.
+  css: ["~/assets/css/tokens.css", "~/assets/css/main.css"],
+
+  // NOT: Bu dosyada daha önce İKİ ayrı `postcss` anahtarı vardı; ikincisi
+  // birincisini sessizce eziyordu, dolayısıyla cssnano hiçbir zaman
+  // çalışmıyordu (CSS minify edilmiyordu). Tek anahtarda birleştirildi.
   postcss: {
     plugins: {
       tailwindcss: {},
       autoprefixer: {},
+      cssnano:
+        process.env.NODE_ENV === "production"
+          ? { preset: ["default", { discardComments: { removeAll: true } }] }
+          : false,
     },
   },
 

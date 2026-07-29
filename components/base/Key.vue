@@ -1,6 +1,4 @@
 <script setup>
-import gsap from "gsap";
-
 const marquees = [
   {
     items: [
@@ -27,14 +25,6 @@ const marquees = [
     icon: "shield",
   },
 ];
-
-const marqueeRefs = ref([]);
-
-const setMarqueeRef = (el) => {
-  if (el && !marqueeRefs.value.includes(el)) {
-    marqueeRefs.value.push(el);
-  }
-};
 
 const formatUrlHash = (text) => {
   const turkishToLatin = {
@@ -83,66 +73,13 @@ const getIconPath = (icon) => {
   return icons[icon] || icons.truck;
 };
 
-const marqueeTweens = [];
-const linkClickHandlers = [];
-
-onMounted(() => {
-  const revealElements = document.querySelectorAll(".reveal-me");
-  gsap.fromTo(
-    revealElements,
-    { opacity: 0, y: 50 },
-    {
-      opacity: 1,
-      y: 0,
-      duration: 1.5,
-      ease: "power4.out",
-      stagger: 0.3,
-    }
-  );
-
-  marqueeRefs.value.forEach((inner, index) => {
-    const isReverse = marquees[index].reverse;
-    const duration = 15 + Math.random() * 5;
-
-    gsap.set(inner, { xPercent: isReverse ? -50 : 0 });
-    marqueeTweens.push(
-      gsap.to(inner, {
-        xPercent: isReverse ? 0 : -50,
-        duration: duration,
-        ease: "none",
-        repeat: -1,
-        modifiers: { xPercent: gsap.utils.wrap(-50, 0) },
-      })
-    );
-  });
-
-  document.querySelectorAll(".marquee-item-link").forEach((link) => {
-    const handler = (e) => {
-      e.preventDefault();
-      const href = link.getAttribute("href");
-      const text = link.querySelector(".text").textContent;
-      scrollToSection(href, text);
-
-      gsap.to(link, {
-        scale: 0.95,
-        duration: 0.2,
-        yoyo: true,
-        repeat: 1,
-        ease: "power1.inOut",
-      });
-    };
-    link.addEventListener("click", handler);
-    linkClickHandlers.push({ link, handler });
-  });
-});
-
-// Sonsuz tekrarlı (repeat:-1) marquee tween'leri ve tıklama listener'ları,
-// bileşen unmount olduğunda temizlenmezse çalışmaya/dinlemeye devam eder —
-// istemci-taraflı sayfa geçişlerinde birikimli bellek sızıntısına yol açar.
-onUnmounted(() => {
-  marqueeTweens.forEach((tween) => tween.kill());
-  linkClickHandlers.forEach(({ link, handler }) => link.removeEventListener("click", handler));
-});
+// Marquee'ler ve giriş animasyonu artık tamamen CSS ile yürüyor:
+//   • sonsuz kayma  → .marquee-inner / .is-reverse keyframe'leri
+//   • giriş belirmesi → .enter-up (bölüm sayfa açılışında ekranda)
+//   • tıklamada basma geri bildirimi → :active { scale }
+// Böylece manuel listener kaydı, tween temizliği ve bellek sızıntısı riski
+// tamamen ortadan kalkıyor; tıklama Vue'nun kendi @click'iyle yönetiliyor.
+const onItemClick = (item) => scrollToSection(item.link, item.text);
 </script>
 
 <template>
@@ -154,7 +91,7 @@ onUnmounted(() => {
     ></div>
 
     <div class="max-w-7xl mx-auto px-4 relative z-10">
-      <div class="text-center mb-16 reveal-me">
+      <div class="text-center mb-16 enter-up">
         <h1
           class="text-5xl md:text-6xl font-bold text-white mb-6 tracking-tight"
         >
@@ -171,13 +108,17 @@ onUnmounted(() => {
       <div
         v-for="(marquee, index) in marquees"
         :key="index"
+        :style="{ '--reveal-i': index + 1 }"
         :class="[
           'marquee-container overflow-hidden whitespace-nowrap py-6 bg-white/10 backdrop-blur-xl rounded-2xl my-6 border border-white/10 shadow-xl',
           { 'marquee-reverse border-t border-white/10': marquee.reverse },
-          'reveal-me',
+          'enter-up',
         ]"
       >
-        <div class="marquee-inner inline-flex w-[200%]" :ref="setMarqueeRef">
+        <div
+          class="marquee-inner inline-flex w-[200%]"
+          :class="{ 'is-reverse': marquee.reverse }"
+        >
           <div
             :class="[
               'marquee-content flex flex-[0_0_50%] items-center gap-8 px-8',
@@ -195,7 +136,8 @@ onUnmounted(() => {
               <a
                 :href="item.link"
                 class="marquee-item-link flex items-center gap-6 text-white no-underline group"
-                @click.prevent
+                :tabindex="i === 2 ? -1 : undefined"
+                @click.prevent="onItemClick(item)"
               >
                 <span
                   class="icon-wrapper w-11 h-11 flex items-center justify-center bg-amber-400/10 rounded-full border border-amber-400/30"
@@ -238,7 +180,8 @@ onUnmounted(() => {
       </div>
 
       <div
-        class="flex flex-col sm:flex-row justify-center gap-6 mt-16 reveal-me"
+        class="flex flex-col sm:flex-row justify-center gap-6 mt-16 enter-up"
+        style="--reveal-i: 3"
       >
         <NuxtLink
           to="/blog"
@@ -300,7 +243,51 @@ onUnmounted(() => {
   @apply absolute inset-0 pointer-events-none bg-gradient-to-r from-stone-900/80 via-transparent to-stone-900/80;
 }
 
+/* Sonsuz kayan şerit — saf CSS.
+   Şerit iki özdeş içerik kümesi barındırır (w-[200%] + flex-[0_0_50%]),
+   bu yüzden -50% kaydığında ikinci küme birincinin yerine geçer ve döngü
+   sıçramasız görünür. Ters yön aynı keyframe'in tersine oynatılmasıyla
+   elde edilir — ikinci bir keyframe tanımına gerek yok. */
 .marquee-inner {
   will-change: transform;
+  animation: marquee-scroll 18s linear infinite;
+}
+
+.marquee-inner.is-reverse {
+  animation-direction: reverse;
+  animation-duration: 22s;
+}
+
+/* Kullanıcı bir başlığa tıklamak isterken hedefin kaçmaması için durdur. */
+.marquee-container:hover .marquee-inner,
+.marquee-container:focus-within .marquee-inner {
+  animation-play-state: paused;
+}
+
+@keyframes marquee-scroll {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+/* Tıklama geri bildirimi — eski gsap.to(scale:0.95, yoyo) yerine. */
+.marquee-item-link {
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+
+.marquee-item-link:active {
+  transform: scale(0.95);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee-inner {
+    animation: none !important;
+  }
+  .marquee-item-link {
+    transition: none;
+  }
 }
 </style>
