@@ -1,6 +1,5 @@
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
-import { useFetch } from '#app'
 import { Editor, EditorContent } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
 import Heading from '@tiptap/extension-heading'
@@ -97,16 +96,7 @@ const turkishCities = [
   { id: 81, name: 'Düzce' }
 ]
 
-// --- Bölge Veri Modeli ---
-// Mevcut ref tanımlamalarının yanına ekleyin:
-const priceFactorInput = ref({
-  factor: '',
-  min: '',
-  max: ''
-})
-
-// region ref'ine yeni alanları ekleyin (region tanımını güncelleyin):
-const region = ref({
+const { form: region, message, items: allRegions, resetForm: resetFormBase, selectItem, save, remove, replaceItem } = useListCrud('regions', {
   id: null,
   title: '',
   subtitle: '',
@@ -117,10 +107,16 @@ const region = ref({
   image: '',
   isActive: false,
   cities: [],
-  // Yeni alanlar
   priceFactorsTitle: 'Fiyatını Etkileyen Faktörler',
   priceFactorsImage: 'https://cdn.armut.com/images/seo-pages/tr-TR/price-factors.svg',
-  priceFactors: []
+  priceFactors: [],
+}, { listQuery: '?admin=true' })
+
+// --- Fiyat Faktörü Girişi (form dışı, panel-özel yardımcı state) ---
+const priceFactorInput = ref({
+  factor: '',
+  min: '',
+  max: ''
 })
 
 // Fiyat faktörü ekleme fonksiyonu
@@ -129,13 +125,13 @@ const addPriceFactor = () => {
     alert('Faktör adı zorunludur')
     return
   }
-  
-  region.value.priceFactors.push({
+
+  region.priceFactors.push({
     factor: priceFactorInput.value.factor,
     min: priceFactorInput.value.min || '0 TL',
     max: priceFactorInput.value.max || '0 TL'
   })
-  
+
   // Input'ları temizle
   priceFactorInput.value = {
     factor: '',
@@ -146,44 +142,41 @@ const addPriceFactor = () => {
 
 // Fiyat faktörü silme fonksiyonu
 const removePriceFactor = (index) => {
-  region.value.priceFactors.splice(index, 1)
+  region.priceFactors.splice(index, 1)
 }
 
-// Bölge seçim fonksiyonunu güncelleyin (selectRegion):
+// --- Bölge Seçimi ---
 const selectRegion = (slug) => {
-  const selected = allRegions.value.find(r => r.slug === slug)
+  const selected = selectItem(slug)
   if (selected) {
-    Object.assign(region.value, selected)
-    
     // priceFactors'ı kontrol et
     if (selected.priceFactors) {
       if (typeof selected.priceFactors === 'string') {
         try {
-          region.value.priceFactors = JSON.parse(selected.priceFactors)
+          region.priceFactors = JSON.parse(selected.priceFactors)
         } catch (error) {
           console.error('PriceFactors JSON parse hatası:', error)
-          region.value.priceFactors = []
+          region.priceFactors = []
         }
       } else if (Array.isArray(selected.priceFactors)) {
-        region.value.priceFactors = selected.priceFactors
+        region.priceFactors = selected.priceFactors
       } else {
-        region.value.priceFactors = []
+        region.priceFactors = []
       }
     } else {
-      region.value.priceFactors = []
+      region.priceFactors = []
     }
-    
+
     // priceFactorsTitle ve priceFactorsImage'ı kontrol et
-    region.value.priceFactorsTitle = selected.priceFactorsTitle || 'Fiyatını Etkileyen Faktörler'
-    region.value.priceFactorsImage = selected.priceFactorsImage || 'https://cdn.armut.com/images/seo-pages/tr-TR/price-factors.svg'
-    
+    region.priceFactorsTitle = selected.priceFactorsTitle || 'Fiyatını Etkileyen Faktörler'
+    region.priceFactorsImage = selected.priceFactorsImage || 'https://cdn.armut.com/images/seo-pages/tr-TR/price-factors.svg'
+
     if (editor.value) {
       editor.value.commands.setContent(selected.content)
     }
     showEditModal.value = true
   }
 }
-
 
 // --- İl Arama Filtresi ---
 const citySearchQuery = ref('')
@@ -203,28 +196,28 @@ const filteredCities = computed(() => {
 
 // --- İl Seçim/Deseçim Fonksiyonları ---
 const toggleCitySelection = (cityId) => {
-  const index = region.value.cities.indexOf(cityId)
-  
+  const index = region.cities.indexOf(cityId)
+
   if (index > -1) {
     // Eğer il zaten seçiliyse kaldır
-    region.value.cities.splice(index, 1)
+    region.cities.splice(index, 1)
   } else {
     // İl seçili değilse ekle
-    region.value.cities.push(cityId)
+    region.cities.push(cityId)
   }
 }
 
 const selectAllCities = () => {
-  region.value.cities = turkishCities.map(city => city.id)
+  region.cities = turkishCities.map(city => city.id)
 }
 
 const clearAllCities = () => {
-  region.value.cities = []
+  region.cities = []
 }
 
 // --- Seçili İlleri İsimleriyle Getir ---
 const selectedCityNames = computed(() => {
-  return region.value.cities.map(cityId => {
+  return region.cities.map(cityId => {
     const city = turkishCities.find(c => c.id === cityId)
     return city ? city.name : ''
   }).filter(name => name !== '')
@@ -255,22 +248,22 @@ const sanitizeText = (text) => {
 
 // --- Slug Oluşturma ---
 const generateSlug = () => {
-  const title = region.value.title
+  const title = region.title
   let slug = sanitizeText(title)
     .toLowerCase()
     .trim()
     .replace(/[^a-z0-9\s-]/g, '')
     .replace(/\s+/g, '-')
     .replace(/-+/g, '-')
-    
-  region.value.slug = slug
+
+  region.slug = slug
 }
 
 // --- Tiptap Editor Instance ---
 const editor = ref(null)
 onMounted(() => {
   editor.value = new Editor({
-    content: region.value.content,
+    content: region.content,
     extensions: [
       StarterKit.configure({
         heading: false,
@@ -290,7 +283,7 @@ onMounted(() => {
       }),
     ],
     onUpdate: () => {
-      region.value.content = editor.value.getHTML()
+      region.content = editor.value.getHTML()
     }
   })
 })
@@ -299,12 +292,6 @@ onBeforeUnmount(() => {
   if (editor.value) {
     editor.value.destroy()
   }
-})
-
-// --- API'den Bölgeleri Çek ---
-const { data, error } = await useFetch('/api/regions?admin=true')
-const allRegions = computed(() => {
-  return data.value && data.value.success ? data.value.data : []
 })
 
 // --- İstatistik Hesaplamaları ---
@@ -460,37 +447,6 @@ const resetFilters = () => {
   imageFilter.value = 'all'
 }
 
-// --- Bölge Seçimi ---
-// const selectRegion = (slug) => {
-//   const selected = allRegions.value.find(r => r.slug === slug)
-//   if (selected) {
-//     Object.assign(region.value, selected)
-    
-//     // Eğer cities JSON formatında string ise parse et
-//     if (selected.cities) {
-//       if (typeof selected.cities === 'string') {
-//         try {
-//           region.value.cities = JSON.parse(selected.cities)
-//         } catch (error) {
-//           console.error('Cities JSON parse hatası:', error)
-//           region.value.cities = []
-//         }
-//       } else if (Array.isArray(selected.cities)) {
-//         region.value.cities = selected.cities
-//       } else {
-//         region.value.cities = []
-//       }
-//     } else {
-//       region.value.cities = []
-//     }
-    
-//     if (editor.value) {
-//       editor.value.commands.setContent(selected.content)
-//     }
-//     showEditModal.value = true
-//   }
-// }
-
 // --- Resim Ekleme Fonksiyonu ---
 const addImage = () => {
   let url = prompt("Eklemek istediğiniz resmin URL'sini giriniz:")
@@ -502,14 +458,10 @@ const addImage = () => {
 
 // --- Bölge Silme ---
 const deleteRegion = async () => {
-  try {
-    await $fetch(`/api/regions?slug=${selectedSlug.value}`, { method: 'DELETE' })
-    const updated = allRegions.value.filter(r => r.slug !== selectedSlug.value)
-    data.value.data = updated 
-    showDeleteModal.value = false
-  } catch (error) {
-    console.error('Silme Hatası:', error)
-    alert('Bölge silinirken hata oluştu: ' + error.message)
+  const result = await remove(selectedSlug.value)
+  showDeleteModal.value = false
+  if (!result.success) {
+    alert('Bölge silinirken hata oluştu.')
   }
 }
 
@@ -527,67 +479,33 @@ const toggleRegionStatus = async (slug, currentStatus) => {
       }
     })
 
-    // Liste güncelle
-    data.value.data = allRegions.value.map(r =>
-      r.slug === slug ? { ...r, isActive: updatedRegion.data.isActive } : r
-    )
+    replaceItem({ ...regionToUpdate, isActive: updatedRegion.data.isActive })
   } catch (error) {
     console.error('Durum güncelleme hatası:', error)
     alert('Durum güncellenirken hata oluştu: ' + error.message)
   }
 }
 
+// --- Yeni Bölge Ekleme Modalını Aç ---
+const openAddForm = () => {
+  resetForm()
+  showEditModal.value = true
+}
+
 // --- Form Gönderimi ---
 const submitForm = async () => {
-  try {
-    const method = region.value.id ? 'PUT' : 'POST'
-    const regionData = {
-      ...region.value,
-      cities: region.value.cities // cities dizisini direkt gönder
-    }
-    
-    const response = await $fetch('/api/regions', {
-      method,
-      body: regionData
-    })
-
-    if (!response) {
-      throw new Error('Geçersiz API yanıtı')
-    }
-
-    if (method === 'POST') {
-      data.value.data = [...allRegions.value, response.data]
-    } else {
-      data.value.data = allRegions.value.map(r =>
-        r.id === response.data.id ? response.data : r
-      )
-    }
-
+  const result = await save()
+  if (result.success) {
     showEditModal.value = false
     resetForm()
-  } catch (error) {
-    console.error('Form Gönderim Hatası:', error)
-    alert('İşlem başarısız: ' + error.message)
+  } else {
+    alert('İşlem başarısız: ' + (result.error || 'Bilinmeyen hata'))
   }
 }
 
 // --- Formu Sıfırla ---
 const resetForm = () => {
-  region.value = {
-    id: null,
-    title: '',
-    subtitle: '',
-    shortTitle: '',
-    slug: '',
-    content: '',
-    excerpt: '',
-    image: '',
-    isActive: false,
-    cities: [],
-    priceFactorsTitle: 'Fiyatını Etkileyen Faktörler',
-    priceFactorsImage: 'https://cdn.armut.com/images/seo-pages/tr-TR/price-factors.svg',
-    priceFactors: []
-  }
+  resetFormBase()
   priceFactorInput.value = {
     factor: '',
     min: '',
@@ -600,7 +518,7 @@ const resetForm = () => {
 
 // --- FileUploader'dan Gelen Event'i İşle ---
 const updateImageUrl = (url) => {
-  region.value.image = url
+  region.image = url
 }
 </script>
 
@@ -609,8 +527,8 @@ const updateImageUrl = (url) => {
     <!-- Başlık ve Ekleme Butonu -->
     <div class="flex justify-between items-center mb-8">
       <h1 class="text-2xl font-bold">Bölge Yönetim Paneli</h1>
-      <button 
-        @click="showEditModal = true"
+      <button
+        @click="openAddForm"
         class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
       >
         Yeni Bölge Ekle
