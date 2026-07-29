@@ -109,9 +109,11 @@
         </div>
 
         <!-- Veri yoksa varsayılan içerik -->
-        <div v-if="!data?.pricingPlans || data.pricingPlans.length === 0" class="col-span-3 text-center py-12">
-          <p class="text-gray-500 text-lg">Fiyatlandırma bilgileri yükleniyor...</p>
-        </div>
+        <base-empty-state
+          v-if="!data?.pricingPlans || data.pricingPlans.length === 0"
+          class="col-span-3"
+          message="Henüz yayınlanmış bir fiyatlandırma planı bulunmuyor."
+        />
       </div>
     </div>
   </section>
@@ -123,7 +125,7 @@
 // ------------------------------------
 
 // API'den veriyi çekmek için reactive state
-const { data: pricingResponse, pending, error } = await useFetch('/api/pricing-section')
+const { data: pricingResponse, error } = await useFetch('/api/pricing-section')
 // API artık {success,data} zarfı dönüyor; template'in geri kalanı değişmeden
 // çalışabilsin diye burada tek noktadan unwrap ediyoruz.
 const data = computed(() => pricingResponse.value?.data ?? null)
@@ -139,8 +141,6 @@ if (error.value) {
 // (usePageSeo composable'ı ile) belirlenir. Aksi halde bu bileşenin meta
 // verisi, içinde bulunduğu sayfanın gerçek meta verisini ezer.
 
-// Yükleme durumu
-const isLoading = computed(() => pending.value && !data.value)
 </script>
 
 <style scoped>

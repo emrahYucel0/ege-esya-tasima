@@ -42,7 +42,7 @@ const mainImage = computed(() => whyChooseUsData.value?.mainImage || "")
           
           <div class="absolute -bottom-4 -right-4 w-12 h-12 border-r-4 border-b-4 border-[#dce5e4]/40"></div>
           
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-10 my-8">
+          <div v-if="featuresList.length" class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-10 my-8">
             <div class="feature" v-for="(feature, index) in featuresList" :key="feature.id || index">
               <div class="icon mb-4">
                 <img

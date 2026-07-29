@@ -4,11 +4,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 gsap.registerPlugin(ScrollTrigger);
 
-const {
-  data: postData,
-  pending: postPending,
-  error: postError,
-} = await useFetch("/api/posts?light=true");
+const { data: postData } = await useFetch("/api/posts?light=true");
 
 const posts = computed(() =>
   postData.value && postData.value.success ? postData.value.data : []
@@ -77,11 +73,15 @@ onUnmounted(() => {
       </p>
     </div>
 
-    <div class="carousel-wrapper relative overflow-hidden py-8">
+    <base-empty-state
+      v-if="!recentPosts.length"
+      message="Henüz yayınlanmış bir blog yazısı bulunmuyor."
+    />
+    <div v-else class="carousel-wrapper relative overflow-hidden py-8">
       <div ref="carouselRef" class="carousel flex gap-6">
         <div
-          v-for="(post, index) in [...recentPosts]"
-          :key="index"
+          v-for="post in recentPosts"
+          :key="post.id"
           class="carousel-card relative flex-shrink-0 w-80"
         >
           <div
@@ -99,8 +99,8 @@ onUnmounted(() => {
             <div class="p-6">
               <NuxtLink
                 :to="`/${post.slug}`"
-                class="text-xl font-medium text-stone-800 mb-2 hover:underline"
-                :aria-label="`${post.title} bölgesi için detaylar`"
+                class="text-xl font-medium text-stone-800 mb-2 hover:underline line-clamp-2"
+                :aria-label="`${post.title} yazısı için detaylar`"
               >
                 {{ post.shortTitle }}
               </NuxtLink>

@@ -52,9 +52,9 @@
               <div class="flex items-center mb-4">
                 <!-- Müşteri Fotoğrafı -->
                 <div class="w-12 h-12 rounded-full overflow-hidden border-2 border-[#3b5d50]">
-                  <img 
-                    :src="testimonial.customerImage || '/images/testimonial-placeholder.svg'" 
-                    :alt="testimonial.customerName" 
+                  <img
+                    :src="testimonial.customerImage || '/images/testimonial-placeholder.svg'"
+                    :alt="testimonial.customerName || 'Müşteri fotoğrafı'"
                     class="w-full h-full object-cover"
                     @error="handleImageError"
                   >
@@ -77,7 +77,7 @@
                 </div>
               </div>
               <!-- Yorum Metni -->
-              <p class="text-gray-600 mb-4 italic">"{{ testimonial.comment }}"</p>
+              <p class="text-gray-600 mb-4 italic line-clamp-4">"{{ testimonial.comment }}"</p>
               <!-- Tarih ve Konum -->
               <div class="flex items-center text-sm text-gray-500">
                 <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -107,9 +107,11 @@
           </div>
 
           <!-- Testimonial verisi yoksa -->
-          <div v-if="!testimonials || testimonials.length === 0" class="col-span-3 text-center py-12">
-            <p class="text-gray-500 text-lg">Müşteri yorumları yükleniyor...</p>
-          </div>
+          <base-empty-state
+            v-if="!testimonials || testimonials.length === 0"
+            class="col-span-3"
+            message="Henüz yayınlanmış bir müşteri yorumu bulunmuyor."
+          />
         </div>
       </div>
     </div>
@@ -122,7 +124,7 @@
 // ------------------------------------
 
 // API'den veriyi çekmek için reactive state
-const { data: testimonialResponse, pending, error } = await useFetch('/api/testimonials-section')
+const { data: testimonialResponse, error } = await useFetch('/api/testimonials-section')
 // API artık {success,data} zarfı dönüyor; template'in geri kalanı değişmeden
 // çalışabilsin diye burada tek noktadan unwrap ediyoruz.
 const data = computed(() => testimonialResponse.value?.data ?? null)
@@ -204,9 +206,6 @@ const handleImageError = (event) => {
 // Not: paylaşılan bir bölüm bileşeni olduğu için burada useSeoMeta/useHead
 // çağrılmaz — sayfa meta verisi usePageSeo composable'ı ile sayfa
 // seviyesinde yönetiliyor (bkz. pages/index.vue).
-
-// Yükleme durumu
-const isLoading = computed(() => pending.value && !data.value)
 </script>
 
 <style scoped>

@@ -35,7 +35,7 @@
                 "Hızlı, Güvenilir ve Profesyonel Taşımacılık"
               }}</span>
             </h1>
-            <p class="text-white/90 mb-6 lg:mb-8 text-base lg:text-lg leading-relaxed max-w-2xl mx-auto lg:mx-0">
+            <p class="text-white/90 mb-6 lg:mb-8 text-base lg:text-lg leading-relaxed max-w-2xl mx-auto lg:mx-0 line-clamp-6">
               {{
                 heroData.description ||
                 "Yeni bir eve taşınmanın heyecanını yaşarken, eşyalarınızın güvenliği ve taşınma sürecinin stresi gözünüzü korkutmasın. Firmamız, İstanbul evden eve nakliyat sektöründeki köklü deneyimiyle, bu zorlu süreci sizler için başından sona kadar kolay ve sorunsuz bir deneyime dönüştürüyor. Alanında uzman ekibimiz ve modern taşıma tekniklerimizle, güvenilir evden eve nakliyat hizmetinin kapılarını aralıyoruz. Sunduğumuz sigortalı nakliyat güvencesi ile tüm eşyalarınızı titizlikle paketliyor, potansiyel hasarlara karşı koruma altına alıyoruz. Yüksek katlarda bile hızlı ve emniyetli çözümler sunan asansörlü nakliyat seçeneğimizle, taşınma işlemini maksimum verimlilikle gerçekleştiriyoruz. Sadece İstanbul içi değil, şehirler arası nakliyat hizmetimizle de Türkiye'nin dört bir yanına güvenle taşınmanızı sağlıyoruz. Şeffaf fiyat politikamız gereği, evden eve nakliyat fiyatları hakkında bilgi almak ve size özel ücretsiz ekspertiz hizmetimizden yararlanmak için bizimle hemen iletişime geçin. Profesyonel, hızlı ve stressiz bir taşınma deneyimi için doğru adrestesiniz."

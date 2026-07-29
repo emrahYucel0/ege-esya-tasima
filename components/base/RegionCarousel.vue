@@ -4,11 +4,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 gsap.registerPlugin(ScrollTrigger);
 
-const {
-  data: regionData,
-  pending: regionPending,
-  error: regionError,
-} = await useFetch("/api/regions?light=true");
+const { data: regionData } = await useFetch("/api/regions?light=true");
 const { brandName } = await useSiteSettings();
 const regions = computed(() =>
   regionData.value && regionData.value.success ? regionData.value.data : []
@@ -77,11 +73,15 @@ onUnmounted(() => {
       </p>
     </div>
 
-    <div class="carousel-wrapper relative overflow-hidden py-8">
+    <base-empty-state
+      v-if="!recentRegions.length"
+      message="Henüz yayınlanmış bir hizmet bölgesi bulunmuyor."
+    />
+    <div v-else class="carousel-wrapper relative overflow-hidden py-8">
       <div ref="carouselRef" class="carousel flex gap-6">
         <div
-          v-for="(region, index) in [...recentRegions]"
-          :key="index"
+          v-for="region in recentRegions"
+          :key="region.id"
           class="carousel-card relative flex-shrink-0 w-80"
         >
           <div
@@ -100,7 +100,7 @@ onUnmounted(() => {
             <div class="p-6">
               <NuxtLink
                 :to="`/${region.slug}`"
-                class="text-xl font-medium text-stone-800 mb-2 hover:underline"
+                class="text-xl font-medium text-stone-800 mb-2 hover:underline line-clamp-2"
                 :aria-label="`${region.title} bölgesi için detaylar`"
               >
                 {{ region.subtitle + " Nakliyat" }}

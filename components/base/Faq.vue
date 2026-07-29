@@ -38,12 +38,13 @@
                   {{ item.question }}
                 </h3>
                 <span class="ml-2 flex-shrink-0">
-                  <svg 
-                    class="w-6 h-6 text-[#3b5d50] transition-transform duration-300" 
-                    :class="{ 'rotate-180': activeIndex === index }" 
-                    fill="none" 
-                    viewBox="0 0 24 24" 
+                  <svg
+                    class="w-6 h-6 text-[#3b5d50] transition-transform duration-300"
+                    :class="{ 'rotate-180': activeIndex === index }"
+                    fill="none"
+                    viewBox="0 0 24 24"
                     stroke="currentColor"
+                    aria-hidden="true"
                   >
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                   </svg>
@@ -93,12 +94,13 @@
                   {{ item.question }}
                 </h3>
                 <span class="ml-2 flex-shrink-0">
-                  <svg 
-                    class="w-6 h-6 text-[#3b5d50] transition-transform duration-300" 
-                    :class="{ 'rotate-180': activeIndex === index }" 
-                    fill="none" 
-                    viewBox="0 0 24 24" 
+                  <svg
+                    class="w-6 h-6 text-[#3b5d50] transition-transform duration-300"
+                    :class="{ 'rotate-180': activeIndex === index }"
+                    fill="none"
+                    viewBox="0 0 24 24"
                     stroke="currentColor"
+                    aria-hidden="true"
                   >
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                   </svg>

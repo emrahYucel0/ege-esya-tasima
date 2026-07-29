@@ -71,7 +71,7 @@ const goBack = () => {
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
-                aria-label="sağ yön ok ikonu"
+                aria-hidden="true"
               >
                 <path
                   stroke-linecap="round"
