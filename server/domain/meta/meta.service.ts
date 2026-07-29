@@ -2,7 +2,7 @@
 // Meta ne "tekil bölüm" (sectionName) ne de "liste" (slug) şeklinde — "page"
 // alanıyla anahtarlanan kendine özgü bir tekil-kayıt deseni. Bu yüzden ne
 // section-crud.factory.ts ne de posts/regions'daki liste deseni kullanılıyor.
-import { isUniqueConstraintError, isRecordNotFoundError, getErrorMessage } from '~/server/utils/prismaError'
+import { isUniqueConstraintError, isRecordNotFoundError, getSafeErrorMessage } from '~/server/utils/prismaError'
 import { ok, fail, type ServiceResult } from '../shared/response'
 import { metaRepository } from './meta.repository'
 
@@ -22,7 +22,7 @@ async function get(page?: string): Promise<ServiceResult<any>> {
     }
     return ok(await metaRepository.findAll())
   } catch (error) {
-    return fail(getErrorMessage(error))
+    return fail(getSafeErrorMessage(error))
   }
 }
 
@@ -39,7 +39,7 @@ async function create(body: MetaInput): Promise<ServiceResult<any>> {
     if (isUniqueConstraintError(error)) {
       return fail(`'${body.page}' sayfası için meta verisi zaten mevcut. Güncelleme (PUT) metodunu kullanın.`)
     }
-    return fail(getErrorMessage(error))
+    return fail(getSafeErrorMessage(error))
   }
 }
 
@@ -55,7 +55,7 @@ async function update(body: MetaInput): Promise<ServiceResult<any>> {
     if (isRecordNotFoundError(error)) {
       return fail(`'${body.page}' sayfası için meta verisi bulunamadı. Önce POST ile oluşturmayı deneyin.`)
     }
-    return fail(getErrorMessage(error))
+    return fail(getSafeErrorMessage(error))
   }
 }
 
@@ -67,7 +67,7 @@ async function remove(page: string): Promise<ServiceResult<any>> {
     if (isRecordNotFoundError(error)) {
       return fail(`'${page}' sayfası için silinecek meta verisi bulunamadı.`)
     }
-    return fail(getErrorMessage(error))
+    return fail(getSafeErrorMessage(error))
   }
 }
 

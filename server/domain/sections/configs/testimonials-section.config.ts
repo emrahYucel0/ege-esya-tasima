@@ -2,7 +2,7 @@
 import prisma from '~/lib/prisma'
 import { createSectionCrudService } from '../section-crud.factory'
 import { ok, fail, type ServiceResult } from '../../shared/response'
-import { isRecordNotFoundError, getErrorMessage } from '~/server/utils/prismaError'
+import { isRecordNotFoundError, getSafeErrorMessage } from '~/server/utils/prismaError'
 
 export interface TestimonialInput {
   customerName?: string
@@ -117,6 +117,6 @@ export async function partialUpdateTestimonialsSection(
     if (isRecordNotFoundError(error)) {
       return fail(`Hata: '${sectionName}' adında bir kayıt bulunamadı.`)
     }
-    return fail(getErrorMessage(error))
+    return fail(getSafeErrorMessage(error))
   }
 }
