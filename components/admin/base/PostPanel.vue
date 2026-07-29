@@ -59,8 +59,12 @@ onMounted(() => {
       StarterKit.configure({
         heading: false,
       }),
+      // Seviye 1 kasıtlı olarak dışarıda: sayfa şablonu içeriğin üstünde
+      // zaten kendi <h1>{{ post.title }}</h1>'ini basıyor; içerik gövdesinde
+      // de bir H1 seçilebilirse aynı sayfada birden fazla H1 oluşur (SEO
+      // başlık hiyerarşisi bozulur).
       Heading.configure({
-        levels: [1, 2, 3],
+        levels: [2, 3],
       }),
       Bold,
       Italic,
@@ -276,9 +280,6 @@ const updateImageUrl = (url) => {
             <label class="block mb-2 font-medium">İçerik</label>
             <div class="border rounded p-2 min-h-[200px]">
               <div v-if="editor" class="editor-toolbar">
-                <button @click="editor.chain().focus().toggleHeading({ level: 1 }).run()" :class="{ 'is-active': editor.isActive('heading', { level: 1 }) }">
-                  H1
-                </button>
                 <button @click="editor.chain().focus().toggleHeading({ level: 2 }).run()" :class="{ 'is-active': editor.isActive('heading', { level: 2 }) }">
                   H2
                 </button>
