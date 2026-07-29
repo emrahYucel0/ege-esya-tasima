@@ -109,6 +109,31 @@
           >
         </li>
         <li class="mb-6 flex gap-3 align-middle">
+          <span>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              fill="currentColor"
+              class="bi bi-list-ol text-primary w-8 h-8"
+              viewBox="0 0 16 16"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M5 11.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5"
+              />
+              <path
+                d="M1.713 11.865v-.474H2c.217 0 .363-.137.363-.317 0-.185-.158-.31-.361-.31-.223 0-.367.152-.373.31h-.59c.016-.467.373-.787.986-.787.588-.002.954.291.957.703a.595.595 0 0 1-.492.594v.033a.687.687 0 0 1 .586.663c.003.464-.406.75-1.02.75-.61 0-1.03-.3-1.06-.798h.582c.008.187.15.297.373.297.208 0 .375-.09.375-.297 0-.187-.16-.293-.363-.293h-.316zM1.617 7.325h-.616V5.723h-.033l-.552.375v-.578l.585-.399h.616z"
+              />
+            </svg>
+          </span>
+          <NuxtLink
+            to="/evdeneveyonetim/process"
+            class="text-gray-700 hover:text-secondary"
+            >Süreç Adımları</NuxtLink
+          >
+        </li>
+        <li class="mb-6 flex gap-3 align-middle">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="16"
