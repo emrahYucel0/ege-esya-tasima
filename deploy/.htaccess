@@ -6,6 +6,34 @@
 # altına ekleyin.
 
 # ---------------------------------------------------------------------------
+# 0) YAYIN ÖNCESİ IP KISITLAMASI  —  VARSAYILAN: KAPALI
+#
+# Siteyi yalnızca kendi IP'nize açar; herkese 403 döner. Amaç, arama motoru
+# botları gelmeden önce canlı ortamda test yapabilmek.
+#
+# NEDEN robots.txt DEĞİL: `Disallow: /` koyup sonra kaldırmayı unutursanız
+# site aylarca görünmez kalır. IP kısıtlaması geride iz bırakmaz — kaldırdığınız
+# an temizdir.
+#
+# AÇMAK İÇİN: aşağıdaki bloğun başındaki # işaretlerini kaldırın ve kendi
+# IP'nizi yazın. IP'nizi https://ifconfig.me adresinden öğrenebilirsiniz.
+#
+# ⚠ KENDİNİZİ KİLİTLEME RİSKİ: ev bağlantılarının çoğunda IP dinamiktir.
+#   Değişirse siteye giremezsiniz — cPanel Dosya Yöneticisi'nden bu dosyayı
+#   düzenleyebileceğinizi önceden teyit edin. Telefonunuzun mobil IP'sini de
+#   ikinci satır olarak eklemenizi öneririm.
+#
+# ⚠ Test bitince BU BLOĞU TEKRAR YORUMA ALIN. Açık kaldığı sürece SSL
+#   kontrolü, uptime izleme ve WhatsApp bağlantı önizlemesi de 403 alır.
+#
+# <RequireAny>
+#   Require ip 88.0.0.0        # ← kendi IP'niz
+#   Require ip 78.0.0.0        # ← mobil IP'niz (isteğe bağlı, yedek)
+#   Require ip 127.0.0.1       # sunucunun kendisi (cron, yedekleme)
+# </RequireAny>
+# ---------------------------------------------------------------------------
+
+# ---------------------------------------------------------------------------
 # 1) SIKIŞTIRMA
 #
 # Ölçüldü: sıkıştırma olmadan ana sayfa 187 KB ham iniyor. Metin içerikte
@@ -64,14 +92,19 @@
 # kalıyor; bu kural varken kullanılmıyor.
 #
 # ÖNEMLİ: yükleme klasörü .output DIŞINDA durmalı, yoksa her dağıtımda
-# silinir. Aşağıdaki yol, cPanel'de klasörü nereye koyduğunuza göre
-# güncellenmeli.
+# silinir.
+#
+# Aşağıdaki `httpdqwu1` cPanel hesap adıdır — veritabanı adındaki
+# (`httpdqwu1_evdenDb`) ön ekten çıkarıldı, çünkü cPanel veritabanı ve
+# kullanıcı adlarının başına hesap adını ekler. YÜKLEMEDEN ÖNCE DOĞRULAYIN:
+# cPanel ana ekranında sağdaki bilgi kutusunda yazar. Yanlışsa panelden
+# yüklenen tüm görseller 404 döner.
 # ---------------------------------------------------------------------------
 <IfModule mod_alias.c>
-  Alias /yuklemeler /home/KULLANICI_ADI/yuklemeler
+  Alias /yuklemeler /home/httpdqwu1/yuklemeler
 </IfModule>
 
-<Directory "/home/KULLANICI_ADI/yuklemeler">
+<Directory "/home/httpdqwu1/yuklemeler">
   Require all granted
   Options -Indexes -ExecCGI
   # Yüklenen bir dosyanın hiçbir koşulda çalıştırılmaması için.
