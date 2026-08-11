@@ -25,7 +25,8 @@
     "hazir-mi": "node --env-file=.env scripts/yayina-hazir-mi.mjs",
     "duman": "node scripts/duman-testi.mjs",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "dagitim-paketi": "node scripts/dagitim-paketi.mjs"
   },
   "dependencies": {
     "@nuxt/image": "^2.1.0",

@@ -45,3 +45,7 @@ logs
 
 # Proje yedek arşivleri (repoya ait değil)
 *.zip
+
+# Dağıtım paketi (scripts/dagitim-paketi.mjs). .output kopyası — üretilmiş
+# çıktı, depoya girmiyor.
+dagitim
