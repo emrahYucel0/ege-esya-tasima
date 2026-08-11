@@ -99,32 +99,38 @@
 </IfModule>
 
 # ---------------------------------------------------------------------------
-# 2) PANELDEN YÜKLENEN GÖRSELLER — Node'a hiç uğramasın
+# 2) PANELDEN YÜKLENEN GÖRSELLER — burada bir kural YOK, bilerek
 #
-# /yuklemeler/ isteklerini Apache doğrudan diskten karşılar. Uygulama
-# tarafındaki rota (server/routes/yuklemeler/[...ad].get.ts) yedek olarak
-# kalıyor; bu kural varken kullanılmıyor.
+# Burada önceden şöyle bir blok vardı:
 #
-# ÖNEMLİ: yükleme klasörü .output DIŞINDA durmalı, yoksa her dağıtımda
-# silinir.
+#   <IfModule mod_alias.c>
+#     Alias /yuklemeler /home/KULLANICI/yuklemeler
+#   </IfModule>
+#   <Directory "/home/KULLANICI/yuklemeler"> ... </Directory>
 #
-# Aşağıdaki `httpdqwu1` cPanel hesap adıdır — veritabanı adındaki
-# (`httpdqwu1_evdenDb`) ön ekten çıkarıldı, çünkü cPanel veritabanı ve
-# kullanıcı adlarının başına hesap adını ekler. YÜKLEMEDEN ÖNCE DOĞRULAYIN:
-# cPanel ana ekranında sağdaki bilgi kutusunda yazar. Yanlışsa panelden
-# yüklenen tüm görseller 404 döner.
+# BU BLOK KALDIRILDI ÇÜNKÜ ÇALIŞMIYOR. `Alias` ve `<Directory>` yalnızca
+# sunucu ve sanal host yapılandırmasında geçerli; `.htaccess` içinde
+# kullanılamazlar. Apache bunu gördüğünde ya yok sayar ya da tüm site için
+# 500 döndürür. Yani /yuklemeler istekleri hiçbir zaman Apache tarafından
+# karşılanmadı; klasör de yanlış yere (uygulama kökünün dışına) konduğu için
+# panelden yüklenen tüm görseller 404 verdi.
+#
+# DOĞRUSU: dosyaları uygulamanın kendi rotası servis ediyor —
+# server/routes/yuklemeler/[...ad].get.ts. O rota klasörü
+# `process.cwd() + /yuklemeler` olarak arıyor, yani UYGULAMA KÖKÜNÜN İÇİNDE:
+#
+#   /home/KULLANICI/nakliye/
+#   ├── .output/
+#   ├── scripts/
+#   └── yuklemeler/     ← BURAYA
+#
+# Bu konum `.output` DIŞINDA olduğu için yeni sürüm atarken silinmiyor.
+#
+# Rota zaten Apache'nin yapacağı her şeyi yapıyor: doğru Content-Type,
+# `Cache-Control: public, max-age=31536000, immutable`, ETag, Last-Modified
+# ve koşullu istekte 304. Ayrıca yol kaçışına ve desteklenmeyen uzantılara
+# karşı koruması var. Apache katmanı bu iş için gerekli değil.
 # ---------------------------------------------------------------------------
-<IfModule mod_alias.c>
-  Alias /yuklemeler /home/httpdqwu1/yuklemeler
-</IfModule>
-
-<Directory "/home/httpdqwu1/yuklemeler">
-  Require all granted
-  Options -Indexes -ExecCGI
-  # Yüklenen bir dosyanın hiçbir koşulda çalıştırılmaması için.
-  RemoveHandler .php .phtml .cgi .pl .py
-  AddType text/plain .php .phtml .cgi .pl .py
-</Directory>
 
 <IfModule mod_expires.c>
   ExpiresActive On

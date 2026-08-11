@@ -11,9 +11,10 @@ Her adımın sonunda **nasıl doğrulanacağı** yazıyor; doğrulamayı atlamay
 /home/httpdqwu1/
 ├── nakliye/              ← Application root (belge kökünün DIŞINDA)
 │   ├── .output/          ← derleme çıktısı, her sürümde değişen tek şey
-│   └── scripts/
-│       └── yedekle.mjs
-├── yuklemeler/           ← panelden yüklenen görseller (dağıtımda KORUNUR)
+│   ├── scripts/
+│   │   ├── yedekle.mjs
+│   │   └── db-baglanti-testi.mjs
+│   └── yuklemeler/       ← panelden yüklenen görseller (dağıtımda KORUNUR)
 ├── yedekler/             ← veritabanı yedekleri (cron yazar)
 └── public_html/
     └── .htaccess         ← Passenger bloğu + bu paketteki kurallar
@@ -92,7 +93,7 @@ ve `prisma/` klasörleri YÜKLENMEYECEK.
 |---|---|---|
 | `dagitim/.output/` | `/home/httpdqwu1/nakliye/.output` | 22 MB · bağlantısız |
 | `deploy/.htaccess` | `public_html/.htaccess` | Passenger bloğunun ALTINA eklenecek |
-| `yuklemeler/` | `/home/httpdqwu1/yuklemeler` | panelden yüklenen görseller |
+| `yuklemeler/` | `/home/httpdqwu1/nakliye/yuklemeler` | **uygulama kökünün İÇİNDE** — bkz. aşağıdaki not |
 | `dagitim/scripts/` | `/home/httpdqwu1/nakliye/scripts/` | yedek cron'u için, pakete dahil |
 | `deploy/app.mjs` | `/home/httpdqwu1/nakliye/` | **yalnızca gerekirse** — bkz. adım 2 |
 
@@ -168,10 +169,24 @@ deneyerek test edin.
 `deploy/.htaccess` içeriğini `public_html/.htaccess` dosyasına, cPanel'in
 otomatik yazdığı Passenger bloğunun **altına** ekleyin.
 
-İçindeki `/home/httpdqwu1/yuklemeler` yolundaki `httpdqwu1`, veritabanı
-adındaki ön ekten çıkarılmış cPanel hesap adıdır. **Doğrulayın** — cPanel
-ana ekranındaki bilgi kutusunda yazar. Yanlışsa panelden yüklenen tüm
-görseller 404 döner.
+Dosyada hesap adına bağlı hiçbir yol kalmadı; olduğu gibi kopyalanabilir.
+
+### Panelden yüklenen görseller nereye gidiyor
+
+`yuklemeler/` klasörü **uygulama kökünün İÇİNE** konur:
+`/home/httpdqwu1/nakliye/yuklemeler`
+
+Sebebi: dosyaları Apache değil, uygulamanın kendi rotası servis ediyor
+(`server/routes/yuklemeler/[...ad].get.ts`) ve o rota klasörü
+`process.cwd() + /yuklemeler` olarak arıyor.
+
+Bu belgede önceden klasörün `/home/httpdqwu1/yuklemeler` yoluna, yani
+uygulama kökünün DIŞINA konması yazıyordu ve `.htaccess`'e bir `Alias`
+kuralı eklenmişti. **O yaklaşım hatalıydı:** `Alias` ve `<Directory>`
+direktifleri `.htaccess` içinde kullanılamaz (yalnızca sunucu/sanal host
+yapılandırmasında geçerlidirler). Sonuç: görseller 404 dönüyordu.
+
+Klasör `.output` dışında olduğu için yeni sürüm atarken silinmiyor.
 
 ---
 
