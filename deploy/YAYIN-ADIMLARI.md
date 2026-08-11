@@ -44,7 +44,40 @@ Uygulama kökünü belge kökünün dışına almanın iki faydası var:
 
 ---
 
-## 0) Yüklenecek dosyalar
+## 0) Dağıtım paketini üret  ← BU ADIMI ATLAMAYIN
+
+```bash
+npm run build
+npm run dagitim-paketi
+```
+
+`.output` klasörünü **doğrudan yüklemeyin.** Nitro, `.output/server/node_modules`
+içinde pnpm benzeri bir depo kuruyor: aynı paketin farklı sürümleri `.nitro/`
+altında bir kez duruyor, kullanan paketlere SEMBOLİK BAĞLANTI konuyor. Bu
+bağlantılar MUTLAK yol taşıyor:
+
+```
+.output/server/node_modules/@vue/compiler-core/node_modules/entities
+  → C:/.../ege-esya/.output/server/node_modules/.nitro/entities@7.0.1
+```
+
+Sunucuda böyle bir yol olmadığı için bağlantı kopuyor ve uygulama şu hatayla
+hiç açılmıyor:
+
+```
+Error: Cannot find module 'entities/decode'
+Require stack: .../@vue/compiler-core/dist/compiler-core.cjs.prod.js
+```
+
+`npm run dagitim-paketi` bağlantıları çözerek `dagitim/` klasörünü üretiyor,
+sonunda hiç bağlantı kalmadığını doğruluyor ve kalırsa hata verip duruyor.
+Boyut değişmiyor (22 MB) — bağlantıların tamamı küçük bir pakete ait.
+
+**Yükleyeceğiniz klasör `dagitim/`, `.output` değil.**
+
+---
+
+## 0b) Paketin içeriği
 
 `.output` klasörünün **tek başına yeterli olduğu ölçülerek doğrulandı**:
 proje kökünden bağımsız bir klasöre yalnızca `.output` kopyalanıp
@@ -57,10 +90,10 @@ ve `prisma/` klasörleri YÜKLENMEYECEK.
 
 | Ne | Nereye | Not |
 |---|---|---|
-| `.output/` (tamamı) | `/home/httpdqwu1/nakliye/.output` | 22 MB |
+| `dagitim/.output/` | `/home/httpdqwu1/nakliye/.output` | 22 MB · bağlantısız |
 | `deploy/.htaccess` | `public_html/.htaccess` | Passenger bloğunun ALTINA eklenecek |
 | `yuklemeler/` | `/home/httpdqwu1/yuklemeler` | panelden yüklenen görseller |
-| `scripts/yedekle.mjs` | `/home/httpdqwu1/nakliye/scripts/` | yalnızca yedek cron'u için |
+| `dagitim/scripts/` | `/home/httpdqwu1/nakliye/scripts/` | yedek cron'u için, pakete dahil |
 | `deploy/app.mjs` | `/home/httpdqwu1/nakliye/` | **yalnızca gerekirse** — bkz. adım 2 |
 
 **Yüklenmeyecekler:** `.env`, `node_modules/`, `prisma/`, `app/`, `server/`,
