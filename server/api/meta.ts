@@ -1,5 +1,5 @@
 import * as yup from 'yup';
-import { metaService, type MetaInput } from '~/server/domain/meta/meta.service';
+import { metaService, type MetaInput } from '../domain/meta/meta.service';
 
 const metaSchema = yup.object({
   page: yup.string().trim().required(),

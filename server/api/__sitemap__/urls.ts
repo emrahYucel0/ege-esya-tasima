@@ -29,7 +29,28 @@ async function fetchRegionUrls() {
   }
 }
 
+// Hizmetler tek bir bölüm kaydında toplu geliyor. Yalnızca `slug` verilmiş
+// olanların kendi sayfası var; slug'sız hizmetler yalnızca kart olarak
+// görünüyor ve sitemap'e girmemeli (var olmayan adres bildirmek Search
+// Console'da hataya yol açar).
+async function fetchServiceUrls() {
+  try {
+    const response = await $fetch('/api/services');
+    const services = response?.data?.services || [];
+    return services
+      .filter((s: any) => s.slug)
+      .map((s: any) => ({ url: `/${s.slug}` }));
+  } catch (error) {
+    console.error('Sitemap: hizmet verisi çekilirken hata oluştu:', error);
+    return [];
+  }
+}
+
 export default defineSitemapEventHandler(async () => {
-  const [posts, regions] = await Promise.all([fetchPostUrls(), fetchRegionUrls()]);
-  return [...posts, ...regions];
+  const [posts, regions, services] = await Promise.all([
+    fetchPostUrls(),
+    fetchRegionUrls(),
+    fetchServiceUrls(),
+  ]);
+  return [...posts, ...regions, ...services];
 });

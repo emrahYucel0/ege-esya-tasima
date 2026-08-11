@@ -93,3 +93,74 @@ describe('regionsService.get — sayfalama', () => {
     expect(regionsRepository.count).toHaveBeenCalledWith({ cities: { array_contains: 6 }, isActive: true })
   })
 })
+
+// Bu blok gerçek bir veri kaybını koruma altına alıyor: yalnızca {slug, image}
+// taşıyan kısmi bir PUT, istekte olmayan metin alanlarını null'lamış ve bir
+// bölgenin içeriğini silmişti. Kural: YOK ≠ BOŞ.
+describe('regionsService.update — kısmi istekte veri kaybı olmamalı', () => {
+  beforeEach(() => vi.clearAllMocks())
+
+  const yazilanVeri = () => (regionsRepository.update as any).mock.calls[0][1]
+
+  it('istekte olmayan metin alanlarına hiç dokunmaz (undefined geçer)', async () => {
+    ;(regionsRepository.update as any).mockResolvedValue({ id: 1 })
+
+    await regionsService.update({ slug: 'esenler', image: '' })
+
+    const veri = yazilanVeri()
+    for (const alan of ['subtitle', 'shortTitle', 'content', 'excerpt', 'metaDescription', 'imageAlt', 'priceFactorsTitle', 'priceFactorsImage']) {
+      expect(veri[alan], `${alan} korunmalıydı`).toBeUndefined()
+    }
+  })
+
+  it('boş gönderilen metin alanını null yapar (panelden temizleme çalışsın)', async () => {
+    ;(regionsRepository.update as any).mockResolvedValue({ id: 1 })
+
+    await regionsService.update({ slug: 'esenler', image: '', excerpt: '   ' })
+
+    expect(yazilanVeri().image).toBeNull()
+    expect(yazilanVeri().excerpt).toBeNull()
+  })
+
+  it('dolu değeri kırpmadan aynen yazar', async () => {
+    ;(regionsRepository.update as any).mockResolvedValue({ id: 1 })
+
+    await regionsService.update({ slug: 'esenler', content: '<p>Metin</p>\n', image: '/yuklemeler/a.webp' })
+
+    expect(yazilanVeri().content).toBe('<p>Metin</p>\n')
+    expect(yazilanVeri().image).toBe('/yuklemeler/a.webp')
+  })
+
+  it('JSON derinlik alanları istekte yoksa yine korunur (mevcut davranış)', async () => {
+    ;(regionsRepository.update as any).mockResolvedValue({ id: 1 })
+
+    await regionsService.update({ slug: 'esenler', image: '' })
+
+    const veri = yazilanVeri()
+    for (const alan of ['cities', 'priceFactors', 'neighborhoods', 'facts', 'faqs', 'routes', 'isActive']) {
+      expect(veri[alan], `${alan} korunmalıydı`).toBeUndefined()
+    }
+  })
+
+  it('tam form gönderen panel isteğinde davranış değişmez', async () => {
+    ;(regionsRepository.update as any).mockResolvedValue({ id: 1 })
+
+    await regionsService.update({
+      slug: 'esenler',
+      title: 'Esenler Evden Eve Nakliyat',
+      subtitle: 'Esenler',
+      content: '<p>İçerik</p>',
+      image: '',
+      isActive: true,
+      facts: [{ label: 'Otogar', value: 'yakın' }],
+    })
+
+    const veri = yazilanVeri()
+    expect(veri.title).toBe('Esenler Evden Eve Nakliyat')
+    expect(veri.subtitle).toBe('Esenler')
+    expect(veri.content).toBe('<p>İçerik</p>')
+    expect(veri.image).toBeNull()
+    expect(veri.isActive).toBe(true)
+    expect(veri.facts).toEqual([{ label: 'Otogar', value: 'yakın' }])
+  })
+})

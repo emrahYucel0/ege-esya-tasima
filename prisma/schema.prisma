@@ -1,14 +1,21 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
+// Prisma 7: eski "prisma-client-js" üreteci yerine "prisma-client".
+// Fark yalnızca isim değil — istemci artık node_modules/.prisma içine değil,
+// projenin İÇİNE üretiliyor ve bu yüzden `output` zorunlu. Ayrıca Rust sorgu
+// motoru ikilisi tamamen kalktı; Windows'ta dev server açıkken
+// `prisma generate` çalıştırınca aldığımız EPERM kilidi bununla bitiyor.
 generator client {
-  provider = "prisma-client-js"
-  // binaryTargets = ["native", "debian-openssl-1.1.x"]
+  provider = "prisma-client"
+  output   = "./generated/client"
 }
 
+// Bağlantı adresi artık burada DEĞİL. Prisma 7'de `url` şemadan kaldırıldı:
+// migrate/introspect komutları onu prisma.config.ts'ten, çalışma zamanı ise
+// PrismaClient'a verilen driver adapter'dan alıyor (bkz. lib/prisma.ts).
 datasource db {
   provider = "mysql"
-  url      = env("DATABASE_URL")
 }
 
 model SiteSettings {
@@ -45,6 +52,16 @@ model SiteSettings {
 
   workingHours        String?   @db.Text
   googleMapsEmbed     String?   @db.Text
+
+  /// Yapısal veri (MovingCompany) için konum. Google'ın yerel işletme
+  /// sonuçlarında kullandığı `geo` alanını besler. Koordinat UYDURULAMAZ —
+  /// yanlış konum işletmeyi yanlış yerde gösterir; bu yüzden boşken şemaya
+  /// hiç eklenmez.
+  latitude            Float?
+  longitude           Float?
+
+  /// Şemadaki `priceRange`. Serbest metin: "₺₺" ya da "6.000 - 21.000 TL".
+  priceRange          String?
 
   metaTitle           String?
   metaDescription     String?   @db.Text
@@ -83,7 +100,6 @@ model NavbarContacts {
 }
 
 
-
 //--------------------- HERO-----------------------
 
 model HeroPage {
@@ -98,9 +114,16 @@ model HeroPage {
   secondaryLink   String?
   image           String?
   backgroundImage String?
+
+  /// Görsellerin alt metinleri. Boşsa component'teki varsayılan metin
+  /// kullanılır — yani bu alanlar zorunlu değil, ÜSTÜNE YAZMA alanı.
+  /// Görsel panelden değişebildiği için metni de panelde tutuyoruz;
+  /// aksi halde resim değişince koda gömülü metin yanlış kalıyordu.
+  imageAlt           String?
+  backgroundImageAlt String?
+
   createdAt       DateTime? @default(now())
 }
-
 
 
 model Footer {
@@ -158,41 +181,95 @@ model Services {
   sectionName      String    @unique @default("services")
   mainTitle        String    // "Profesyonel Nakliye Hizmetlerimiz"
   description      String?   @db.Text // "Evden eve nakliyat sürecinizde..." açıklama paragrafı
-  buttonText       String?   @default("Tüm Hizmetler")
-  buttonLink       String?   @default("/hizmetlerimiz")
 
-  // Ana sayfada Hero'nun hemen altındaki güven bandında, istatistiklerin
-  // yanında gösterilen kısa giriş paragrafı. İstatistikler zaten bu modele
-  // bağlı olduğu için metin de burada tutuluyor.
-  statsIntro       String?   @db.Text
 
   services         Service[]
-  statistics       Statistic[]
   
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
 }
 
+//--------------------- TRUST BAR / GÜVEN BANDI -----------------------
+
+/// Ana sayfada Hero'nun hemen altındaki güven bandı.
+///
+/// NEDEN AYRI BİR BÖLÜM
+/// Bu içerik önceden `Services` modelinin içinde duruyordu (statsIntro +
+/// statistics). Sebebi tarihseldi: güven bandı bir zamanlar hizmetler
+/// bölümünün parçasıydı. Ana sayfadaki hizmetler bölümü kaldırıldıktan sonra
+/// bu bağ tamamen anlamsızlaştı — panelde "Hizmetler" ekranını açan kişi
+/// karşısında hiç ilgisi olmayan güven bandı alanlarını buluyordu.
+/// Artık kendi bölümü ve kendi paneli var.
+model TrustBar {
+  id          Int            @id @default(autoincrement())
+  sectionName String         @unique @default("trust-bar")
+
+  /// Rakamların yanındaki kısa giriş paragrafı.
+  intro       String?        @db.Text
+
+  items       TrustBarItem[]
+
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+}
+
+model TrustBarItem {
+  id         Int      @id @default(autoincrement())
+  iconPath   String?
+  /// "12+", "8.500+", "%100", "81"
+  value      String
+  /// Etiket iki satıra bölünüyor: "Yıllık" / "Deneyim"
+  label1     String
+  label2     String
+  order      Int      @default(0)
+
+  trustBar   TrustBar @relation(fields: [trustBarId], references: [id], onDelete: Cascade)
+  trustBarId Int
+}
+
 model Service {
   id          Int      @id @default(autoincrement())
   imagePath   String   // "~/assets/images/ev-nakliye.png" gibi resim yolu
+  /// Görselin alt metni. Boşsa "<başlık> çalışmamız" üretilir.
+  /// Elle yazılması ÖNERİLİR: otomatik metin sayfayı tarif ediyor, resmi
+  /// değil — görsel aramada karşılığı olan asıl yer burası.
+  imageAlt    String?
   title       String   // "Evden Eve Nakliyat"
   subtitle    String?  // "Şehir İçi & Şehirlerarası"
   description String?  @db.Text // Daha detaylı açıklama (isteğe bağlı)
-  order       Int      @default(0) // Hizmetlerin sıralaması için
-  
-  services    Services @relation(fields: [servicesId], references: [id])
-  servicesId  Int
-}
 
-model Statistic {
-  id          Int      @id @default(autoincrement())
-  iconPath    String?  // İkon SVG path veya ikon adı
-  value       String   // "60k", "150+", "15+", "58k"
-  label1      String   // "Başarılı", "Deneyimli", "Yıllık", "Memnun"
-  label2      String   // "Taşıma", "Ekip Üyesi", "Deneyim", "Müşteri"
-  order       Int      @default(0) // İstatistiklerin sıralaması için
-  
+  /// Google arama sonucunda görünen açıklama. `excerpt`ten ayrı tutuluyor:
+  /// excerpt sayfanın giriş paragrafı ve kart metni (doğal okunmalı), bu ise
+  /// aramada tıklanma üretmeli. Boşsa excerpt'e düşülür.
+  metaDescription String? @db.Text
+
+  order       Int      @default(0) // Hizmetlerin sıralaması için
+
+  // --- Kendi sayfası olan hizmetler --------------------------------------
+  //
+  // `slug` NULL OLABİLİR ve bu bilinçli: her hizmet karta çıkar ama her
+  // hizmetin kendi sayfası olmaz.
+  //
+  // Somut örnek: "Evden Eve Nakliyat" kartı ana sayfada duruyor ama
+  // /evden-eve-nakliyat diye bir sayfa AÇILMIYOR. Sebebi anahtar kelime
+  // yamyamlığı: ana sayfa zaten bu baş terimi, 120 bölge sayfası da
+  // "{yer} evden eve nakliyat" biçimini hedefliyor. Aynı terim için üçüncü
+  // bir sayfa, Google'ın hangisini sıralayacağına karar verememesine ve
+  // üçünün de zayıflamasına yol açar.
+  //
+  // Slug'ı olan hizmetler kök adreste yayınlanıyor (/asansorlu-nakliyat),
+  // yazılar ve bölgelerle aynı desende (bkz. pages/[...slug].vue).
+
+  slug        String?  @unique
+  excerpt     String?  @db.Text // Kartta ve meta açıklamada görünen özet
+  content     String?  @db.Text // Sayfa gövdesi (HTML)
+
+  /** "Hizmete dahil olanlar" listesi: ["Ambalaj malzemesi", "Montaj-demontaj"] */
+  includes    Json?
+
+  /** Hizmete özgü sık sorulanlar: [{question, answer}] — FAQPage besler. */
+  faqs        Json?
+
   services    Services @relation(fields: [servicesId], references: [id])
   servicesId  Int
 }
@@ -233,6 +310,8 @@ model WhyChooseUs {
   shortDescription String?  @db.Text // "Evden eve taşınma süreci..." paragrafı
   closingStatement String?  @db.Text // "Evenakliye.com ile taşınmanın ayrıcalığını yaşayın!"
   mainImage        String?  // Sağ taraftaki büyük resmin (why-choose-us-img.jpg) yolu
+  /// Boşsa component'teki varsayılan metin kullanılır (bkz. HeroPage.imageAlt).
+  mainImageAlt     String?
   features         WhyChooseUsFeature[]
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
@@ -283,7 +362,6 @@ model WeHelpImage {
   weHelpSection   WeHelpSection @relation(fields: [weHelpSectionId], references: [id])
   weHelpSectionId Int
 }
-
 
 
 //--------------------- FAQ SECTION / SSS BÖLÜMÜ -----------------------
@@ -350,27 +428,6 @@ model FaqImage {
 }
 
 
-
-//--------------------- FEATURE-----------------------
-
-model Feature {
-  id           Int           @id @default(autoincrement())
-  sectionName  String        @unique @default("features")
-  subtitle     String?
-  title        String?
-  image        String?
-  featureTypes FeatureType[]
-  createdAt    DateTime?     @default(now())
-}
-
-model FeatureType {
-  id          Int     @id @default(autoincrement())
-  title       String?
-  description String? @db.Text
-  feature     Feature @relation(fields: [featureId], references: [id])
-  featureId   Int
-}
-
 //--------------------- PRICING SECTION / FİYATLANDIRMA BÖLÜMÜ -----------------------
 
 model PricingSection {
@@ -410,35 +467,6 @@ model PricingFeature {
   pricingPlan     PricingPlan   @relation(fields: [pricingPlanId], references: [id])
   pricingPlanId   Int
 }
-
-
-
-//--------------------- Card-----------------------
-
-model Card {
-  id          Int        @id @default(autoincrement())
-  sectionName String     @unique @default("cards")
-  title       String?
-  subtitle    String?
-  blockquote  String?    @db.Text
-  image       String?
-  cards       CardItem[]
-  createdAt   DateTime?  @default(now())
-  updatedAt   DateTime?  @updatedAt
-}
-
-model CardItem {
-  id          Int       @id @default(autoincrement())
-  iconPath    String?
-  title       String?
-  description String?   @db.Text
-  order       Int?
-  cardId      Int
-  card        Card      @relation(fields: [cardId], references: [id], onDelete: Cascade)
-  createdAt   DateTime? @default(now())
-  updatedAt   DateTime? @updatedAt
-}
-
 
 
 //--------------------- QUOTE-----------------------
@@ -484,6 +512,27 @@ model Testimonial {
   isFeatured       Boolean         @default(false) // Öne çıkan yorum
   isActive         Boolean         @default(true) // Yorum aktif mi?
   order            Int             @default(0) // Sıralama
+
+  // --- Siteden gelen yorumlar ------------------------------------------------
+  //
+  // Yorumlar iki kaynaktan geliyor: panelden elle girilenler ve ziyaretçilerin
+  // formdan gönderdikleri. İkisi aynı listede gösteriliyor ama ziyaretçiden
+  // gelen hiçbir yorum ONAY OLMADAN yayınlanmıyor.
+  //
+  // Bu sadece spam önlemi değil: yorumlar ileride Review/AggregateRating
+  // yapısal verisini besleyecek ve Google doğrulanmamış/uydurma yorum
+  // işaretlemesini ihlal sayıyor. Moderasyon bu yüzden zorunlu.
+
+  /// false ise sitede GÖRÜNMEZ. Panelden girilen yorumlar true, siteden
+  /// gelenler false olarak oluşuyor.
+  isApproved       Boolean         @default(true)
+
+  /// "admin" | "site" — moderasyon ekranında kaynağı ayırt etmek için.
+  source           String          @default("admin")
+
+  /// Yalnızca yönetici görür; gerektiğinde yorumu doğrulamak için.
+  /// Herkese açık uçlardan ASLA döndürülmüyor.
+  email            String?
   
   testimonialSection TestimonialSection @relation(fields: [testimonialSectionId], references: [id])
   testimonialSectionId Int
@@ -496,10 +545,14 @@ model AboutSection {
   sectionName      String   @unique @default("about-section")
   
   // Başlık ve Tanıtım
+  // NOT — @db.Text: bu alanlar varsayılan VARCHAR(191) idi. 191 karakter
+  // bir paragraf için yetmiyor (ana sayfadaki SSS cevapları 430-620
+  // karakter) ve uzun metin sessizce reddediliyordu. Aynı sorun
+  // FaqSection'da @db.Text ile çözülmüştü, burada da öyle.
   mainTitle        String   // "Nakliyat Sektörünün Güvenilir Adresi"
-  description1     String   // 1. paragraf
-  description2     String   // 2. paragraf
-  description3     String   // 3. paragraf
+  description1     String   @db.Text // 1. paragraf
+  description2     String   @db.Text // 2. paragraf
+  description3     String   @db.Text // 3. paragraf
   
   // Hizmet Detayları
   services         AboutService[]
@@ -510,9 +563,9 @@ model AboutSection {
   
   // Şirket Tarihçesi
   historyTitle     String   // "15 Yıllık Deneyimle Geleceğe Taşıyoruz"
-  historyText1     String   // 1. tarihçe paragrafı
-  historyText2     String   // 2. tarihçe paragrafı
-  historyText3     String   // 3. tarihçe paragrafı
+  historyText1     String   @db.Text // 1. tarihçe paragrafı
+  historyText2     String   @db.Text // 2. tarihçe paragrafı
+  historyText3     String   @db.Text // 3. tarihçe paragrafı
   
   // İstatistikler
   stats            AboutStat[]
@@ -530,7 +583,7 @@ model AboutService {
   iconPath    String   // "~/assets/images/shield.svg"
   iconAlt     String   // "Güvenli Taşıma"
   title       String   // "Sigortalı Taşıma"
-  description String   // Özellik açıklaması
+  description String   @db.Text // Özellik açıklaması (bkz. AboutSection'daki @db.Text notu)
   order       Int      @default(0) // Sıralama
   
   aboutSection   AboutSection @relation(fields: [aboutSectionId], references: [id])
@@ -558,7 +611,16 @@ model Post {
   slug       String?   @unique
   content    String?   @db.Text
   excerpt    String?   @db.Text
+
+  /// Google arama sonucunda görünen açıklama. Bilgilendirici içerik olduğu
+  /// için satış cümlesi DEĞİL, yazının cevapladığı soruyu vaat eder.
+  /// Boşsa excerpt'e düşülür.
+  metaDescription String? @db.Text
+
   image      String?
+  /// Kapak görselinin alt metni. Boşsa "<kısa başlık> konulu yazının kapak
+  /// görseli" üretilir. Elle yazılması önerilir (bkz. Service.imageAlt).
+  imageAlt   String?
   createdAt  DateTime? @default(now())
   updatedAt  DateTime? @updatedAt
 }
@@ -573,7 +635,30 @@ model Region {
   slug       String    @unique
   content    String?   @db.Text
   excerpt    String?   @db.Text
+
+  /// Google arama sonucunda görünen açıklama.
+  ///
+  /// `excerpt`ten AYRI tutuluyor çünkü ikisinin işi farklı: `excerpt` sayfanın
+  /// giriş paragrafı ve kart metni (doğal okunmalı), bu alan arama sonucunda
+  /// tıklanma üretmeli (hizmet ifadesi + farklılaştırıcı + eylem çağrısı).
+  /// Tek alan ikisini birden iyi yapamıyordu — ölçüldü: 120 excerpt'in
+  /// HİÇBİRİNDE "evden eve nakliyat" ifadesi geçmiyordu.
+  ///
+  /// Boş bırakılırsa `excerpt`e düşülür; hiçbir sayfa açıklamasız kalmaz.
+  metaDescription String? @db.Text
+
   image      String?
+
+  /// Görselin alt metni. Boşsa "<bölge> evden eve nakliyat çalışmamız"
+  /// üretilir.
+  ///
+  /// 120 bölgenin TAMAMINI doldurmak KASITLI OLARAK beklenmiyor: bölge
+  /// görsellerinin çoğu aynı/benzer stok resim. Aynı fotoğraf için 120
+  /// farklı açıklama yazmak hem yanıltıcı olur hem anahtar kelime
+  /// doldurması sayılır. Otomatik metin zaten benzersiz ve dürüst.
+  /// Bu alan, öne çıkarılan birkaç bölgeye özel görsel konduğunda kullanılır.
+  imageAlt   String?
+
   isActive   Boolean   @default(false)
   cities     Json?     // İl bilgileri için JSON alanı
   
@@ -581,7 +666,32 @@ model Region {
   priceFactorsTitle   String?  // Tablo başlığı
   priceFactorsImage   String?  // Görsel URL
   priceFactors        Json?    // Faktörler dizisi [{factor: "Kaç odalı?", min: "10.000 TL", max: "25.000 TL"}]
-  
+
+  // --- Derinlik alanları -------------------------------------------------
+  // Hepsi Json?; ilişki tablosu YAPILMADI çünkü bu alanların içine hiç
+  // sorgu atılmıyor (filtreleme/sıralama yok), yalnızca kaydın kendisiyle
+  // birlikte okunup yazılıyorlar. Mevcut `priceFactors` da aynı desende.
+  //
+  // Bu alanlar hem sayfa derinliğini (Google için ince içerik riskini
+  // azaltmak) hem de yerel arama karşılıklarını besliyor.
+
+  /** Mahalle adları: ["Moda", "Yeldeğirmeni"] — yerel arama karşılığı. */
+  neighborhoods Json?
+
+  /** Bölge künyesi: [{label: "Yapı dokusu", value: "1960-80 apartman"}] */
+  facts Json?
+
+  /** Sık sorulanlar: [{question, answer}] — FAQPage yapısal verisini besler. */
+  faqs Json?
+
+  /**
+   * Sık taşınılan güzergâhlar: [{to: "Ataşehir", note: "..."}]
+   * Hedefin slug'ı SAKLANMIYOR; render sırasında bölge adından çözülüyor.
+   * Böylece panelden yanlış slug girilmesi mümkün olmuyor ve hedef bölge
+   * silinirse bağlantı kırılmak yerine sessizce düz metne dönüyor.
+   */
+  routes Json?
+
   createdAt  DateTime? @default(now())
   updatedAt  DateTime? @updatedAt
 }
@@ -618,4 +728,160 @@ model Meta {
   description String?
   createdAt   DateTime? @default(now())
   updatedAt   DateTime? @updatedAt
+}
+
+//--------------------- Fiyat hesaplama aracı -----------------------
+
+/// /fiyat-hesaplama sayfasındaki tahmin aracının katsayıları.
+///
+/// Bu değerler önce kodda sabitti. Panele açılmasının sebebi fiyatların
+/// zamanla değişmesi — akaryakıt, işçilik ve sezon. Kod değişikliği ve yeni
+/// dağıtım gerektirmeden güncellenebilmesi gerekiyor.
+///
+/// DİKKAT: burada girilen rakamlar müşteriye GÖSTERİLİYOR. Yanlış bir değer
+/// yanlış fiyat beklentisi yaratır; panelde bu uyarı ayrıca yazılı.
+model PriceEstimator {
+  id                Int                       @id @default(autoincrement())
+  sectionName       String                    @unique @default("price-estimator")
+
+  /// Asansörsüz her kat için eklenen tutar (zemin ve 1. kat ücretsiz).
+  floorFee          Int                       @default(450)
+  /// Paketleme hizmeti seçilirse toplam bu katsayıyla çarpılır.
+  packingMultiplier Float                     @default(1.18)
+  /// Depolama seçilirse eklenen sabit tutar.
+  storageFee        Int                       @default(3500)
+  /// Gösterilen aralığın genişliği (yüzde). 15 → ±%15.
+  rangePercent      Int                       @default(15)
+  /// Sonuç bu katın katına yuvarlanır (500 → en yakın 500 TL).
+  roundTo           Int                       @default(500)
+
+  /// Sonucun altında görünen açıklama.
+  note              String?                   @db.Text
+
+  sizes             PriceEstimatorSize[]
+  distances         PriceEstimatorDistance[]
+
+  createdAt         DateTime                  @default(now())
+  updatedAt         DateTime                  @updatedAt
+}
+
+/// Ev büyüklüğü ve taban ücreti (şehir içi, asansörlü, zemin kat varsayımıyla).
+model PriceEstimatorSize {
+  id               Int            @id @default(autoincrement())
+  /// Formda görünen metin: "2+1", "Ofis / İşyeri"
+  label            String
+  /// Taban ücret (TL)
+  basePrice        Int
+  order            Int            @default(0)
+
+  estimator        PriceEstimator @relation(fields: [estimatorId], references: [id], onDelete: Cascade)
+  estimatorId      Int
+}
+
+/// Mesafe kademesi ve çarpanı.
+model PriceEstimatorDistance {
+  id               Int            @id @default(autoincrement())
+  /// "Aynı şehir içinde", "Komşu şehir (0–300 km)"
+  label            String
+  /// Taban ücret bu sayıyla çarpılır. Şehir içi genelde 1.
+  multiplier       Float
+  order            Int            @default(0)
+
+  estimator        PriceEstimator @relation(fields: [estimatorId], references: [id], onDelete: Cascade)
+  estimatorId      Int
+}
+
+//--------------------- Talepler ve dönüşüm ölçümü -----------------------
+
+/// Siteden gelen iletişim/teklif talepleri.
+///
+/// Bu model neden var: form daha önce YALNIZCA mail atıyordu, hiçbir yere
+/// kaydetmiyordu. SMTP'de bir aksama olduğunda (paylaşımlı hosting'de sık:
+/// kapalı 587 portu, yanlış parola, sunucu limiti) müşteri adayı tamamen
+/// kayboluyordu. Artık önce buraya yazılıyor, mail ondan sonra deneniyor —
+/// mail başarısız olsa bile talep panelde duruyor.
+///
+/// `QuoteRequest` ile karıştırılmamalı: o, iletişim sayfasındaki teklif
+/// bölümünün İÇERİĞİNİ tutan bir CMS kaydı, gelen talepleri değil.
+model ContactLead {
+  id         Int      @id @default(autoincrement())
+  name       String
+  email      String?
+  phone      String?
+  message    String?  @db.Text
+
+  /// Talebin geldiği sayfa (örn. "/pendik"). 120 bölge sayfası olduğu için
+  /// hangi içeriğin gerçekten müşteri getirdiğini ancak bu alan gösteriyor.
+  sourcePage String?
+
+  /// gonderildi | basarisiz | denenmedi — panelden SMTP sorunu görülebilsin.
+  mailStatus String   @default("denenmedi")
+  mailError  String?  @db.Text
+
+  isRead     Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([isRead])
+}
+
+/// Dönüşüm olayları: telefon ve WhatsApp tıklamaları.
+///
+/// Ziyaretçi SAYISI bilerek burada tutulmuyor — her sayfa görüntülemesini
+/// MySQL'e yazmak paylaşımlı hosting'de en pahalı seçenek ve gereksiz, o iş
+/// zaten bağlı olan Google Analytics'in. Burada yalnızca düşük hacimli ama
+/// yüksek değerli olaylar var: sadece ilgilenen ziyaretçi telefonu tıklar.
+model SiteEvent {
+  id        Int      @id @default(autoincrement())
+
+  /// telefon | whatsapp | form
+  type      String
+
+  /// Olayın gerçekleştiği sayfa — hangi bölge sayfasının dönüşüm getirdiğini
+  /// bulmak için.
+  page      String?
+
+  createdAt DateTime @default(now())
+
+  @@index([type, createdAt])
+  @@index([createdAt])
+}
+
+//--------------------- Politika sayfaları --------------------------
+
+/// Gizlilik Politikası, Kullanım Şartları ve Çerez Politikası metinleri.
+///
+/// NEDEN VERİTABANINDA
+/// Üç metin de Vue bileşenlerinin ŞABLONUNA gömülüydü. İki sonucu vardı:
+/// (1) yasal metni güncellemek kod değişikliği ve yeniden dağıtım
+/// gerektiriyordu, (2) Gizlilik Politikası var olmayan bileşenleri
+/// çağırdığı için sayfa CANLIDA TAMAMEN BOŞ basılıyordu ve bu fark
+/// edilmemişti — şablona gömülü içerik hiçbir testin göremediği bir yer.
+///
+/// `slug` sayfanın adresiyle birebir aynı; yeni bir politika sayfası
+/// eklemek için kayıt açmak ve sayfa dosyası oluşturmak yeterli.
+model PolicyPage {
+  id          Int       @id @default(autoincrement())
+
+  /// Sayfa adresi: gizlilik-politikasi | kullanim-sartlari | cerez-politikasi
+  slug        String    @unique
+
+  /// Sayfadaki H1 başlığı.
+  title       String
+
+  /// Başlığın altındaki kısa açıklama. Boş bırakılabilir.
+  subtitle    String?   @db.Text
+
+  /// Zengin metin (HTML). Basılmadan önce sanitizeHtml'den geçirilir.
+  content     String    @db.LongText
+
+  /// "Son güncelleme" tarihi — ziyaretçiye gösterilir. Metin değişince
+  /// admin'in elle güncellemesi gerekir; otomatik `updatedAt` KULLANILMAZ,
+  /// çünkü bir yazım hatası düzeltmesi de yasal güncelleme gibi görünürdü.
+  lastUpdated DateTime?
+
+  isActive    Boolean   @default(true)
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 }

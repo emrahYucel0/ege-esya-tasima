@@ -9,11 +9,17 @@ const CSP = [
   // Nuxt'un SSR hydration script'i (window.__NUXT__) nonce altyapısı
   // olmadan inline çalıştığı için 'unsafe-inline' gerekli.
   "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com https://pagead2.googlesyndication.com",
-  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-  "font-src 'self' https://fonts.gstatic.com",
+  // Google Fonts izinleri KALDIRILDI: Inter artık kendi sunucumuzdan
+  // geliyor (public/fonts + assets/css/fonts.css). Ölçümde sayfanın hiçbir
+  // harici sunucuya isteği kalmadı; izinleri açık bırakmak gereksiz yüzey.
+  "style-src 'self' 'unsafe-inline'",
+  "font-src 'self'",
   "img-src 'self' data: blob: https://evenakliyatevden.com https://cdn.evenakliyatevden.com https://www.googletagmanager.com https://www.google-analytics.com",
   "connect-src 'self' https://www.google-analytics.com https://www.googletagmanager.com",
-  "frame-src https://www.googletagmanager.com",
+  // google.com: İletişim sayfasındaki Google Haritalar embed'i (Site
+  // Ayarları'ndan giriliyor). Bu izin olmadan admin haritayı ekliyor ama
+  // tarayıcı iframe'i CSP nedeniyle sessizce engelliyordu.
+  "frame-src https://www.googletagmanager.com https://www.google.com",
   "object-src 'none'",
   "base-uri 'self'",
   "form-action 'self'",

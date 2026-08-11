@@ -1,5 +1,5 @@
 import * as yup from 'yup';
-import { siteSettingsCrudService, type SiteSettingsInput } from '~/server/domain/sections/configs/site-settings.config';
+import { siteSettingsCrudService, type SiteSettingsInput } from '../domain/sections/configs/site-settings.config';
 
 const siteSettingsSchema = yup.object({
   sectionName: yup.string().trim().notRequired(),
@@ -27,6 +27,24 @@ const siteSettingsSchema = yup.object({
   copyrightText: yup.string().trim().notRequired(),
   workingHours: yup.string().trim().notRequired(),
   googleMapsEmbed: yup.string().notRequired(),
+  // Yapısal veri (MovingCompany) alanları. Boş string geldiğinde null'a
+  // çevriliyor: yup sayı alanına boş string verilince NaN üretir ve o da
+  // veritabanına yazılamaz.
+  latitude: yup
+    .number()
+    .transform((v, o) => (o === '' || o === null ? null : v))
+    .min(-90)
+    .max(90)
+    .nullable()
+    .notRequired(),
+  longitude: yup
+    .number()
+    .transform((v, o) => (o === '' || o === null ? null : v))
+    .min(-180)
+    .max(180)
+    .nullable()
+    .notRequired(),
+  priceRange: yup.string().trim().notRequired(),
   metaTitle: yup.string().trim().notRequired(),
   metaDescription: yup.string().notRequired(),
   metaKeywords: yup.string().trim().notRequired(),

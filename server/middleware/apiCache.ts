@@ -9,9 +9,9 @@
 // pencerede aynı URL için MySQL'e hiç gitmeden yanıt verebilir.
 const CACHEABLE_PREFIXES = [
   '/api/about-section',
-  '/api/card',
+  // '/api/card' ve '/api/feature' KALDIRILDI: arkalarındaki bölümler
+  // sitede hiçbir yerde render edilmiyordu, uç noktalarla birlikte silindi.
   '/api/faq-section',
-  '/api/feature',
   '/api/footer',
   '/api/hero',
   '/api/meta',

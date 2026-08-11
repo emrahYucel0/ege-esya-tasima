@@ -1,5 +1,5 @@
 import * as yup from 'yup'
-import { postsService, type PostInput } from '~/server/domain/posts/posts.service'
+import { postsService, type PostInput } from '../domain/posts/posts.service'
 
 const postSchema = yup.object({
   title: yup.string().trim().required(),
@@ -9,7 +9,9 @@ const postSchema = yup.object({
   slug: yup.string().trim().required(),
   content: yup.string().notRequired(),
   excerpt: yup.string().notRequired(),
+  metaDescription: yup.string().notRequired(),
   image: yup.string().trim().notRequired(),
+  imageAlt: yup.string().trim().notRequired(),
 })
 
 export default defineEventHandler(async (event) => {

@@ -11,6 +11,11 @@
 // sıfırlanır). Bu dosya hangi sürücünün aktif olduğunu bilmez/bilmesine
 // gerek yok — useStorage() ile şeffaf şekilde çalışır.
 const WINDOW_MS = 15 * 60 * 1000 // 15 dakika
+
+// Varsayılan sınır login için seçilmişti. Artık başka uç noktalar da bu
+// aracı kullanıyor (iletişim formu, dönüşüm olayı kaydı) ve onların makul
+// sınırı farklı — bu yüzden değer parametreye taşındı. Verilmezse davranış
+// eskisiyle birebir aynı kalıyor.
 const MAX_ATTEMPTS = 5
 
 interface AttemptRecord {
@@ -27,20 +32,20 @@ export interface RateLimitStatus {
   retryAfterSeconds?: number
 }
 
-export async function isRateLimited(key: string): Promise<RateLimitStatus> {
+export async function isRateLimited(key: string, maxAttempts = MAX_ATTEMPTS): Promise<RateLimitStatus> {
   const record = await getStorage().getItem<AttemptRecord>(key)
   if (!record) return { blocked: false }
 
   const now = Date.now()
   if (now - record.firstAttempt > WINDOW_MS) return { blocked: false }
 
-  if (record.count >= MAX_ATTEMPTS) {
+  if (record.count >= maxAttempts) {
     return { blocked: true, retryAfterSeconds: Math.ceil((record.firstAttempt + WINDOW_MS - now) / 1000) }
   }
   return { blocked: false }
 }
 
-export async function recordFailedAttempt(key: string): Promise<RateLimitStatus> {
+export async function recordFailedAttempt(key: string, maxAttempts = MAX_ATTEMPTS): Promise<RateLimitStatus> {
   const storage = getStorage()
   const now = Date.now()
   const record = await storage.getItem<AttemptRecord>(key)
@@ -53,7 +58,7 @@ export async function recordFailedAttempt(key: string): Promise<RateLimitStatus>
   const updated: AttemptRecord = { count: record.count + 1, firstAttempt: record.firstAttempt }
   await storage.setItem(key, updated)
 
-  if (updated.count >= MAX_ATTEMPTS) {
+  if (updated.count >= maxAttempts) {
     return { blocked: true, retryAfterSeconds: Math.ceil((updated.firstAttempt + WINDOW_MS - now) / 1000) }
   }
   return { blocked: false }

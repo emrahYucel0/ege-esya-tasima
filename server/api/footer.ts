@@ -1,6 +1,6 @@
 // server/api/footer.ts
 import * as yup from 'yup'
-import { footerCrudService, type FooterInput } from '~/server/domain/sections/configs/footer.config'
+import { footerCrudService, type FooterInput } from '../domain/sections/configs/footer.config'
 
 const linkSchema = yup.object({
   name: yup.string().trim().notRequired(),

@@ -1,5 +1,5 @@
 // server/domain/meta/meta.repository.ts
-import prisma from '~/lib/prisma'
+import prisma from '../../utils/prisma'
 
 export const metaRepository = {
   findByPage: (page: string) => prisma.meta.findUnique({ where: { page } }),

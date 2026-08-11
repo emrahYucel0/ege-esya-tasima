@@ -2,7 +2,7 @@
 import * as bcrypt from 'bcryptjs';
 import { defineEventHandler, readBody, setCookie, getRequestIP } from 'h3';
 import * as yup from 'yup';
-import prisma from '~/lib/prisma';
+import prisma from '../utils/prisma';
 
 const loginSchema = yup.object({
   email: yup.string().trim().email().required(),

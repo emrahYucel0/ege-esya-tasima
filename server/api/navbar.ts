@@ -1,5 +1,5 @@
 import * as yup from 'yup';
-import { navbarCrudService, type NavbarInput } from '~/server/domain/sections/configs/navbar.config';
+import { navbarCrudService, type NavbarInput } from '../domain/sections/configs/navbar.config';
 
 const navbarSocialLinkSchema = yup.object({
   name: yup.string().trim().notRequired(),

@@ -10,6 +10,25 @@ dist
 # Node dependencies
 node_modules
 
+# Veritabanı yedekleri (scripts/yedekle.mjs). Müşteri verisi içerir —
+# depoya asla girmemeli. Sunucu dışında ayrı bir yerde saklanmalı.
+yedekler
+
+# Panelden yüklenen görseller. Çalışma anında oluşuyor, dağıtımla gelmiyor;
+# yeni sürüm atarken bu klasör KORUNMALI.
+yuklemeler
+
+# Görsellerin dokunulmamış orijinalleri. public/images altındaki optimize
+# dosyalar bunlardan üretiliyor (scripts/gorsel-hazirla.mjs). Depoya girmiyor
+# (yüzlerce MB) ve siteye dağıtılmıyor — yalnızca yeniden üretim için gerekli,
+# bu yüzden ayrı bir yerde yedeklenmeli.
+gorsel-kaynak
+
+# Prisma 7'nin ürettiği istemci. Artık node_modules içine değil proje ağacına
+# yazılıyor; üretilmiş kod olduğu için repoya girmiyor. `npm install` sonrası
+# postinstall (prisma generate) onu yeniden oluşturuyor.
+prisma/generated
+
 # Logs
 logs
 *.log

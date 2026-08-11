@@ -1,5 +1,5 @@
 import * as yup from 'yup';
-import { weHelpSectionCrudService, type WeHelpSectionInput } from '~/server/domain/sections/configs/we-help-section.config';
+import { weHelpSectionCrudService, type WeHelpSectionInput } from '../domain/sections/configs/we-help-section.config';
 
 const weHelpFeatureSchema = yup.object({
   text: yup.string().trim().notRequired(),

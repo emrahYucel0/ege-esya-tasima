@@ -1,5 +1,5 @@
 import * as yup from 'yup';
-import { quoteCrudService, type QuoteInput } from '~/server/domain/sections/configs/quote.config';
+import { quoteCrudService, type QuoteInput } from '../domain/sections/configs/quote.config';
 
 const quoteRequestSchema = yup.object({
   sectionName: yup.string().trim().notRequired(),

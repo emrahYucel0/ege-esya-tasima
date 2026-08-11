@@ -7,7 +7,7 @@
 // Bu dosya bir Nitro route'u DEĞİL, düz bir modül olduğu için server/utils/*
 // yardımcılarını (auto-import yerine) açıkça import ediyoruz — auto-import
 // transformu sadece route/middleware/plugin dosyalarında garanti.
-import { isRecordNotFoundError, isUniqueConstraintError, getSafeErrorMessage } from '~/server/utils/prismaError'
+import { isRecordNotFoundError, isUniqueConstraintError, getSafeErrorMessage } from '../../utils/prismaError'
 import { ok, fail, type ServiceResult } from '../shared/response'
 import type { ChildListConfig, SectionCrudConfig } from '../shared/types'
 

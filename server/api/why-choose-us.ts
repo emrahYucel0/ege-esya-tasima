@@ -1,5 +1,5 @@
 import * as yup from 'yup';
-import { whyChooseUsCrudService, type WhyChooseUsInput } from '~/server/domain/sections/configs/why-choose-us.config';
+import { whyChooseUsCrudService, type WhyChooseUsInput } from '../domain/sections/configs/why-choose-us.config';
 
 const whyChooseUsFeatureSchema = yup.object({
   iconPath: yup.string().trim().notRequired(),
@@ -14,6 +14,8 @@ const whyChooseUsSchema = yup.object({
   shortDescription: yup.string().trim().notRequired(),
   closingStatement: yup.string().trim().notRequired(),
   mainImage: yup.string().trim().notRequired(),
+  // stripUnknown: sema disi alan sessizce dusurulur, buraya eklenmek zorunda.
+  mainImageAlt: yup.string().trim().notRequired(),
   features: yup.array().of(whyChooseUsFeatureSchema).notRequired(),
 });
 

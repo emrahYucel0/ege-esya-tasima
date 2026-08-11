@@ -1,5 +1,5 @@
 // server/domain/posts/posts.service.ts
-import { getSafeErrorMessage } from '~/server/utils/prismaError'
+import { getSafeErrorMessage } from '../../utils/prismaError'
 import { ok, fail, type ServiceResult } from '../shared/response'
 import { postsRepository } from './posts.repository'
 
@@ -11,7 +11,9 @@ export interface PostInput {
   slug: string
   content?: string
   excerpt?: string
+  metaDescription?: string
   image?: string
+  imageAlt?: string
 }
 
 export interface PaginationInput {
@@ -61,7 +63,9 @@ async function create(body: PostInput): Promise<ServiceResult<any>> {
       slug: body.slug,
       content: body.content,
       excerpt: body.excerpt,
+      metaDescription: body.metaDescription,
       image: body.image,
+      imageAlt: body.imageAlt,
     })
     return ok(post)
   } catch (error) {
@@ -78,7 +82,9 @@ async function update(body: PostInput): Promise<ServiceResult<any>> {
       author: body.author,
       content: body.content,
       excerpt: body.excerpt,
+      metaDescription: body.metaDescription,
       image: body.image,
+      imageAlt: body.imageAlt,
     })
     return ok(post)
   } catch (error) {
