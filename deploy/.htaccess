@@ -51,8 +51,22 @@
   SetEnvIfNoCase Request_URI \.(?:gif|jpe?g|png|webp|avif|ico|zip|gz|br|woff2?)$ no-gzip dont-vary
 </IfModule>
 
-# Nitro'nun derleme zamanında ürettiği .br / .gz dosyalarını, tarayıcı
-# destekliyorsa doğrudan sun — Node hiç devreye girmez.
+# AŞAĞIDAKİ _nuxt KURALLARI VARSAYILAN KURULUMDA ÇALIŞMAZ — bilerek.
+#
+# Ölçüldü: Nitro'nun node-server çıktısı statik varlıkları KENDİSİ
+# sıkıştırılmış olarak sunuyor. Bir .js dosyası `Accept-Encoding: br` ile
+# istendiğinde `Content-Encoding: br` ve 644 bayt dönüyor (sıkıştırmasız
+# 1652 bayt), üstelik `cache-control: public, max-age=31536000, immutable`
+# başlığını da Node veriyor.
+#
+# Bu yüzden `.output/public` içeriğini public_html'e KOPYALAMAYA GEREK YOK;
+# uygulama kökü belge kökünün dışında durabilir. Kopyalanmadığı için
+# aşağıdaki RewriteCond `-f` kontrolleri eşleşmez ve kurallar sessizce
+# devre dışı kalır.
+#
+# Kurallar yine de duruyor: ileride statikleri Apache'ye devretmek
+# isterseniz (`.output/public/*` → `public_html/`) tek satır değişiklik
+# yapmadan çalışmaya başlarlar.
 <IfModule mod_rewrite.c>
   RewriteEngine On
 

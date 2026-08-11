@@ -5,6 +5,45 @@ Her adımın sonunda **nasıl doğrulanacağı** yazıyor; doğrulamayı atlamay
 
 ---
 
+## Klasör yapısı — uygulama kökü `public_html` DIŞINDA
+
+```
+/home/httpdqwu1/
+├── nakliye/              ← Application root (belge kökünün DIŞINDA)
+│   ├── .output/          ← derleme çıktısı, her sürümde değişen tek şey
+│   └── scripts/
+│       └── yedekle.mjs
+├── yuklemeler/           ← panelden yüklenen görseller (dağıtımda KORUNUR)
+├── yedekler/             ← veritabanı yedekleri (cron yazar)
+└── public_html/
+    └── .htaccess         ← Passenger bloğu + bu paketteki kurallar
+```
+
+**Daha önce `public_html/app` kullanıyorduysanız artık gerekmiyor.** Sebebi:
+statik dosyaları Apache'nin sunması gerektiği için uygulamayı belge köküne
+koymak eski yöntemdi. Ölçtük — Nitro'nun node-server çıktısı `_nuxt`
+altındaki varlıkları **kendisi** sıkıştırılmış olarak sunuyor
+(`Content-Encoding: br`, 644 bayt / 1652 bayt) ve `max-age=31536000,
+immutable` önbellek başlığını da kendisi veriyor. Yani `public_html`'e
+kopyalanacak statik dosya yok; `public_html` içinde yalnızca `.htaccess`
+kalıyor.
+
+Uygulama kökünü belge kökünün dışına almanın iki faydası var:
+
+1. **Sunucu kodu indirilebilir olmuyor.** `.output/server/` altındaki
+   paketlenmiş kod belge kökünde dursaydı, sunucu yapılandırmasına bağlı
+   olarak doğrudan indirilebilir hâle gelebilirdi. (Derlemede gizli bilgi
+   yok — ölçüldü — ama arka uç mantığını, yönetim yolunu ve hız sınırı
+   eşiklerini dışarı vermenin anlamı yok.)
+2. **Dağıtım sadeleşiyor.** Yeni sürümde yalnızca `nakliye/.output`
+   değişiyor; `public_html` ve `yuklemeler` hiç ellenmiyor.
+
+> cPanel bazı kurulumlarda uygulama kökünü `public_html` içinde olmaya
+> zorlar. Zorlarsa: uygulama klasörünün içine `Require all denied` içeren
+> bir `.htaccess` koyup dışarıdan erişimi kapatın.
+
+---
+
 ## 0) Yüklenecek dosyalar
 
 `.output` klasörünün **tek başına yeterli olduğu ölçülerek doğrulandı**:
@@ -18,11 +57,11 @@ ve `prisma/` klasörleri YÜKLENMEYECEK.
 
 | Ne | Nereye | Not |
 |---|---|---|
-| `.output/` (tamamı) | uygulama kökü | 22 MB |
+| `.output/` (tamamı) | `/home/httpdqwu1/nakliye/.output` | 22 MB |
 | `deploy/.htaccess` | `public_html/.htaccess` | Passenger bloğunun ALTINA eklenecek |
 | `yuklemeler/` | `/home/httpdqwu1/yuklemeler` | panelden yüklenen görseller |
-| `scripts/yedekle.mjs` | uygulama kökü | yalnızca yedek cron'u için |
-| `deploy/app.mjs` | uygulama kökü | **yalnızca gerekirse** — bkz. adım 2 |
+| `scripts/yedekle.mjs` | `/home/httpdqwu1/nakliye/scripts/` | yalnızca yedek cron'u için |
+| `deploy/app.mjs` | `/home/httpdqwu1/nakliye/` | **yalnızca gerekirse** — bkz. adım 2 |
 
 **Yüklenmeyecekler:** `.env`, `node_modules/`, `prisma/`, `app/`, `server/`,
 `yedekler/`, `.nuxt/`, `gorsel-kaynak/`.
@@ -56,7 +95,7 @@ cPanel → **Setup Node.js App** → Create Application
 |---|---|
 | Node.js version | 20 veya üzeri |
 | Application mode | Production |
-| Application root | (örn. `nakliye`) |
+| Application root | `nakliye`  (yani `/home/httpdqwu1/nakliye` — public_html DIŞINDA) |
 | Application URL | evenakliyatevden.com |
 | Application startup file | `.output/server/index.mjs` |
 
