@@ -119,6 +119,75 @@ try {
 
 console.log('✓ bağlantı kuruldu')
 
+// ── ŞEMA KONTROLÜ ────────────────────────────────────────────────────────
+// Bağlantı kurulsa bile şema ESKİ olabilir. Eski bir veritabanının bilgileri
+// yeniden kullanıldığında tam olarak bu oluyor: bağlantı sorunsuz, ama
+// uygulamanın beklediği tablo ve sütunlar yok. Sorgu "Unknown column" ile
+// düşüyor ve tarayıcıya yalnızca genel hata mesajı gidiyor.
+const BEKLENEN_TABLOLAR = [
+  'SiteSettings', 'Navbar', 'HeroPage', 'Footer', 'Services', 'TrustBar',
+  'TrustBarItem', 'Service', 'ProcessSection', 'WhyChooseUs', 'WeHelpSection',
+  'FaqSection', 'PricingSection', 'QuoteRequest', 'TestimonialSection',
+  'Testimonial', 'AboutSection', 'Post', 'Region', 'StoredFile', 'User',
+  'Meta', 'PriceEstimator', 'PriceEstimatorSize', 'PriceEstimatorDistance',
+  'ContactLead', 'SiteEvent', 'PolicyPage',
+]
+
+// 30 Temmuz sonrası eklenen ve eski şemada KESİNLİKLE bulunmayacak sütunlar.
+const BEKLENEN_SUTUNLAR = [
+  ['Region', 'imageAlt'],
+  ['Region', 'metaDescription'],
+  ['Region', 'neighborhoods'],
+  ['Region', 'facts'],
+  ['Region', 'faqs'],
+  ['Region', 'routes'],
+  ['Post', 'imageAlt'],
+  ['Service', 'imageAlt'],
+  ['Service', 'slug'],
+  ['HeroPage', 'imageAlt'],
+  ['SiteSettings', 'latitude'],
+]
+
+const mevcutTablolar = new Set(
+  (await baglanti.query(
+    'SELECT TABLE_NAME AS t FROM information_schema.TABLES WHERE TABLE_SCHEMA = ?',
+    [cozulmus.veritabani]
+  )).map((r) => String(r.t).toLowerCase())
+)
+
+const eksikTablo = BEKLENEN_TABLOLAR.filter((t) => !mevcutTablolar.has(t.toLowerCase()))
+
+const mevcutSutunlar = new Set(
+  (await baglanti.query(
+    'SELECT TABLE_NAME AS t, COLUMN_NAME AS c FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = ?',
+    [cozulmus.veritabani]
+  )).map((r) => `${String(r.t).toLowerCase()}.${String(r.c).toLowerCase()}`)
+)
+
+const eksikSutun = BEKLENEN_SUTUNLAR.filter(
+  ([t, c]) => mevcutTablolar.has(t.toLowerCase()) && !mevcutSutunlar.has(`${t.toLowerCase()}.${c.toLowerCase()}`)
+)
+
+console.log('\nşema kontrolü:')
+console.log(`  veritabanındaki tablo sayısı : ${mevcutTablolar.size}`)
+console.log(`  eksik tablo                  : ${eksikTablo.length}`)
+console.log(`  eksik sütun                  : ${eksikSutun.length}`)
+
+if (eksikTablo.length || eksikSutun.length) {
+  console.log('\n✗ ŞEMA ESKİ — bağlantı çalışıyor ama veritabanı güncel değil.')
+  if (eksikTablo.length) console.log(`  eksik tablolar: ${eksikTablo.join(', ')}`)
+  if (eksikSutun.length) {
+    console.log(`  eksik sütunlar: ${eksikSutun.map(([t, c]) => `${t}.${c}`).join(', ')}`)
+  }
+  console.log('\n  ÇÖZÜM: güncel SQL yedeğini bu veritabanına içe aktarın.')
+  console.log('  Yedek dosyası her tablo için DROP TABLE IF EXISTS içeriyor,')
+  console.log('  yani eski tabloların üzerine temiz şekilde yazar.')
+  console.log('  phpMyAdmin → soldan DOĞRU veritabanını seç → Import.')
+  await baglanti.end()
+  process.exit(1)
+}
+console.log('  ✓ şema güncel')
+
 const say = async (tablo) => {
   try {
     const s = await baglanti.query(`SELECT COUNT(*) AS n FROM \`${tablo}\``)
