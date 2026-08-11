@@ -47,7 +47,7 @@ const isoDate = computed(() => {
         quality="70"
         loading="lazy"
         decoding="async"
-        sizes="(max-width: 767px) 100vw, (max-width: 1023px) 50vw, 380px"
+        sizes="xs:100vw md:50vw lg:380px"
         class="blog-card__img"
         :src="post.image || '/img/default-blog.jpg'"
         :alt="post.imageAlt?.trim() || post.shortTitle || post.title || 'Blog yazısı görseli'"

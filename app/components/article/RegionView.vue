@@ -196,7 +196,7 @@ const imageAlt = computed(() => {
           :src="region.image"
           :alt="imageAlt"
           class="region__img"
-          sizes="(max-width: 1023px) 100vw, 900px"
+          sizes="xs:100vw lg:900px"
           loading="eager"
           fetchpriority="high"
           preload
@@ -281,7 +281,7 @@ const imageAlt = computed(() => {
             :src="region.priceFactorsImage"
             alt=""
             class="region__img"
-            sizes="(max-width: 1023px) 100vw, 900px"
+            sizes="xs:100vw lg:900px"
             loading="lazy"
             decoding="async"
           />

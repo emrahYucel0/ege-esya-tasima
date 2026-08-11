@@ -253,7 +253,7 @@ useReveal(sectionRef)
                   class="faq-media__img"
                   format="webp"
                   quality="70"
-                  sizes="(max-width: 1023px) 45vw, 230px"
+                  sizes="xs:45vw lg:230px"
                   loading="lazy"
                   decoding="async"
                 />

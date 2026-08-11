@@ -92,7 +92,7 @@ const imageAlt = computed(() => {
           :src="post.image"
           :alt="imageAlt"
           class="article__img"
-          sizes="(max-width: 1023px) 100vw, 900px"
+          sizes="xs:100vw lg:900px"
           loading="eager"
           fetchpriority="high"
           preload

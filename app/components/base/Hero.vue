@@ -153,7 +153,7 @@ useMagnetic(ctaRef, { strength: 6 });
         class="h-full w-full object-cover object-center"
         format="webp"
         loading="eager"
-        sizes="(max-width: 767px) 100vw, (max-width: 1279px) 1280px, 1920px"
+        sizes="xs:100vw md:1280px xl:1920px"
         decoding="async"
         fetchpriority="high"
       />
@@ -254,7 +254,7 @@ useMagnetic(ctaRef, { strength: 6 });
                 class="aspect-[4/3] w-full object-cover lg:aspect-[5/4]"
                 format="webp"
                 loading="eager"
-                sizes="(max-width: 1023px) 90vw, 700px"
+                sizes="xs:90vw lg:700px"
                 decoding="async"
               />
               <div v-else class="aspect-[4/3] w-full bg-brand-700"></div>

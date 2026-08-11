@@ -44,15 +44,41 @@
     U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
+/* -----------------------------------------------------------------------------
+   LATIN-EXT — TÜRKÇEYE ALT KÜMELENMİŞ
+   -----------------------------------------------------------------------------
+   Bu dosya Google Fonts'un hazır `latin-ext` alt kümesiydi: 85 KB. Canlıda
+   Lighthouse ölçümünde kritik yolun en uzun halkasıydı (3.858 ms).
+
+   Sebep: `latin-ext` Latin Genişletilmiş'in TAMAMINI taşıyor (U+0100-02BA,
+   U+1D00-1DBF, U+1E00-1E9F, U+2C60-2C7F, U+A720-A7FF …) ve değişken font
+   olduğu için her glif birden çok ana çizimle geliyor.
+
+   ÖLÇÜM: sitedeki tüm içerik (veritabanı + şablonlar, 2.050.881 karakter,
+   155 benzersiz kod noktası) tarandı. `latin` alt kümesinin dışında kalan
+   ve Inter'de karşılığı olan karakterler yalnızca şunlar:
+
+       Ğ ğ İ Ş ş        (U+011E-011F, U+0130, U+015E-015F)
+       ₺                (U+20BA)
+
+   Kalanlar (← → ★ ⚙ ⚠ ve emoji) zaten Inter'de yok; sistem yazı tipinden
+   geliyorlar, bu dosyayla ilgileri yok.
+
+   Dosya `fonts-kaynak/inter-latin-ext-tam.woff2` kaynağından
+   `npm run font-altkume` ile üretiliyor. Türkçenin altı karakterine ek
+   olarak Romence ș/ț (U+0218-021B) de alındı: Türkçe metinlerde bu iki harf
+   ş/ţ yerine sıkça yanlış yazılıyor ve alt kümede olmasalar tofu çıkardı.
+
+   SONUÇ: 85.068 → 3.668 bayt (%95,7 azalma). Değişken eksen (wght 100-900)
+   korundu.
+   -------------------------------------------------------------------------- */
 @font-face {
   font-family: "Inter";
   font-style: normal;
   font-weight: 400 800;
   font-display: swap;
   src: url("/fonts/inter-latin-ext.woff2") format("woff2");
-  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7,
-    U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF,
-    U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+  unicode-range: U+011E-011F, U+0130, U+015E-015F, U+0218-021B, U+20BA;
 }
 
 /* -----------------------------------------------------------------------------

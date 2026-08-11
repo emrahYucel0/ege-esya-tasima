@@ -26,7 +26,8 @@
     "duman": "node scripts/duman-testi.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
-    "dagitim-paketi": "node scripts/dagitim-paketi.mjs"
+    "dagitim-paketi": "node scripts/dagitim-paketi.mjs",
+    "font-altkume": "node scripts/font-altkume.mjs"
   },
   "dependencies": {
     "@nuxt/image": "^2.1.0",

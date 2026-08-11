@@ -107,14 +107,29 @@ export default defineNuxtConfig({
       link: [
         // Yazı tipi CSS'te @font-face ile tanımlı olduğu için tarayıcı onu
         // ancak CSSOM kurulduktan SONRA keşfeder. Preload, indirmeyi HTML
-        // taranırken başlatır. Yalnızca `latin` ön yüklenir — sayfadaki
-        // karakterlerin büyük çoğunluğu orada; latin-ext'i tarayıcı
-        // unicode-range'e bakarak gerektiğinde kendisi çeker.
+        // taranırken başlatır.
         {
           rel: "preload",
           as: "font",
           type: "font/woff2",
           href: "/fonts/inter-latin.woff2",
+          crossorigin: "anonymous",
+        },
+        // LATIN-EXT DE ÖN YÜKLENİYOR — önceden yüklenmiyordu.
+        //
+        // Eski gerekçe "tarayıcı unicode-range'e bakıp gerektiğinde kendisi
+        // çeker" idi. Doğru ama pahalı: keşif ancak CSS ayrıştırılıp metin
+        // yerleşimi yapıldıktan sonra oluyordu ve canlı Lighthouse ölçümünde
+        // bu dosya kritik yolda 3.858 ms'ye çıkmıştı.
+        //
+        // Türkçe her sayfada ş/ğ/İ geçtiği için dosya ZATEN her zaman
+        // indiriliyor — "gerektiğinde" diye beklemenin bir kazancı yok.
+        // Alt kümeleme sonrası boyutu 3,7 KB; ön yüklemenin maliyeti yok.
+        {
+          rel: "preload",
+          as: "font",
+          type: "font/woff2",
+          href: "/fonts/inter-latin-ext.woff2",
           crossorigin: "anonymous",
         },
       ],
