@@ -1,8 +1,8 @@
 // server/domain/sections/configs/testimonials-section.config.ts
-import prisma from '~/lib/prisma'
+import prisma from '../../../utils/prisma'
 import { createSectionCrudService } from '../section-crud.factory'
 import { ok, fail, type ServiceResult } from '../../shared/response'
-import { isRecordNotFoundError, getSafeErrorMessage } from '~/server/utils/prismaError'
+import { isRecordNotFoundError, getSafeErrorMessage } from '../../../utils/prismaError'
 
 export interface TestimonialInput {
   customerName?: string

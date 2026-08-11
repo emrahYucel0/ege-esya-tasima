@@ -1,5 +1,5 @@
 // server/domain/sections/configs/why-choose-us.config.ts
-import prisma from '~/lib/prisma'
+import prisma from '../../../utils/prisma'
 import { createSectionCrudService } from '../section-crud.factory'
 
 export interface WhyChooseUsFeatureInput {
@@ -15,6 +15,7 @@ export interface WhyChooseUsInput {
   shortDescription?: string
   closingStatement?: string
   mainImage?: string
+  mainImageAlt?: string
   features?: WhyChooseUsFeatureInput[]
 }
 
@@ -37,12 +38,14 @@ export const whyChooseUsCrudService = createSectionCrudService<any, WhyChooseUsI
     shortDescription: b.shortDescription,
     closingStatement: b.closingStatement,
     mainImage: b.mainImage,
+    mainImageAlt: b.mainImageAlt,
   }),
   mapParentUpdate: (b) => ({
     mainTitle: b.mainTitle,
     shortDescription: b.shortDescription,
     closingStatement: b.closingStatement,
     mainImage: b.mainImage,
+    mainImageAlt: b.mainImageAlt,
   }),
   deleteStrategy: 'manual',
   manualDeleteDelegates: [

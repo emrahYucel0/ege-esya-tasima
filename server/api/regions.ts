@@ -1,11 +1,42 @@
 import * as yup from 'yup'
-import { regionsService, type RegionInput } from '~/server/domain/regions/regions.service'
+import { regionsService, type RegionInput } from '../domain/regions/regions.service'
 
 const priceFactorSchema = yup.object({
   factor: yup.string().trim().notRequired(),
   min: yup.string().trim().notRequired(),
   max: yup.string().trim().notRequired(),
 })
+
+// --- Derinlik alanları -------------------------------------------------
+// Bölge sayfalarının ince içerik riskini azaltan yapılandırılmış bölümler.
+// Hepsi opsiyonel: boş bırakılan bölüm sayfada hiç render edilmiyor.
+
+const factSchema = yup.object({
+  label: yup.string().trim().notRequired(),
+  value: yup.string().trim().notRequired(),
+})
+
+const faqSchema = yup.object({
+  question: yup.string().trim().notRequired(),
+  answer: yup.string().trim().notRequired(),
+})
+
+/**
+ * Güzergâhta hedefin SLUG'I saklanmıyor, yalnızca adı. Bağlantı render
+ * sırasında bölge adından çözülüyor; böylece panelden yanlış slug girmek
+ * mümkün değil ve hedef bölge silinirse bağlantı kırılmıyor.
+ */
+const routeSchema = yup.object({
+  to: yup.string().trim().notRequired(),
+  note: yup.string().trim().notRequired(),
+})
+
+const depthFields = {
+  neighborhoods: yup.array().of(yup.string().trim()).notRequired(),
+  facts: yup.array().of(factSchema).notRequired(),
+  faqs: yup.array().of(faqSchema).notRequired(),
+  routes: yup.array().of(routeSchema).notRequired(),
+}
 
 const regionCreateSchema = yup.object({
   title: yup.string().trim().required(),
@@ -14,12 +45,15 @@ const regionCreateSchema = yup.object({
   slug: yup.string().trim().required(),
   content: yup.string().notRequired(),
   excerpt: yup.string().notRequired(),
+  metaDescription: yup.string().notRequired(),
   image: yup.string().trim().notRequired(),
+  imageAlt: yup.string().trim().notRequired(),
   isActive: yup.boolean().notRequired(),
   cities: yup.array().of(yup.number()).notRequired(),
   priceFactorsTitle: yup.string().trim().notRequired(),
   priceFactorsImage: yup.string().trim().notRequired(),
   priceFactors: yup.array().of(priceFactorSchema).notRequired(),
+  ...depthFields,
 })
 
 const regionUpdateSchema = yup.object({
@@ -29,12 +63,15 @@ const regionUpdateSchema = yup.object({
   slug: yup.string().trim().required(),
   content: yup.string().notRequired(),
   excerpt: yup.string().notRequired(),
+  metaDescription: yup.string().notRequired(),
   image: yup.string().trim().notRequired(),
+  imageAlt: yup.string().trim().notRequired(),
   isActive: yup.boolean().notRequired(),
   cities: yup.array().of(yup.number()).notRequired(),
   priceFactorsTitle: yup.string().trim().notRequired(),
   priceFactorsImage: yup.string().trim().notRequired(),
   priceFactors: yup.array().of(priceFactorSchema).notRequired(),
+  ...depthFields,
 })
 
 export default defineEventHandler(async (event) => {

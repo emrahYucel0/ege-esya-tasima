@@ -1,5 +1,5 @@
 // server/domain/posts/posts.repository.ts
-import prisma from '~/lib/prisma'
+import prisma from '../../utils/prisma'
 
 export const postsRepository = {
   findBySlug: (slug: string) => prisma.post.findUnique({ where: { slug } }),

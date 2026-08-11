@@ -1,0 +1,289 @@
+{
+  "/images/3d-truck.jpg": {
+    "taban": "/images/3d-truck.jpg",
+    "genislikler": [
+      160,
+      320,
+      640,
+      1024,
+      1600,
+      2048,
+      2560
+    ],
+    "onEk": "/images/3d-truck-"
+  },
+  "/images/couch.png": {
+    "taban": "/images/couch.png",
+    "genislikler": [
+      160,
+      320,
+      640,
+      811
+    ],
+    "onEk": "/images/couch-"
+  },
+  "/images/esyali-kiralik.jpg": {
+    "taban": "/images/esyali-kiralik.jpg",
+    "genislikler": [
+      160,
+      320,
+      640,
+      1024,
+      1600,
+      2048,
+      2560
+    ],
+    "onEk": "/images/esyali-kiralik-"
+  },
+  "/images/esyali-kiralik.png": {
+    "taban": "/images/esyali-kiralik.png",
+    "genislikler": [
+      160,
+      320,
+      640,
+      1024,
+      1600,
+      1920
+    ],
+    "onEk": "/images/esyali-kiralik-"
+  },
+  "/images/ev-nakliye.jpg": {
+    "taban": "/images/ev-nakliye.jpg",
+    "genislikler": [
+      160,
+      320,
+      640,
+      1024,
+      1600,
+      2048,
+      2560
+    ],
+    "onEk": "/images/ev-nakliye-"
+  },
+  "/images/ev-nakliye.png": {
+    "taban": "/images/ev-nakliye.png",
+    "genislikler": [
+      160,
+      320,
+      640,
+      1024,
+      1600,
+      2048,
+      2560
+    ],
+    "onEk": "/images/ev-nakliye-"
+  },
+  "/images/green.jpg": {
+    "taban": "/images/green.jpg",
+    "genislikler": [
+      160,
+      320,
+      640,
+      1024,
+      1600,
+      2048,
+      2560
+    ],
+    "onEk": "/images/green-"
+  },
+  "/images/grey1.jpg": {
+    "taban": "/images/grey1.jpg",
+    "genislikler": [
+      160,
+      320,
+      640,
+      1024,
+      1600,
+      2048,
+      2560
+    ],
+    "onEk": "/images/grey1-"
+  },
+  "/images/grey2.jpg": {
+    "taban": "/images/grey2.jpg",
+    "genislikler": [
+      160,
+      320,
+      640,
+      1024,
+      1600,
+      2048,
+      2560
+    ],
+    "onEk": "/images/grey2-"
+  },
+  "/images/grey3.jpg": {
+    "taban": "/images/grey3.jpg",
+    "genislikler": [
+      160,
+      320,
+      640,
+      1024,
+      1600,
+      2048,
+      2560
+    ],
+    "onEk": "/images/grey3-"
+  },
+  "/images/hex-pattern.jpg": {
+    "taban": "/images/hex-pattern.jpg",
+    "genislikler": [
+      160,
+      320,
+      640,
+      1024,
+      1600,
+      2048,
+      2560
+    ],
+    "onEk": "/images/hex-pattern-"
+  },
+  "/images/hex-patternn.jpg": {
+    "taban": "/images/hex-patternn.jpg",
+    "genislikler": [
+      160,
+      320,
+      640,
+      1024,
+      1600,
+      2048,
+      2560
+    ],
+    "onEk": "/images/hex-patternn-"
+  },
+  "/images/img-grid-1.jpg": {
+    "taban": "/images/img-grid-1.jpg",
+    "genislikler": [
+      160,
+      320,
+      640,
+      1019
+    ],
+    "onEk": "/images/img-grid-1-"
+  },
+  "/images/img-grid-2.jpg": {
+    "taban": "/images/img-grid-2.jpg",
+    "genislikler": [
+      160,
+      320,
+      452
+    ],
+    "onEk": "/images/img-grid-2-"
+  },
+  "/images/img-grid-3.jpg": {
+    "taban": "/images/img-grid-3.jpg",
+    "genislikler": [
+      160,
+      320,
+      640,
+      703
+    ],
+    "onEk": "/images/img-grid-3-"
+  },
+  "/images/nakliye1.jpg": {
+    "taban": "/images/nakliye1.jpg",
+    "genislikler": [
+      160,
+      320,
+      640,
+      1024,
+      1200
+    ],
+    "onEk": "/images/nakliye1-"
+  },
+  "/images/nakliye2.jpg": {
+    "taban": "/images/nakliye2.jpg",
+    "genislikler": [
+      160,
+      320,
+      640,
+      1024,
+      1200
+    ],
+    "onEk": "/images/nakliye2-"
+  },
+  "/images/nakliye3.png": {
+    "taban": "/images/nakliye3.png",
+    "genislikler": [
+      160,
+      320,
+      640,
+      1024,
+      1600,
+      2048,
+      2560
+    ],
+    "onEk": "/images/nakliye3-"
+  },
+  "/images/ofis-tasima.jpg": {
+    "taban": "/images/ofis-tasima.jpg",
+    "genislikler": [
+      160,
+      320,
+      640,
+      1024,
+      1600,
+      2048,
+      2560
+    ],
+    "onEk": "/images/ofis-tasima-"
+  },
+  "/images/ofis-tasima.png": {
+    "taban": "/images/ofis-tasima.png",
+    "genislikler": [
+      160,
+      320,
+      640,
+      1024,
+      1600,
+      2048,
+      2560
+    ],
+    "onEk": "/images/ofis-tasima-"
+  },
+  "/images/sofa.png": {
+    "taban": "/images/sofa.png",
+    "genislikler": [
+      160,
+      320,
+      571
+    ],
+    "onEk": "/images/sofa-"
+  },
+  "/images/team.jpg": {
+    "taban": "/images/team.jpg",
+    "genislikler": [
+      160,
+      320,
+      640,
+      1024,
+      1600,
+      2048,
+      2560
+    ],
+    "onEk": "/images/team-"
+  },
+  "/images/wave.png": {
+    "taban": "/images/wave.png",
+    "genislikler": [
+      160,
+      320,
+      640,
+      1024,
+      1600,
+      2048,
+      2560
+    ],
+    "onEk": "/images/wave-"
+  },
+  "/images/why-choose-us-img.jpg": {
+    "taban": "/images/why-choose-us-img.jpg",
+    "genislikler": [
+      160,
+      320,
+      640,
+      903
+    ],
+    "onEk": "/images/why-choose-us-img-"
+  }
+}

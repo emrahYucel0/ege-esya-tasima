@@ -49,7 +49,17 @@ module.exports = {
     },
     extend: {
       fontFamily: {
-        inter: ["Inter", "system-ui", "-apple-system", "Segoe UI", "sans-serif"],
+        // "Inter Fallback": ölçüsü Inter'e eşitlenmiş yedek (bkz.
+        // assets/css/fonts.css). Inter inene kadar metin AYNI yeri kaplar,
+        // böylece takas anında düzen kaymaz.
+        inter: [
+          "Inter",
+          "Inter Fallback",
+          "system-ui",
+          "-apple-system",
+          "Segoe UI",
+          "sans-serif",
+        ],
       },
 
       colors: {

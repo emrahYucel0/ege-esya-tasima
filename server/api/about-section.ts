@@ -1,5 +1,5 @@
 import * as yup from 'yup';
-import { aboutSectionService, type AboutSectionInput } from '~/server/domain/sections/about-section.service';
+import { aboutSectionService, type AboutSectionInput } from '../domain/sections/about-section.service';
 
 const aboutServiceSchema = yup.object({
   iconPath: yup.string().trim().notRequired(),

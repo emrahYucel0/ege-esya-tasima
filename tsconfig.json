@@ -13,8 +13,5 @@
     "rootDir": "./",
     "types": ["node"]
   },
-"include": ["composables/**/*.ts", "server/**/*.ts", "pages/**/*.vue", "*.ts"],  
-"ts-node": {
-    "esm": true // ESM desteği için
-  }
+"include": ["app/**/*.ts", "app/**/*.vue", "server/**/*.ts", "*.ts"]
 }

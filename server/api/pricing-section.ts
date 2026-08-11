@@ -1,5 +1,5 @@
 import * as yup from 'yup';
-import { pricingSectionCrudService, type PricingSectionInput } from '~/server/domain/sections/configs/pricing-section.config';
+import { pricingSectionCrudService, type PricingSectionInput } from '../domain/sections/configs/pricing-section.config';
 
 const pricingFeatureSchema = yup.object({
   text: yup.string().trim().notRequired(),

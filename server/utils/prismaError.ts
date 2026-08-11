@@ -1,4 +1,4 @@
-import { Prisma } from '@prisma/client'
+import { Prisma } from '../../prisma/generated/client/client.ts'
 
 // P2002: unique constraint ihlali (örn. sectionName zaten var)
 export function isUniqueConstraintError(error: unknown): boolean {

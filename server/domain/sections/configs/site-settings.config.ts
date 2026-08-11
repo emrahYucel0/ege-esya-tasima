@@ -1,5 +1,5 @@
 // server/domain/sections/configs/site-settings.config.ts
-import prisma from '~/lib/prisma'
+import prisma from '../../../utils/prisma'
 import { createSectionCrudService } from '../section-crud.factory'
 
 export interface SiteSettingsInput {
@@ -28,6 +28,9 @@ export interface SiteSettingsInput {
   copyrightText?: string
   workingHours?: string
   googleMapsEmbed?: string
+  latitude?: number | null
+  longitude?: number | null
+  priceRange?: string
   metaTitle?: string
   metaDescription?: string
   metaKeywords?: string
@@ -58,6 +61,9 @@ const mapScalarFields = (b: SiteSettingsInput) => ({
   copyrightText: b.copyrightText,
   workingHours: b.workingHours,
   googleMapsEmbed: b.googleMapsEmbed,
+  latitude: b.latitude,
+  longitude: b.longitude,
+  priceRange: b.priceRange,
   metaTitle: b.metaTitle,
   metaDescription: b.metaDescription,
   metaKeywords: b.metaKeywords,

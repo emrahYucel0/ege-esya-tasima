@@ -1,0 +1,108 @@
+# cPanel / Apache yapılandırması — public_html kökine kopyalanır.
+#
+# Passenger'ın kendi blokları (PassengerAppRoot, PassengerBaseURI,
+# PassengerNodejs...) cPanel'in "Setup Node.js App" arayüzü tarafından bu
+# dosyanın BAŞINA otomatik yazılır. O bloğu SİLMEYİN; aşağıdakileri onun
+# altına ekleyin.
+
+# ---------------------------------------------------------------------------
+# 1) SIKIŞTIRMA
+#
+# Ölçüldü: sıkıştırma olmadan ana sayfa 187 KB ham iniyor. Metin içerikte
+# gzip tipik olarak %75–85 kazandırıyor. Nitro yalnızca statik varlıkları
+# (JS/CSS) derleme zamanında sıkıştırabiliyor; SSR ile üretilen HTML her
+# istekte yeniden oluştuğu için onun sıkıştırması bu katmanda yapılmalı.
+# ---------------------------------------------------------------------------
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css
+  AddOutputFilterByType DEFLATE application/javascript application/x-javascript
+  AddOutputFilterByType DEFLATE application/json application/ld+json
+  AddOutputFilterByType DEFLATE application/xml application/rss+xml
+  AddOutputFilterByType DEFLATE image/svg+xml
+  # Zaten sıkıştırılmış biçimleri tekrar sıkıştırmak boşa CPU.
+  SetEnvIfNoCase Request_URI \.(?:gif|jpe?g|png|webp|avif|ico|zip|gz|br|woff2?)$ no-gzip dont-vary
+</IfModule>
+
+# Nitro'nun derleme zamanında ürettiği .br / .gz dosyalarını, tarayıcı
+# destekliyorsa doğrudan sun — Node hiç devreye girmez.
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  RewriteCond %{HTTP:Accept-Encoding} br
+  RewriteCond %{DOCUMENT_ROOT}/_nuxt/$1.br -f
+  RewriteRule ^_nuxt/(.*)$ /_nuxt/$1.br [L]
+
+  RewriteCond %{HTTP:Accept-Encoding} gzip
+  RewriteCond %{DOCUMENT_ROOT}/_nuxt/$1.gz -f
+  RewriteRule ^_nuxt/(.*)$ /_nuxt/$1.gz [L]
+</IfModule>
+
+<IfModule mod_headers.c>
+  <FilesMatch "\.js\.br$">
+    Header set Content-Encoding br
+    Header set Content-Type "application/javascript"
+  </FilesMatch>
+  <FilesMatch "\.css\.br$">
+    Header set Content-Encoding br
+    Header set Content-Type "text/css"
+  </FilesMatch>
+  <FilesMatch "\.js\.gz$">
+    Header set Content-Encoding gzip
+    Header set Content-Type "application/javascript"
+  </FilesMatch>
+  <FilesMatch "\.css\.gz$">
+    Header set Content-Encoding gzip
+    Header set Content-Type "text/css"
+  </FilesMatch>
+</IfModule>
+
+# ---------------------------------------------------------------------------
+# 2) PANELDEN YÜKLENEN GÖRSELLER — Node'a hiç uğramasın
+#
+# /yuklemeler/ isteklerini Apache doğrudan diskten karşılar. Uygulama
+# tarafındaki rota (server/routes/yuklemeler/[...ad].get.ts) yedek olarak
+# kalıyor; bu kural varken kullanılmıyor.
+#
+# ÖNEMLİ: yükleme klasörü .output DIŞINDA durmalı, yoksa her dağıtımda
+# silinir. Aşağıdaki yol, cPanel'de klasörü nereye koyduğunuza göre
+# güncellenmeli.
+# ---------------------------------------------------------------------------
+<IfModule mod_alias.c>
+  Alias /yuklemeler /home/KULLANICI_ADI/yuklemeler
+</IfModule>
+
+<Directory "/home/KULLANICI_ADI/yuklemeler">
+  Require all granted
+  Options -Indexes -ExecCGI
+  # Yüklenen bir dosyanın hiçbir koşulda çalıştırılmaması için.
+  RemoveHandler .php .phtml .cgi .pl .py
+  AddType text/plain .php .phtml .cgi .pl .py
+</Directory>
+
+<IfModule mod_expires.c>
+  ExpiresActive On
+  # Dosya adları içerik hash'i taşıdığı için içerik değişince ad da değişir.
+  ExpiresByType image/webp "access plus 1 year"
+  ExpiresByType image/jpeg "access plus 1 year"
+  ExpiresByType image/png  "access plus 1 year"
+  ExpiresByType image/svg+xml "access plus 1 year"
+  ExpiresByType font/woff2 "access plus 1 year"
+</IfModule>
+
+<IfModule mod_headers.c>
+  <FilesMatch "\.(webp|jpe?g|png|svg|woff2|avif)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+</IfModule>
+
+# ---------------------------------------------------------------------------
+# 3) HTTPS'e yönlendirme
+#
+# HSTS başlığını uygulama zaten gönderiyor; bu kural ilk isteği (henüz HSTS
+# öğrenilmemişken) güvenli tarafa alıyor.
+# ---------------------------------------------------------------------------
+<IfModule mod_rewrite.c>
+  RewriteCond %{HTTPS} !=on
+  RewriteCond %{HTTP:X-Forwarded-Proto} !https
+  RewriteRule ^(.*)$ https://%{HTTP_HOST}/$1 [R=301,L]
+</IfModule>

@@ -1,5 +1,5 @@
 // server/domain/sections/configs/we-help-section.config.ts
-import prisma from '~/lib/prisma'
+import prisma from '../../../utils/prisma'
 import { createSectionCrudService } from '../section-crud.factory'
 
 export interface WeHelpFeatureInput {

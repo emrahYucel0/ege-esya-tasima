@@ -1,4 +1,0 @@
-<template>
-    <policy-cookie />
-  </template>
-  

@@ -2,7 +2,7 @@
 // Meta ne "tekil bölüm" (sectionName) ne de "liste" (slug) şeklinde — "page"
 // alanıyla anahtarlanan kendine özgü bir tekil-kayıt deseni. Bu yüzden ne
 // section-crud.factory.ts ne de posts/regions'daki liste deseni kullanılıyor.
-import { isUniqueConstraintError, isRecordNotFoundError, getSafeErrorMessage } from '~/server/utils/prismaError'
+import { isUniqueConstraintError, isRecordNotFoundError, getSafeErrorMessage } from '../../utils/prismaError'
 import { ok, fail, type ServiceResult } from '../shared/response'
 import { metaRepository } from './meta.repository'
 

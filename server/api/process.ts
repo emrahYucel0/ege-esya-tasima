@@ -1,5 +1,5 @@
 import * as yup from 'yup';
-import { processCrudService, type ProcessSectionInput } from '~/server/domain/sections/configs/process.config';
+import { processCrudService, type ProcessSectionInput } from '../domain/sections/configs/process.config';
 
 const processStepSchema = yup.object({
   title: yup.string().trim().notRequired(),

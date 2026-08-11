@@ -1,0 +1,185 @@
+/**
+ * DUMAN TESTİ — sayfalar gerçekten dolu mu?
+ *
+ *     node scripts/duman-testi.mjs                      → http://127.0.0.1:3000
+ *     node scripts/duman-testi.mjs http://127.0.0.1:3210
+ *     node scripts/duman-testi.mjs https://alanadi.com  → canlı yayın sonrası
+ *
+ * NEDEN SADECE "200 DÖNDÜ MÜ" DEĞİL
+ * Veri katmanında bir şey bozulduğunda sayfa yine 200 döner, sadece içi boş
+ * olur — bölüm başlığı basılır, altındaki liste hiç render edilmez. Bu yüzden
+ * her kontrol, VERİDEN gelmesi gereken somut bir metin arıyor: bölge sayfasında
+ * mahalle adının kendisi, hizmet sayfasında "Neler Dahil" bloğu gibi.
+ *
+ * Bu araç yayın sonrası doğrulama için de kullanılabilir: cPanel'e dağıtım
+ * yapıldıktan sonra canlı adrese karşı çalıştırıp aynı 20+ kontrolü alırsınız.
+ */
+const TEMEL = (process.argv[2] || 'http://127.0.0.1:3000').replace(/\/$/, '')
+
+/** [yol, aranan metin, kontrolün anlamı] */
+const KONTROLLER = [
+  ['/', 'Evden Eve', 'hero başlığı (hero API)'],
+  ['/', 'role="combobox"', 'bölge bulucu (regions API)'],
+  ['/', 'bolgelerimiz', 'ana sayfadan bölge bağlantıları'],
+  ['/bolgelerimiz', 'İstanbul', 'il kartları (regions API)'],
+  ['/bolgelerimiz', 'Ege', 'coğrafi grup başlığı'],
+  ['/hizmetlerimiz', 'Asansörlü', 'hizmet kartları (services API)'],
+  ['/hizmetlerimiz', 'Evden Eve Nakliyat', 'hizmet kartı bağlantısı'],
+  ['/evden-eve-nakliyat', 'Sık Sorulan', 'SSS bloğu (faqs JSON alanı)'],
+  // Aranan dize `aria-label` metniydi ("Sonraki hizmet: …") ve etiket
+  // WCAG düzeltmesiyle değişince test kırıldı — oysa gezinme çalışıyordu.
+  // Artık GÖRÜNEN işaret aranıyor: gezinme bloğunun kendisi ve hedefin adı.
+  // Etiket metni tekrar değişse bile bu kontrol ayakta kalır.
+  ['/evden-eve-nakliyat', 'class="pager"', 'hizmetler arası gezinme bloğu'],
+  ['/evden-eve-nakliyat', 'Asansörlü Nakliyat', 'gezinmede sonraki hizmetin adı'],
+  ['/asansorlu-nakliyat', 'Evden Eve Nakliyat', 'gezinmede önceki hizmetin adı'],
+  ['/asansorlu-nakliyat', 'Neler Dahil', 'includes JSON alanı'],
+  ['/kartal', 'Kartal Evden Eve Nakliyat', 'bölge h1'],
+  ['/kartal', 'Hizmet Verdiğimiz Kartal Mahalleleri', 'mahalle bölümü (neighborhoods)'],
+  ['/kartal', 'Kordonboyu', 'mahalle ADLARI gerçekten basıldı'],
+  ['/kartal', 'Kartal Taşınma Künyesi', 'künye tablosu (facts JSON)'],
+  ['/kartal', 'Sık Taşınılan Güzergâhlar', 'güzergâhlar (routes JSON)'],
+  ['/kartal', 'Bu sayfada', 'içindekiler / çapa bağlantıları'],
+  ['/istanbul', 'İlçe', 'ilçe ızgarası (DistrictGrid)'],
+  ['/blog', '<article', 'yazı kartları (posts API)'],
+  ['/iletisim', '<form', 'teklif formu'],
+  ['/hakkimizda', '<h1', 'about-section API'],
+  ['/sitemap.xml', '<loc>', 'sitemap üretimi'],
+  ['/robots.txt', 'Sitemap', 'robots.txt'],
+
+  // FİYAT ARACINA GİRİŞ NOKTALARI.
+  // Sayfa yayına hazırdı ama sitede tek bir bağlantısı vardı (yalnızca bölge
+  // sayfalarında); ana sayfa, hizmet sayfaları, blog ve footer'dan ulaşılmıyordu.
+  // Sessizce tekrar kopmaması için her giriş noktası ayrı kontrol ediliyor.
+  ['/fiyat-hesaplama', 'Tahmini fiyat aralığı', 'fiyat aracı çalışıyor'],
+  ['/', 'href="/fiyat-hesaplama"', 'ana sayfa → fiyat aracı'],
+  ['/evden-eve-nakliyat', 'href="/fiyat-hesaplama"', 'hizmet sayfası → fiyat aracı'],
+  ['/kartal', 'href="/fiyat-hesaplama"', 'bölge sayfası → fiyat aracı'],
+  ['/kis-aylarinda-tasinmak', 'href="/fiyat-hesaplama"', 'blog yazısı → fiyat aracı'],
+  ['/iletisim', 'fiyat-bag--plain', 'footer → fiyat aracı (her sayfada)'],
+
+  // META VERİSİ.
+  // Hizmetlerimiz ve Fiyat Hesaplama panelde seçilemediği için başlıkları
+  // sabit gidiyordu; üç politika sayfasının ise hiç başlığı/açıklaması yoktu.
+  // Hepsi artık app/utils/sayfa-meta.ts kütüğünden besleniyor.
+  ['/hizmetlerimiz', 'name="description"', 'hizmetlerimiz meta açıklaması'],
+  ['/fiyat-hesaplama', 'name="description"', 'fiyat hesaplama meta açıklaması'],
+  ['/gizlilik-politikasi', '<title', 'gizlilik politikası başlığı'],
+  ['/gizlilik-politikasi', 'name="description"', 'gizlilik politikası açıklaması'],
+  ['/kullanim-sartlari', '<title', 'kullanım şartları başlığı'],
+  ['/cerez-politikasi', '<title', 'çerez politikası başlığı'],
+  ['/cerez-politikasi', 'rel="canonical"', 'politika sayfalarında canonical'],
+]
+
+/** Bunlar 200 DÖNMEMELİ. */
+const OLMAMALI = [
+  ['/asansorlu-nakliyat-ne-zaman-gerekir', 404, 'silinen blog yazısı'],
+  ['/evdeneveyonetim/regions', 302, 'admin koruması (giriş yoksa yönlendirme)'],
+]
+
+const getir = async (yol) => {
+  const cevap = await fetch(TEMEL + yol, { redirect: 'manual' })
+  const govde = cevap.status === 200 ? await cevap.text() : ''
+  return { durum: cevap.status, govde }
+}
+
+let hata = 0
+console.log(`hedef: ${TEMEL}\n`)
+
+for (const [yol, aranan, aciklama] of KONTROLLER) {
+  try {
+    const { durum, govde } = await getir(yol)
+    if (durum !== 200) {
+      console.log(`  HTTP ${durum}  ${yol.padEnd(24)} ${aciklama}`)
+      hata++
+    } else if (!govde.includes(aranan)) {
+      console.log(`  EKSİK     ${yol.padEnd(24)} ${aciklama}  [aranan: ${aranan}]`)
+      hata++
+    } else {
+      console.log(`  ok        ${yol.padEnd(24)} ${aciklama}`)
+    }
+  } catch (e) {
+    console.log(`  ERİŞİLEMEDİ ${yol.padEnd(22)} ${e.message}`)
+    hata++
+  }
+}
+
+console.log()
+for (const [yol, beklenen, aciklama] of OLMAMALI) {
+  try {
+    const { durum } = await getir(yol)
+    const uygun = durum === beklenen
+    console.log(`  ${uygun ? 'ok      ' : 'BEKLENEN ' + beklenen}  ${yol.padEnd(40)} ${aciklama} → ${durum}`)
+    if (!uygun) hata++
+  } catch (e) {
+    console.log(`  ERİŞİLEMEDİ ${yol.padEnd(38)} ${e.message}`)
+    hata++
+  }
+}
+
+// Bozuk karakter taraması — Türkçe karakterlerin doğru geldiğini kanıtlar.
+console.log()
+let bozuk = 0
+for (const yol of ['/', '/hizmetlerimiz', '/kartal', '/blog']) {
+  try {
+    const { govde } = await getir(yol)
+    const adet = (govde.match(/�/g) || []).length
+    bozuk += adet
+    if (adet) console.log(`  BOZUK KARAKTER  ${yol}  → ${adet} adet`)
+  } catch { /* yukarıda raporlandı */ }
+}
+console.log(`  ${bozuk === 0 ? 'ok      ' : 'HATA    '}  bozuk karakter taraması → ${bozuk}`)
+if (bozuk) hata++
+
+// ---------------------------------------------------------------------------
+// SSR PAYLOAD SIZINTI TARAMASI
+//
+// Sayfaya gömülen __NUXT_DATA__ bloğu, sunucuda çekilen tüm verinin
+// serileştirilmiş hâli. Tarayıcı onu okumak ZORUNDA (hidrasyon bununla
+// yapılıyor), yani gizlenemez — gizlenirse sayfa istemcide çalışmaz.
+// Bu yüzden korunma yolu saklamak değil, İÇİNE HASSAS VERİ KOYMAMAK.
+//
+// Bu tarama tam olarak onu denetliyor: bir API ucu ileride yanlışlıkla
+// fazla alan döndürmeye başlarsa (ör. yorum ucunun e-posta alanını
+// açması, lead kayıtlarının listeye sızması) burada yakalanır.
+// ---------------------------------------------------------------------------
+console.log()
+const SIZINTI_DESENLERI = [
+  ['parola/anahtar', /"(password|passwordHash|secret|token|apiKey|api_key|databaseUrl|DATABASE_URL)"/i],
+  ['oturum jetonu', /eyJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{10,}/],
+  ['talep kaydı alanları', /"(mailStatus|mailError|ipAddress|userAgent)"/],
+  ['yorum e-postası', /"email"\s*:\s*"[^"]+@/],
+]
+let sizinti = 0
+for (const yol of ['/', '/kartal', '/blog', '/iletisim']) {
+  try {
+    const { govde } = await getir(yol)
+    const blok = govde.match(/<script[^>]*data-nuxt-data="nuxt-app"[^>]*>([\s\S]*?)<\/script>/)
+    if (!blok) continue
+    for (const [ad, desen] of SIZINTI_DESENLERI) {
+      if (desen.test(blok[1])) {
+        console.log(`  SIZINTI   ${yol.padEnd(16)} payload içinde ${ad} bulundu`)
+        sizinti++
+      }
+    }
+  } catch { /* yukarıda raporlandı */ }
+}
+console.log(`  ${sizinti === 0 ? 'ok      ' : 'HATA    '}  payload sızıntı taraması → ${sizinti}`)
+if (sizinti) hata++
+
+// Şablon yorumları HTML'e basılmamalı (nuxt.config → vue.compilerOptions.comments).
+// `<!--[-->` / `<!--]-->` / `<!--v-if-->` hidrasyon işaretidir, sayılmaz.
+const { govde: anaSayfa } = await getir('/')
+const gercekYorum = (anaSayfa.match(/<!--(?!\[|\]|-->|v-if|\s*-->)[\s\S]{0,200}?-->/g) || []).filter(
+  (y) => !/^<!--(\[|\]|v-if)?-*-->$/.test(y.trim())
+)
+console.log(
+  `  ${gercekYorum.length === 0 ? 'ok      ' : 'HATA    '}  şablon yorumu taraması → ${gercekYorum.length}`
+)
+if (gercekYorum.length) {
+  console.log(`     ilk örnek: ${gercekYorum[0].slice(0, 70)}`)
+  hata++
+}
+
+console.log(`\n${hata === 0 ? '✔ TÜM KONTROLLER GEÇTİ' : `✗ ${hata} SORUN`}`)
+process.exit(hata === 0 ? 0 : 1)

@@ -1,32 +1,52 @@
 // server/domain/files/files.service.ts
-import { randomUUID } from 'node:crypto'
 import fs from 'node:fs/promises'
-import fsSync from 'node:fs'
 import path from 'node:path'
 import { fileTypeFromBuffer } from 'file-type'
 import { storedFileRepository } from './stored-file.repository'
 
-export const STORAGE_PATH = path.join(process.cwd(), 'server', 'storage', 'images')
+/**
+ * YÜKLEME KLASÖRÜ — proje kökünde `yuklemeler/`.
+ *
+ * Neden `server/storage/images` değil: orada duran dosyalar `/api/files/...`
+ * rotasıyla, yani NODE ÜZERİNDEN servis ediliyordu. Ölçüldü — o rota yalnızca
+ * Content-Type gönderiyordu: ETag yok, Last-Modified yok, Cache-Control yok.
+ * Sonuç, tarayıcının her sayfa görüntülemede görseli baştan indirmesi, üstüne
+ * her istekte bir veritabanı sorgusu ve meşgul edilen bir Node işçisiydi.
+ * Paylaşımlı hosting'de CPU kotası tam da böyle tükeniyor.
+ *
+ * Şimdi bu klasör Nitro'nun statik varlık dizini olarak tanımlı
+ * (nuxt.config.ts → nitro.publicAssets) ve `/yuklemeler/...` adresinden
+ * doğrudan, uzun önbellek başlıklarıyla servis ediliyor.
+ *
+ * Neden `public/` DEĞİL: Nuxt derlerken `public/` klasörünü `.output/public/`
+ * içine kopyalıyor. Çalışma anında yazılan dosya kaynak `public/`'e düşer ve
+ * üretimde hiç görünmez. Ayrı bir klasör olması ayrıca yeni sürüm atarken
+ * müşterinin yüklediklerinin silinmemesini sağlıyor.
+ */
+export const STORAGE_PATH = path.join(process.cwd(), 'yuklemeler')
 
 const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp']
 const MAX_SIZE_BYTES = 10 * 1024 * 1024 // 10MB
-
-const CONTENT_TYPES: Record<string, string> = {
-  jpg: 'image/jpeg',
-  jpeg: 'image/jpeg',
-  png: 'image/png',
-  webp: 'image/webp',
-}
-
-export function getContentType(filename: string): string {
-  const ext = filename.split('.').pop()?.toLowerCase()
-  return (ext && CONTENT_TYPES[ext]) || 'application/octet-stream'
-}
 
 export interface UploadFilePart {
   filename: string
   type: string
   data: Buffer
+}
+
+/**
+ * Dosya adını güvenli hâle getirir. Yol ayracı, üst dizin (`..`) ve alfanümerik
+ * olmayan her şey eleniyor — istemciden gelen ad diske yazılacağı için bu
+ * doğrulama zorunlu (path traversal).
+ */
+const guvenliAd = (ad: string): string => {
+  const { name, ext } = path.parse(ad)
+  const temizAd = name
+    .toLowerCase()
+    .replace(/[^a-z0-9-]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 80)
+  return `${temizAd || 'gorsel'}${ext.toLowerCase().replace(/[^a-z0-9.]/g, '')}`
 }
 
 export async function saveUploadedFile(filePart: UploadFilePart): Promise<{ id: number; url: string }> {
@@ -35,23 +55,25 @@ export async function saveUploadedFile(filePart: UploadFilePart): Promise<{ id: 
   }
 
   // Multipart isteğindeki Content-Type header'ı istemci tarafından serbestçe
-  // beyan edilir (sahtelenebilir); gerçek dosya tipini magic byte
-  // imzasından tespit edip buna göre karar veriyoruz. Uzantı da beyan edilen
-  // dosya adından değil, tespit edilen gerçek tipten türetiliyor — böylece
-  // örn. ".png" uzantılı ama aslında farklı bir dosya diske yazılamıyor.
+  // beyan edilir (sahtelenebilir); gerçek dosya tipini magic byte imzasından
+  // tespit edip buna göre karar veriyoruz.
   const detected = await fileTypeFromBuffer(filePart.data)
   if (!detected || !ALLOWED_MIME_TYPES.includes(detected.mime)) {
     throw createError({ statusCode: 415, message: 'İzin verilmeyen dosya tipi' })
   }
 
-  const storedFileName = `${randomUUID()}.${detected.ext}`
-  const filePath = path.join(STORAGE_PATH, storedFileName)
+  // Uzantı, beyan edilen addan değil tespit edilen gerçek tipten türetiliyor.
+  const temel = path.parse(guvenliAd(filePart.filename)).name
+  const storedFileName = `${temel}.${detected.ext}`
 
   await fs.mkdir(STORAGE_PATH, { recursive: true })
-  await fs.writeFile(filePath, filePart.data)
+  await fs.writeFile(path.join(STORAGE_PATH, storedFileName), filePart.data)
 
+  // Kayıt, servis için GEREKLİ DEĞİL (dosya statik veriliyor); yüklemelerin
+  // izini tutmak ve ileride bir medya kütüphanesi ekranı yapılabilmesi için
+  // korunuyor.
   const fileRecord = await storedFileRepository.create({
-    originalName: filePart.filename,
+    originalName: storedFileName,
     storedName: storedFileName,
     mimeType: detected.mime,
     size: filePart.data.length,
@@ -59,20 +81,6 @@ export async function saveUploadedFile(filePart: UploadFilePart): Promise<{ id: 
 
   return {
     id: fileRecord.id,
-    url: `/api/files/${encodeURIComponent(fileRecord.originalName)}`,
+    url: `/yuklemeler/${encodeURIComponent(storedFileName)}`,
   }
-}
-
-export async function resolveStoredFile(originalName: string): Promise<{ filePath: string; contentType: string }> {
-  const fileRecord = await storedFileRepository.findLatestByOriginalName(originalName)
-  if (!fileRecord) {
-    throw createError({ statusCode: 404, message: 'Dosya bulunamadı' })
-  }
-
-  const filePath = path.join(STORAGE_PATH, fileRecord.storedName)
-  if (!fsSync.existsSync(filePath)) {
-    throw createError({ statusCode: 404 })
-  }
-
-  return { filePath, contentType: getContentType(fileRecord.storedName) }
 }

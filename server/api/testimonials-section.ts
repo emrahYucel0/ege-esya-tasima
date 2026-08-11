@@ -3,7 +3,7 @@ import {
   testimonialsSectionCrudService,
   partialUpdateTestimonialsSection,
   type TestimonialSectionInput,
-} from '~/server/domain/sections/configs/testimonials-section.config';
+} from '../domain/sections/configs/testimonials-section.config';
 
 const testimonialSchema = yup.object({
   customerName: yup.string().trim().notRequired(),

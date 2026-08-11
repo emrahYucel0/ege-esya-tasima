@@ -1,4 +1,4 @@
-import { Prisma } from '@prisma/client'
+import { Prisma } from '../../../prisma/generated/client/client.ts'
 import { describe, expect, it, vi } from 'vitest'
 import { createSectionCrudService } from './section-crud.factory'
 import type { SectionCrudConfig } from '../shared/types'

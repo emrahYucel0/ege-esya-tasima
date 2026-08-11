@@ -1,5 +1,5 @@
 import * as yup from 'yup';
-import { heroCrudService, type HeroPageInput } from '~/server/domain/sections/configs/hero.config';
+import { heroCrudService, type HeroPageInput } from '../domain/sections/configs/hero.config';
 
 const heroPageSchema = yup.object({
   sectionName: yup.string().trim().notRequired(),
@@ -12,6 +12,11 @@ const heroPageSchema = yup.object({
   secondaryLink: yup.string().trim().notRequired(),
   image: yup.string().trim().notRequired(),
   backgroundImage: yup.string().trim().notRequired(),
+  // Alt metinleri buraya EKLENMEK ZORUNDA: validateOrError `stripUnknown`
+  // ile çalışıyor, şemada olmayan alan sessizce düşürülür ve kayıt
+  // hatasız görünüp veriyi yazmaz.
+  imageAlt: yup.string().trim().notRequired(),
+  backgroundImageAlt: yup.string().trim().notRequired(),
 });
 
 const heroPageDeleteSchema = yup.object({

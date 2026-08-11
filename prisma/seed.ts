@@ -1,7 +1,12 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaMariaDb } from '@prisma/adapter-mariadb';
+import { PrismaClient } from './generated/client/client.ts';
 import * as bcrypt from 'bcryptjs';
 
-const prisma = new PrismaClient();
+// Prisma 7: bağlantı artık şemadan değil, driver adapter'dan geliyor.
+// DATABASE_URL'i `npm run seed` komutundaki --env-file=.env yüklüyor.
+const prisma = new PrismaClient({
+  adapter: new PrismaMariaDb(process.env.DATABASE_URL as string),
+});
 
 function requireEnv(name: string): string {
   const value = process.env[name];

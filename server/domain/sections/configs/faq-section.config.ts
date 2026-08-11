@@ -1,5 +1,5 @@
 // server/domain/sections/configs/faq-section.config.ts
-import prisma from '~/lib/prisma'
+import prisma from '../../../utils/prisma'
 import { createSectionCrudService } from '../section-crud.factory'
 import type { ChildListConfig } from '../../shared/types'
 

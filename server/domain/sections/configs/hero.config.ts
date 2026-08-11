@@ -1,5 +1,5 @@
 // server/domain/sections/configs/hero.config.ts
-import prisma from '~/lib/prisma'
+import prisma from '../../../utils/prisma'
 import { createSectionCrudService } from '../section-crud.factory'
 
 export interface HeroPageInput {
@@ -13,6 +13,8 @@ export interface HeroPageInput {
   secondaryLink?: string
   image?: string
   backgroundImage?: string
+  imageAlt?: string
+  backgroundImageAlt?: string
 }
 
 export const heroCrudService = createSectionCrudService<any, HeroPageInput>(prisma.heroPage, {
@@ -27,6 +29,8 @@ export const heroCrudService = createSectionCrudService<any, HeroPageInput>(pris
     secondaryLink: b.secondaryLink,
     image: b.image,
     backgroundImage: b.backgroundImage,
+    imageAlt: b.imageAlt,
+    backgroundImageAlt: b.backgroundImageAlt,
   }),
   mapParentUpdate: (b) => ({
     title: b.title,
@@ -38,6 +42,8 @@ export const heroCrudService = createSectionCrudService<any, HeroPageInput>(pris
     secondaryLink: b.secondaryLink,
     image: b.image,
     backgroundImage: b.backgroundImage,
+    imageAlt: b.imageAlt,
+    backgroundImageAlt: b.backgroundImageAlt,
   }),
   deleteStrategy: 'cascade',
 })

@@ -1,5 +1,5 @@
 import * as yup from 'yup';
-import { faqSectionCrudService, type FaqSectionInput } from '~/server/domain/sections/configs/faq-section.config';
+import { faqSectionCrudService, type FaqSectionInput } from '../domain/sections/configs/faq-section.config';
 
 const faqDetailSchema = yup.object({
   text: yup.string().trim().notRequired(),
