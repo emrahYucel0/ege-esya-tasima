@@ -16,6 +16,65 @@
  */
 const TEMEL = (process.argv[2] || 'http://127.0.0.1:3000').replace(/\/$/, '')
 
+/**
+ * ÖRNEK BÖLGE SABİT DEĞİL, CANLIDAN SEÇİLİYOR.
+ *
+ * Önceden bu testler `/kartal` adresine sabitlenmişti. Bölgeler panelden
+ * tek tek aktif/pasif yapılabildiği için Kartal pasife alındığında test
+ * yedi kalemde birden "404" verdi — oysa sitede hiçbir şey bozulmamıştı.
+ * Kurt masalı anlatan bir test, olmayan testten kötüdür.
+ *
+ * Artık `/api/regions` (yalnızca AKTİF kayıtları döner) sorgulanıyor ve
+ * mahalle, künye ve güzergâh alanlarının üçü de dolu olan ilk bölge
+ * örnek olarak seçiliyor. Aranan metinler de o bölgenin kendi verisinden
+ * türetiliyor; hangi bölgenin aktif olduğu değiştiğinde test kendini
+ * uyarlıyor.
+ */
+const dizi = (v) => (Array.isArray(v) ? v : [])
+
+async function ornekBolgeSec() {
+  try {
+    const cevap = await fetch(`${TEMEL}/api/regions`)
+    const veri = await cevap.json()
+    if (!veri?.success) return null
+    const uygun = veri.data.find(
+      (b) => dizi(b.neighborhoods).length > 0 && dizi(b.facts).length > 0 && dizi(b.routes).length > 0
+    )
+    if (!uygun) return null
+    return {
+      slug: uygun.slug,
+      baslik: uygun.title,
+      // shortTitle bölge sayfasındaki bölüm başlıklarında kullanılıyor
+      // ("… Taşınma Künyesi"); yoksa başlıktan ilk kelime yeterli.
+      kisaAd: uygun.shortTitle || String(uygun.title || '').split(' ')[0],
+      mahalle: dizi(uygun.neighborhoods)[0],
+    }
+  } catch {
+    return null
+  }
+}
+
+const ornek = await ornekBolgeSec()
+if (!ornek) {
+  console.log('UYARI: mahalle/künye/güzergâh alanları dolu AKTİF bir bölge bulunamadı.')
+  console.log('       Bölgeye özgü yedi kontrol atlanıyor (site hatası değil).\n')
+} else {
+  console.log(`örnek bölge: /${ornek.slug} (${ornek.baslik})\n`)
+}
+
+/** Bölgeye özgü kontroller — örnek bölge bulunduysa eklenir. */
+const BOLGE_KONTROLLERI = ornek
+  ? [
+      [`/${ornek.slug}`, ornek.baslik, 'bölge h1'],
+      [`/${ornek.slug}`, `Hizmet Verdiğimiz ${ornek.kisaAd} Mahalleleri`, 'mahalle bölümü (neighborhoods)'],
+      [`/${ornek.slug}`, ornek.mahalle, 'mahalle ADLARI gerçekten basıldı'],
+      [`/${ornek.slug}`, `${ornek.kisaAd} Taşınma Künyesi`, 'künye tablosu (facts JSON)'],
+      [`/${ornek.slug}`, 'Sık Taşınılan Güzergâhlar', 'güzergâhlar (routes JSON)'],
+      [`/${ornek.slug}`, 'Bu sayfada', 'içindekiler / çapa bağlantıları'],
+      [`/${ornek.slug}`, 'href="/fiyat-hesaplama"', 'bölge sayfası → fiyat aracı'],
+    ]
+  : []
+
 /** [yol, aranan metin, kontrolün anlamı] */
 const KONTROLLER = [
   ['/', 'Evden Eve', 'hero başlığı (hero API)'],
@@ -34,12 +93,7 @@ const KONTROLLER = [
   ['/evden-eve-nakliyat', 'Asansörlü Nakliyat', 'gezinmede sonraki hizmetin adı'],
   ['/asansorlu-nakliyat', 'Evden Eve Nakliyat', 'gezinmede önceki hizmetin adı'],
   ['/asansorlu-nakliyat', 'Neler Dahil', 'includes JSON alanı'],
-  ['/kartal', 'Kartal Evden Eve Nakliyat', 'bölge h1'],
-  ['/kartal', 'Hizmet Verdiğimiz Kartal Mahalleleri', 'mahalle bölümü (neighborhoods)'],
-  ['/kartal', 'Kordonboyu', 'mahalle ADLARI gerçekten basıldı'],
-  ['/kartal', 'Kartal Taşınma Künyesi', 'künye tablosu (facts JSON)'],
-  ['/kartal', 'Sık Taşınılan Güzergâhlar', 'güzergâhlar (routes JSON)'],
-  ['/kartal', 'Bu sayfada', 'içindekiler / çapa bağlantıları'],
+  ...BOLGE_KONTROLLERI,
   ['/istanbul', 'İlçe', 'ilçe ızgarası (DistrictGrid)'],
   ['/blog', '<article', 'yazı kartları (posts API)'],
   ['/iletisim', '<form', 'teklif formu'],
@@ -54,7 +108,6 @@ const KONTROLLER = [
   ['/fiyat-hesaplama', 'Tahmini fiyat aralığı', 'fiyat aracı çalışıyor'],
   ['/', 'href="/fiyat-hesaplama"', 'ana sayfa → fiyat aracı'],
   ['/evden-eve-nakliyat', 'href="/fiyat-hesaplama"', 'hizmet sayfası → fiyat aracı'],
-  ['/kartal', 'href="/fiyat-hesaplama"', 'bölge sayfası → fiyat aracı'],
   ['/kis-aylarinda-tasinmak', 'href="/fiyat-hesaplama"', 'blog yazısı → fiyat aracı'],
   ['/iletisim', 'fiyat-bag--plain', 'footer → fiyat aracı (her sayfada)'],
 
@@ -120,7 +173,7 @@ for (const [yol, beklenen, aciklama] of OLMAMALI) {
 // Bozuk karakter taraması — Türkçe karakterlerin doğru geldiğini kanıtlar.
 console.log()
 let bozuk = 0
-for (const yol of ['/', '/hizmetlerimiz', '/kartal', '/blog']) {
+for (const yol of ['/', '/hizmetlerimiz', ...(ornek ? [`/${ornek.slug}`] : []), '/blog']) {
   try {
     const { govde } = await getir(yol)
     const adet = (govde.match(/�/g) || []).length
@@ -151,7 +204,7 @@ const SIZINTI_DESENLERI = [
   ['yorum e-postası', /"email"\s*:\s*"[^"]+@/],
 ]
 let sizinti = 0
-for (const yol of ['/', '/kartal', '/blog', '/iletisim']) {
+for (const yol of ['/', ...(ornek ? [`/${ornek.slug}`] : []), '/blog', '/iletisim']) {
   try {
     const { govde } = await getir(yol)
     const blok = govde.match(/<script[^>]*data-nuxt-data="nuxt-app"[^>]*>([\s\S]*?)<\/script>/)
