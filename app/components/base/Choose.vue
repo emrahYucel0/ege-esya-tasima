@@ -142,7 +142,7 @@ useReveal(sectionRef)
           class="closing__img"
           format="webp"
           quality="70"
-          sizes="(max-width: 1279px) 100vw, 1280px"
+          sizes="xs:100vw xl:1280px"
           loading="lazy"
           decoding="async"
         />

@@ -49,3 +49,6 @@ logs
 # Dağıtım paketi (scripts/dagitim-paketi.mjs). .output kopyası — üretilmiş
 # çıktı, depoya girmiyor.
 dagitim
+
+# Yazı tiplerinin tam (alt kümelenmemiş) kaynakları. public/fonts altındaki
+# dosyalar bunlardan `npm run font-altkume` ile üretiliyor. Depoda kalmaları

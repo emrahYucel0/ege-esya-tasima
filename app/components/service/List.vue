@@ -59,7 +59,7 @@ const items = computed(() =>
               :loading="index < 3 ? 'eager' : 'lazy'"
               :fetchpriority="index < 3 ? 'high' : undefined"
               decoding="async"
-              sizes="(max-width: 639px) 100vw, (max-width: 1023px) 50vw, 380px"
+              sizes="xs:100vw sm:50vw lg:380px"
               class="service-tile__img"
               :src="service.imagePath || '/img/default-blog.jpg'"
               :alt="service.imageAlt?.trim() || `${service.title} hizmeti`"

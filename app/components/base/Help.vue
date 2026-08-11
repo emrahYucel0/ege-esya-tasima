@@ -116,7 +116,7 @@ useReveal(sectionRef)
               class="h-full w-full object-cover"
               format="webp"
               quality="70"
-              sizes="(max-width: 1023px) 55vw, 340px"
+              sizes="xs:55vw lg:340px"
               loading="lazy"
               decoding="async"
             />
@@ -129,7 +129,7 @@ useReveal(sectionRef)
               class="aspect-[4/3] h-full w-full object-cover"
               format="webp"
               quality="70"
-              sizes="(max-width: 1023px) 36vw, 220px"
+              sizes="xs:36vw lg:220px"
               loading="lazy"
               decoding="async"
             />
@@ -142,7 +142,7 @@ useReveal(sectionRef)
               class="aspect-[4/3] h-full w-full object-cover"
               format="webp"
               quality="70"
-              sizes="(max-width: 1023px) 36vw, 220px"
+              sizes="xs:36vw lg:220px"
               loading="lazy"
               decoding="async"
             />

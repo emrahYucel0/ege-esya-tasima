@@ -69,7 +69,7 @@ useReveal(sectionRef)
         class="about-figure__img"
         format="webp"
         quality="72"
-        sizes="(max-width: 1279px) 100vw, 1280px"
+        sizes="xs:100vw xl:1280px"
         loading="eager"
         decoding="async"
       />
