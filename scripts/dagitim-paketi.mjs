@@ -71,9 +71,11 @@ await mkdir(HEDEF, { recursive: true })
 console.log('\nkopyalanıyor (bağlantılar çözülerek)...')
 await cp(KAYNAK, path.join(HEDEF, '.output'), { recursive: true, dereference: true })
 
-// scripts/yedekle.mjs yedekleme cron'u için sunucuda gerekiyor.
+// Sunucuda gereken betikler: yedekleme cron'u ve veritabanı teşhisi.
 await mkdir(path.join(HEDEF, 'scripts'), { recursive: true })
-await cp(path.join(KOK, 'scripts', 'yedekle.mjs'), path.join(HEDEF, 'scripts', 'yedekle.mjs'))
+for (const dosya of ['yedekle.mjs', 'db-baglanti-testi.mjs']) {
+  await cp(path.join(KOK, 'scripts', dosya), path.join(HEDEF, 'scripts', dosya))
+}
 
 const kalan = await baglantilariBul(HEDEF)
 console.log(`\nhedefte kalan sembolik bağlantı: ${kalan.length}`)
