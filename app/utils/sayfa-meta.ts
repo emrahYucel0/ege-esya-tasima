@@ -76,7 +76,11 @@ export const SAYFA_METALARI: SayfaMeta[] = [
     anahtar: 'services',
     etiket: 'Hizmetlerimiz',
     yol: '/hizmetlerimiz',
-    title: 'Evden Eve Nakliyat Hizmetlerimiz | Asansörlü, Parça Eşya, Ofis Taşıma',
+    // 69 KARAKTERDİ — canlıda ölçüldü, Google sonuçlarında kesiliyordu.
+    // Sınır yaklaşık 60 karakter (aslında ~580 piksel genişlik). "Hizmetlerimiz"
+    // yerine "Hizmetleri" ve listeden "Parça Eşya" çıkarılarak 59'a indirildi;
+    // asıl anahtar kelime "evden eve nakliyat" başta korundu.
+    title: 'Evden Eve Nakliyat Hizmetleri | Asansörlü, Ofis, Parça Eşya',
     description:
       'Evden eve, asansörlü, parça eşya, ofis taşıma, depolama ve şehirler arası nakliyat. Her hizmetin kapsamı ve fiyatı etkileyen konular. Ücretsiz keşif.',
   },
