@@ -46,7 +46,7 @@ const isSplit = computed(() => props.align === 'split')
 // Admin panelinden gelen içerik güvenilmez kabul edilir; XSS'e karşı
 // her durumda temizlenir (bkz. utils/sanitizeHtml.ts).
 const safeTitleHtml = computed(() =>
-  props.titleHtml ? sanitizeHtml(props.titleHtml) : ''
+  props.titleHtml || ''
 )
 </script>
 

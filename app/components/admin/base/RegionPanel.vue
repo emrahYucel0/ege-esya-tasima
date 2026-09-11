@@ -25,6 +25,7 @@ const { form: region, message, items: allRegions, isSaving, isDeleting, isLoadin
   slug: '',
   content: '',
   excerpt: '',
+  metaTitle: '',
   metaDescription: '',
   image: '',
   imageAlt: '',
@@ -1591,6 +1592,35 @@ const updatePriceFactorsImageUrl = (url) => {
               required
             ></textarea>
             <p class="text-xs text-gray-500 mt-1">Maksimum 160 karakter</p>
+          </div>
+
+          <!--
+            ARAMA BAŞLIĞI — sayfadaki H1'den AYRI ve BOŞ BIRAKILABİLİR.
+            Boşken uygulama `başlık | marka` biçimini üretiyor, yani hiçbir
+            sayfa başlıksız kalmıyor. Elle girmenin iki sebebi var: uzun
+            başlıklarda markayı eklemek Google'ın kesme noktasını cümlenin
+            ortasına düşürüyor, ve aramada öne çıkması gereken kelime
+            H1'dekiyle her zaman aynı sırada olmuyor.
+            Girildiğinde OLDUĞU GİBİ kullanılır — marka eklenip eklenmemesi
+            de buradaki yazıya bağlı.
+          -->
+          <div>
+            <label for="rg-metatitle" class="block mb-2 font-medium">
+              Google Arama Başlığı
+            </label>
+            <input
+              id="rg-metatitle"
+              v-model="region.metaTitle"
+              type="text"
+              class="w-full p-2 border rounded"
+              maxlength="70"
+              placeholder="Yenimahalle Evden Eve Nakliyat | Marka"
+            />
+            <p class="text-xs mt-1" :class="(region.metaTitle || '').length > 60 ? 'text-amber-700' : 'text-gray-500'">
+              {{ (region.metaTitle || '').length }} / 60 karakter —
+              60 üstü Google sonuçlarında kesilir.
+              Boş bırakılırsa otomatik üretilir: <strong>başlık | marka</strong>
+            </p>
           </div>
 
           <!--

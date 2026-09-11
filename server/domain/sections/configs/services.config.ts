@@ -18,6 +18,7 @@ export interface ServiceItemInput {
   // sayfalarının içeriği tamamen kaybolur.
   slug?: string | null
   excerpt?: string
+  metaTitle?: string
   metaDescription?: string
   content?: string
   includes?: string[]
@@ -55,6 +56,7 @@ export const servicesCrudService = createSectionCrudService<any, ServicesInput>(
         // NULL değerler UNIQUE kısıtlamasından muaftır.
         slug: s.slug?.trim() || null,
         excerpt: s.excerpt || null,
+        metaTitle: s.metaTitle || null,
         metaDescription: s.metaDescription || null,
         content: s.content || null,
         includes: s.includes || [],

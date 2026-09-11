@@ -80,17 +80,13 @@ const subtitle = computed(
     'Evden eve nakliyat sürecimiz hakkında müşterilerimizin yorumları.'
 )
 
-/** Başlıkta <span> veya **kalın** işaretlemesi varsa vurgulu render edilir. */
-const titleHtml = computed(() => {
-  const raw = mainTitle.value
-  if (/<span[^>]*>/i.test(raw)) {
-    return raw.replace(/<span[^>]*>(.*?)<\/span>/gi, '<span class="text-brand-600">$1</span>')
-  }
-  if (raw.includes('**')) {
-    return raw.replace(/\*\*(.*?)\*\*/g, '<span class="text-brand-600">$1</span>')
-  }
-  return ''
-})
+/**
+ * Başlıkta `<span>` veya `**kalın**` işaretlemesi varsa vurgulu render edilir.
+ * Metin önce kaçırılıyor, vurgu ondan sonra ekleniyor — yöneticinin yazdığı
+ * `<span>` gerçek bir etiket değil, yalnızca "burayı vurgula" işareti sayılıyor
+ * (bkz. utils/vurgulu-baslik.ts).
+ */
+const titleHtml = computed(() => vurguyuBoya(mainTitle.value))
 
 /** Hizmet tipine göre design system ikonu. */
 const SERVICE_ICONS = {

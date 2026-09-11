@@ -1,5 +1,6 @@
 // server/domain/sections/configs/testimonials-section.config.ts
 import prisma from '../../../utils/prisma'
+import { HERKESE_ACIK_ALANLAR } from '../../reviews/reviews.public-fields'
 import { createSectionCrudService } from '../section-crud.factory'
 import { ok, fail, type ServiceResult } from '../../shared/response'
 import { isRecordNotFoundError, getSafeErrorMessage } from '../../../utils/prismaError'
@@ -61,10 +62,27 @@ export const testimonialsSectionCrudService = createSectionCrudService<any, Test
     defaultSectionName: DEFAULT_SECTION_NAME,
     // POST/PUT sonrası admin panel TÜM yorumları görmeli (isActive dahil).
     include: { testimonials: true },
-    // Herkese açık sayfa da bu endpoint'i kullanıyor (components/base/Testimonial.vue)
-    // ve sadece isActive:true yorumları görmeli.
+    // Herkese açık sayfa da bu endpoint'i kullanıyor
+    // (components/base/Testimonial.vue), o yüzden GET iki şeyi birden
+    // sağlamak zorunda:
+    //
+    //   1. ONAY. Eskiden yalnızca `isActive: true` filtreleniyordu. Siteden
+    //      gelen yorumlar `isApproved: false` AMA `isActive: true` olarak
+    //      oluşuyor (bkz. reviews.repository.create) — yani ziyaretçinin
+    //      gönderdiği her yorum, onaylanmadan bu uçtan yayına giriyordu.
+    //      Moderasyon yalnızca spam önlemi değil: yorumlar Review/
+    //      AggregateRating yapısal verisini besliyor ve Google doğrulanmamış
+    //      yorum işaretlemesini ihlal sayıyor.
+    //
+    //   2. ALAN SEÇİMİ. `select` yoktu, yani `email` de dışarı çıkıyordu.
+    //      Beyaz liste kardeş uç `/api/reviews` için zaten yazılmıştı;
+    //      buradan da aynı liste kullanılıyor ki ikisi ayrışamasın.
     getInclude: {
-      testimonials: { where: { isActive: true }, orderBy: { order: 'asc' } },
+      testimonials: {
+        where: { isActive: true, isApproved: true },
+        select: HERKESE_ACIK_ALANLAR,
+        orderBy: { order: 'asc' },
+      },
     },
     children: [{ relation: 'testimonials', mapCreate: mapTestimonialCreate }],
     mapParentCreate: (b) => ({

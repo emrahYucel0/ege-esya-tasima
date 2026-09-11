@@ -241,6 +241,15 @@ model Service {
   /// Google arama sonucunda görünen açıklama. `excerpt`ten ayrı tutuluyor:
   /// excerpt sayfanın giriş paragrafı ve kart metni (doğal okunmalı), bu ise
   /// aramada tıklanma üretmeli. Boşsa excerpt'e düşülür.
+  /// Google arama sonucunda görünen BAŞLIK. Boş bırakılırsa
+  /// `başlık | marka` biçimi otomatik üretilir — yani bu alan doldurulmadan
+  /// da hiçbir sayfa başlıksız kalmaz.
+  ///
+  /// Ayrı alan olmasının sebebi: sayfadaki H1 ile aramadaki başlığın aynı
+  /// olması gerekmiyor. H1 sayfa içinde, bağlamı belliyken okunur; arama
+  /// başlığı ise ~60 karakterlik bir vitrindir ve tek başına tıklanma
+  /// üretmek zorundadır. Uzun yazı başlıklarında ikisi belirgin ayrışıyor.
+  metaTitle       String?
   metaDescription String? @db.Text
 
   order       Int      @default(0) // Hizmetlerin sıralaması için
@@ -615,6 +624,15 @@ model Post {
   /// Google arama sonucunda görünen açıklama. Bilgilendirici içerik olduğu
   /// için satış cümlesi DEĞİL, yazının cevapladığı soruyu vaat eder.
   /// Boşsa excerpt'e düşülür.
+  /// Google arama sonucunda görünen BAŞLIK. Boş bırakılırsa
+  /// `başlık | marka` biçimi otomatik üretilir — yani bu alan doldurulmadan
+  /// da hiçbir sayfa başlıksız kalmaz.
+  ///
+  /// Ayrı alan olmasının sebebi: sayfadaki H1 ile aramadaki başlığın aynı
+  /// olması gerekmiyor. H1 sayfa içinde, bağlamı belliyken okunur; arama
+  /// başlığı ise ~60 karakterlik bir vitrindir ve tek başına tıklanma
+  /// üretmek zorundadır. Uzun yazı başlıklarında ikisi belirgin ayrışıyor.
+  metaTitle       String?
   metaDescription String? @db.Text
 
   image      String?
@@ -645,6 +663,15 @@ model Region {
   /// HİÇBİRİNDE "evden eve nakliyat" ifadesi geçmiyordu.
   ///
   /// Boş bırakılırsa `excerpt`e düşülür; hiçbir sayfa açıklamasız kalmaz.
+  /// Google arama sonucunda görünen BAŞLIK. Boş bırakılırsa
+  /// `başlık | marka` biçimi otomatik üretilir — yani bu alan doldurulmadan
+  /// da hiçbir sayfa başlıksız kalmaz.
+  ///
+  /// Ayrı alan olmasının sebebi: sayfadaki H1 ile aramadaki başlığın aynı
+  /// olması gerekmiyor. H1 sayfa içinde, bağlamı belliyken okunur; arama
+  /// başlığı ise ~60 karakterlik bir vitrindir ve tek başına tıklanma
+  /// üretmek zorundadır. Uzun yazı başlıklarında ikisi belirgin ayrışıyor.
+  metaTitle       String?
   metaDescription String? @db.Text
 
   image      String?

@@ -27,6 +27,7 @@ const addService = () => {
     // yalnızca kart olarak görünür, ayrı sayfası açılmaz.
     slug: '',
     excerpt: '',
+    metaTitle: '',
     metaDescription: '',
     content: '',
     includes: [],
@@ -220,6 +221,34 @@ const moveService = (index, delta) => {
                 class="w-full rounded border p-2"
                 placeholder="Bir-iki cümlelik özet"
               ></textarea>
+            </div>
+
+            <!--
+              ARAMA BAŞLIĞI — hizmet adından AYRI, boş bırakılabilir.
+              Boşken `hizmet adı | marka` üretiliyor. Hizmet sayfalarında
+              elle girmenin değeri, aranan ifadeyi başa alabilmek: sayfadaki
+              başlık "Parça Eşya Taşıma" iken aramada "Parça Eşya Taşıma
+              Fiyatları" daha çok tıklanabilir.
+            -->
+            <div class="mt-4">
+              <label :for="'service-metatitle-' + index" class="block text-sm font-medium text-gray-600">
+                Google Arama Başlığı
+              </label>
+              <input
+                v-model="service.metaTitle"
+                :id="'service-metatitle-' + index"
+                type="text"
+                maxlength="70"
+                class="w-full rounded border p-2"
+                placeholder="Parça Eşya Taşıma | Marka"
+              />
+              <p
+                class="mt-1 text-xs"
+                :class="(service.metaTitle || '').length > 60 ? 'text-amber-700' : 'text-gray-500'"
+              >
+                {{ (service.metaTitle || '').length }} / 60 karakter — 60 üstü aramada kesilir.
+                Boşsa <strong>hizmet adı | marka</strong> üretilir.
+              </p>
             </div>
 
             <!--

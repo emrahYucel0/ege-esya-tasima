@@ -59,11 +59,8 @@ const mainImage = computed(() => whyChooseUsData.value?.mainImage || '/images/na
 const kapanisGorselAlt = computed(() => whyChooseUsData.value?.mainImageAlt?.trim() || '')
 
 // Başlıkta satır sonu varsa dar ekranda kırılma noktası olarak kullanılır.
-const titleHtml = computed(() =>
-  mainTitle.value.includes('\n')
-    ? mainTitle.value.replaceAll('\n', '<br class="block lg:hidden" />')
-    : ''
-)
+// Metin önce kaçırılıyor, `<br>` sonra ekleniyor — bkz. utils/vurgulu-baslik.ts.
+const titleHtml = computed(() => satirSonlariniAyir(mainTitle.value))
 
 /**
  * Özellik sırasına göre yedek ikon. `iconPath` gerçek bir vektör ikon
@@ -90,7 +87,7 @@ useReveal(sectionRef)
         <div class="flex flex-col gap-4 lg:col-span-5">
           <span data-reveal="fade" class="eyebrow">Farkımız</span>
           <h2 id="neden-biz-baslik" data-reveal="blur" class="text-h2 text-ink">
-            <span v-if="titleHtml" v-html="sanitizeHtml(titleHtml)" />
+            <span v-if="titleHtml" v-html="titleHtml" />
             <template v-else>{{ mainTitle }}</template>
           </h2>
         </div>
@@ -135,6 +132,10 @@ useReveal(sectionRef)
 
       <!-- Kapanış cümlesi: görsel + koyu perde üzerinde tek satırlık
            vurgu. Bölümün `mainImage` alanı burada değerlendiriliyor. -->
+      <!-- `sizes`te ara kırılımlar (md/lg) zorunlu — bkz. Hero.vue'deki uzun
+           not. Kısacası "xs:100vw xl:1280px" 640w ile 1280w arasında aday
+           bırakmıyor; mobil 2048.webp'yi (68 KB) indiriyordu, şimdi
+           1024.webp'yi (25 KB) indiriyor. -->
       <figure v-if="closingStatement" data-reveal="scale" class="closing mt-block">
         <NuxtImg
           :src="mainImage"
@@ -142,7 +143,7 @@ useReveal(sectionRef)
           class="closing__img"
           format="webp"
           quality="70"
-          sizes="xs:100vw xl:1280px"
+          sizes="xs:100vw md:100vw lg:100vw xl:1280px"
           loading="lazy"
           decoding="async"
         />

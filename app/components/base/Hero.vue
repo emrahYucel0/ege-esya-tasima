@@ -144,7 +144,15 @@ useMagnetic(ctaRef, { strength: 6 });
     aria-labelledby="hero-baslik"
     class="on-dark hero relative isolate flex items-center overflow-hidden"
   >
-    <!-- Arka plan görseli -->
+    <!-- Arka plan görseli — sayfanın LCP öğesi.
+         `sizes` her kırılımda 100vw: görsel gerçekten viewport genişliğinde.
+         Ara kırılımlar (sm/md/lg) BİLEREK tek tek yazılı. Önceden
+         "xs:100vw md:1280px xl:1920px" yazıyordu ve srcset yalnızca
+         320w/640w/1280w üretiyordu; 640 ile 1280 arasında aday yoktu.
+         Mobil tarayıcı (412px × 1.75 DPR = 721px) mecburen 1280w adayını,
+         yani 2048.webp'yi (68 KB) indiriyordu. Ara kırılımlarla 768w adayı
+         doğuyor ve 1024.webp (25 KB) seçiliyor. Sağlayıcı merdiveni zaten
+         2048'de bittiği için xl/xxl eklemek yalnızca yinelenen aday üretir. -->
     <div class="absolute inset-0 -z-10">
       <NuxtImg
         v-if="heroData.backgroundImage"
@@ -153,7 +161,7 @@ useMagnetic(ctaRef, { strength: 6 });
         class="h-full w-full object-cover object-center"
         format="webp"
         loading="eager"
-        sizes="xs:100vw md:1280px xl:1920px"
+        sizes="xs:100vw sm:100vw md:100vw lg:100vw"
         decoding="async"
         fetchpriority="high"
       />

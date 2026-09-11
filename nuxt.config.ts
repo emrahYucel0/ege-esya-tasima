@@ -234,11 +234,22 @@ export default defineNuxtConfig({
     },
   },
 
-  hooks: {
-    "app:error": (err: any) => {
-      if ([500, 503].includes(err.statusCode)) return false;
-    },
-  },
+  // NOT: Burada bir `app:error` kancası vardı ve 500/503 hatalarında `false`
+  // dönüyordu — yani sunucu hatalarını SESSİZCE YUTUYORDU. Ne kayda geçiyor
+  // ne bildirim üretiyordu.
+  //
+  // 14 Ağustos 2026'da site 503 verdi; kullanıcı fark edip haber verdi,
+  // sistem değil. Ne kadar kapalı kaldığını hâlâ bilmiyoruz. Sebep tam
+  // olarak buydu: hata bir yere yazılmıyordu.
+  //
+  // Kanca kaldırıldı. Hata artık normal akışta ilerliyor:
+  //   · sunucu tarafı yakalama → server/plugins/hata-kaydi.ts (yapılandırılmış
+  //     günlük, cPanel'in uygulama günlüğüne düşer)
+  //   · ziyaretçiye görünen yüz → app/error.vue (teknik ayrıntı GÖSTERMEZ)
+  //   · dışarıdan izleme → /api/health
+  //
+  // Bu kancanın var olma sebebi muhtemelen "hata ekranı çirkin görünmesin"di;
+  // o iş error.vue'nun ve onu bastırmak hatayı yok saymak demekti.
 
   nitro: {
     // SIKIŞTIRMA — JS/CSS/font için derleme zamanında .gz ve .br üretilir.

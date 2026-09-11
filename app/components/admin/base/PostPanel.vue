@@ -37,6 +37,7 @@ const {
     slug: '',
     content: '',
     excerpt: '',
+    metaTitle: '',
     metaDescription: '',
     image: '',
     imageAlt: '',
@@ -380,6 +381,31 @@ const updateImageUrl = (url) => {
               rows="3"
               maxlength="160"
             ></textarea>
+          </div>
+
+          <!--
+            ARAMA BAŞLIĞI — yazı başlığından AYRI ve boş bırakılabilir.
+            Blogda bu alan en çok işe yarayan yer: yazı başlıkları doğal
+            olarak uzun ("Taşınırken Eşya Sadeleştirme: Neyi Götürmeli,
+            Neyi Bırakmalı?") ve sonuna marka eklenince Google kesme
+            noktasını cümlenin ortasına düşürüyor. Buraya kısaltılmış hâli
+            yazılırsa aramada tam görünür.
+          -->
+          <div>
+            <label for="pst-metatitle" class="block mb-2 font-medium">Google Arama Başlığı</label>
+            <input
+              id="pst-metatitle"
+              v-model="post.metaTitle"
+              type="text"
+              class="w-full p-2 border rounded"
+              maxlength="70"
+              placeholder="Taşınırken Eşya Sadeleştirme Rehberi"
+            />
+            <p class="text-xs mt-1" :class="(post.metaTitle || '').length > 60 ? 'text-amber-700' : 'text-gray-500'">
+              {{ (post.metaTitle || '').length }} / 60 karakter —
+              60 üstü Google sonuçlarında kesilir.
+              Boş bırakılırsa otomatik üretilir: <strong>yazı başlığı | marka</strong>
+            </p>
           </div>
 
           <!--

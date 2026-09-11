@@ -2,6 +2,7 @@
 import { getSafeErrorMessage } from '../../utils/prismaError'
 import { ok, fail, type ServiceResult } from '../shared/response'
 import { postsRepository } from './posts.repository'
+import { sanitizeContentFields } from '../../utils/sanitizeHtml'
 
 export interface PostInput {
   title: string
@@ -11,6 +12,7 @@ export interface PostInput {
   slug: string
   content?: string
   excerpt?: string
+  metaTitle?: string
   metaDescription?: string
   image?: string
   imageAlt?: string
@@ -34,7 +36,7 @@ async function get(slug?: string, light?: boolean, pagination?: PaginationInput)
     if (slug) {
       const post = await postsRepository.findBySlug(slug)
       if (!post) return fail('Post bulunamadı')
-      return ok(post)
+      return ok(sanitizeContentFields(post))
     }
 
     if (pagination?.page) {
@@ -44,10 +46,10 @@ async function get(slug?: string, light?: boolean, pagination?: PaginationInput)
         postsRepository.findAll({ light, take: pageSize, skip: (page - 1) * pageSize }),
         postsRepository.count(),
       ])
-      return ok({ items, total, page, pageSize, totalPages: Math.max(1, Math.ceil(total / pageSize)) })
+      return ok(sanitizeContentFields({ items, total, page, pageSize, totalPages: Math.max(1, Math.ceil(total / pageSize)) }))
     }
 
-    return ok(await postsRepository.findAll({ light }))
+    return ok(sanitizeContentFields(await postsRepository.findAll({ light })))
   } catch (error) {
     return fail(getSafeErrorMessage(error))
   }
@@ -63,6 +65,7 @@ async function create(body: PostInput): Promise<ServiceResult<any>> {
       slug: body.slug,
       content: body.content,
       excerpt: body.excerpt,
+      metaTitle: body.metaTitle,
       metaDescription: body.metaDescription,
       image: body.image,
       imageAlt: body.imageAlt,
@@ -82,6 +85,7 @@ async function update(body: PostInput): Promise<ServiceResult<any>> {
       author: body.author,
       content: body.content,
       excerpt: body.excerpt,
+      metaTitle: body.metaTitle,
       metaDescription: body.metaDescription,
       image: body.image,
       imageAlt: body.imageAlt,

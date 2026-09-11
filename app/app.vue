@@ -40,13 +40,21 @@ const adsenseId = settings.value?.googleAdsenseId || "";
 const trackingScripts = [];
 const trackingNoscripts = [];
 
+// GTAG — KUYRUK SAPLAMASI head'de, AĞIR DOSYA boşta.
+//
+// `gtag/js` ölçüldü: 166 KB (brotli). Sitenin kendi JS+CSS'i toplam 199 KB,
+// yani analytics tek başına yükü neredeyse ikiye katlıyordu ve bunu sayfa
+// açılırken, ana iş parçacığı en meşgulken yapıyordu.
+//
+// Aşağıdaki satır yalnızca ~200 baytlık saplama: `dataLayer` dizisini ve
+// `gtag()` işlevini tanımlayıp ilk `js` + `config` çağrılarını KUYRUĞA atıyor.
+// Ağır dosya `onMounted` içinde, tarayıcı boşa çıkınca yükleniyor ve
+// yüklendiğinde kuyruktaki her şeyi işliyor — yani hiçbir olay kaybolmuyor,
+// yalnızca sunucuya ulaşması birkaç yüz milisaniye gecikiyor.
 if (isProd && analyticsId) {
-  trackingScripts.push(
-    { src: `https://www.googletagmanager.com/gtag/js?id=${analyticsId}`, async: true },
-    {
-      innerHTML: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${analyticsId}');`,
-    }
-  );
+  trackingScripts.push({
+    innerHTML: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${analyticsId}');`,
+  });
 }
 
 if (isProd && tagManagerId) {
@@ -59,13 +67,44 @@ if (isProd && tagManagerId) {
   });
 }
 
-if (isProd && adsenseId) {
-  trackingScripts.push({
-    src: `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsenseId}`,
-    async: true,
-    crossorigin: "anonymous",
+// AdSense de aynı sebeple ertelendi (bkz. yukarıdaki gtag notu). Şu an
+// panelde tanımlı değil; tanımlandığı gün aynı yoldan geçsin diye burada.
+
+/**
+ * Üçüncü taraf ölçüm dosyalarını tarayıcı boşa çıkınca yükler.
+ *
+ * `requestIdleCallback` desteklenmeyen tarayıcılarda (Safari'nin eski
+ * sürümleri) sabit gecikmeye düşülüyor. `timeout` şart: sayfa hiç boşa
+ * çıkmazsa geri çağrı hiç çalışmaz ve ölçüm tamamen kaybolurdu.
+ */
+onMounted(() => {
+  if (!isProd) return;
+
+  const yukle = (src, ozellikler = {}) => {
+    const etiket = document.createElement("script");
+    etiket.src = src;
+    etiket.async = true;
+    Object.assign(etiket, ozellikler);
+    document.head.appendChild(etiket);
+  };
+
+  const bostaCalistir = (islem) =>
+    "requestIdleCallback" in window
+      ? window.requestIdleCallback(islem, { timeout: 4000 })
+      : setTimeout(islem, 2000);
+
+  bostaCalistir(() => {
+    if (analyticsId) {
+      yukle(`https://www.googletagmanager.com/gtag/js?id=${analyticsId}`);
+    }
+    if (adsenseId) {
+      yukle(
+        `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsenseId}`,
+        { crossOrigin: "anonymous" }
+      );
+    }
   });
-}
+});
 
 /**
  * SEKME İKONU.

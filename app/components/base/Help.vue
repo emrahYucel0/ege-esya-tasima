@@ -57,12 +57,8 @@ const buttonText = computed(() => weHelpData.value?.buttonText || 'Ücretsiz Tek
 const buttonLink = computed(() => weHelpData.value?.buttonLink || '/iletisim')
 
 // Başlıkta satır sonu varsa dar ekranda kırılma noktası olarak kullanılır.
-// UiHeading içeriği sanitizeHtml'den geçirdiği için ham veri güvenli.
-const titleHtml = computed(() =>
-  mainTitle.value.includes('\n')
-    ? mainTitle.value.replaceAll('\n', '<br class="block lg:hidden" />')
-    : ''
-)
+// Metin önce kaçırılıyor, `<br>` sonra ekleniyor — bkz. utils/vurgulu-baslik.ts.
+const titleHtml = computed(() => satirSonlariniAyir(mainTitle.value))
 
 const defaultFeatures = [
   { text: 'Ücretsiz Ekspertiz ve Detaylı Taşınma Planlaması' },
@@ -155,7 +151,7 @@ useReveal(sectionRef)
         <div class="flex flex-col gap-4">
           <span data-reveal="fade" class="eyebrow">Sizin Yerinize Düşünüyoruz</span>
           <h2 id="kolaylik-baslik" data-reveal="blur" class="text-h2 text-ink">
-            <span v-if="titleHtml" v-html="sanitizeHtml(titleHtml)" />
+            <span v-if="titleHtml" v-html="titleHtml" />
             <template v-else>{{ mainTitle }}</template>
           </h2>
           <p data-reveal class="text-pretty text-ink-muted">{{ description }}</p>

@@ -9,6 +9,7 @@ const postSchema = yup.object({
   slug: yup.string().trim().required(),
   content: yup.string().notRequired(),
   excerpt: yup.string().notRequired(),
+  metaTitle: yup.string().notRequired(),
   metaDescription: yup.string().notRequired(),
   image: yup.string().trim().notRequired(),
   imageAlt: yup.string().trim().notRequired(),

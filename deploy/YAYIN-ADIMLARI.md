@@ -248,14 +248,76 @@ canlıdaki aktif kayıtlardan kendisi seçer.
 
 ## 8) Yayın sonrası
 
-**Yedekleme cron'u.** `scripts/yedekle.mjs` `mysqldump` çağırıyor; cPanel'de
-mysqldump mevcut. Günlük bir cron:
+### Yedekleme cron'u
+
+Dört adım. `scripts/yedek-cron.sh` node'u kendisi buluyor, klasörleri kendisi
+açıyor ve bildirimi doğru yapıyor. Yerelde hem başarı hem iki hata yolu test
+edildi.
+
+**Bildirim mantığı.** cron e-postayı çıkış koduna göre değil, **çıktıya** göre
+gönderir. Betik bunu şöyle kullanıyor:
+
+| Durum | Ekrana çıktı | Sonuç |
+|---|---|---|
+| Yedek alındı | yok | e-posta gelmez |
+| Herhangi bir hata | sebep + günlüğün son 15 satırı | **e-posta gelir** |
+
+Başarıda da e-posta atılsaydı her gün bir bildirim gelir, birkaç hafta sonra
+okunmadan silinmeye başlar ve gerçek hata o yığının içinde kaybolurdu.
+
+cPanel > Cron Jobs sayfasının en üstündeki **"Cron E-postası"** alanına gerçek
+adresinizi yazın — bildirim oraya gider.
+
+**1. Parola dosyasını oluşturun.** cPanel > Dosya Yöneticisi ile ana dizinde
+(`/home/<CPANEL_USER>/`, `public_html`in içinde DEĞİL) `.env.yedek` adında bir
+dosya açın, tek satır yazın:
 
 ```
-0 3 * * * cd /home/<CPANEL_USER>/nakliye && DATABASE_URL="..." node scripts/yedekle.mjs /home/<CPANEL_USER>/yedekler
+DATABASE_URL="mysql://KULLANICI:PAROLA@localhost:3306/VERITABANI"
 ```
 
-Yedekleri **sunucu dışına** da kopyalayın; sunucu çökerse yedek de gider.
+Sunucudaki Node uygulamasının kullandığı değerin AYNISI. Host `localhost`
+olmalı, dışarıdaki `cp66.servername.co` değil.
+
+Sonra dosyaya sağ tıklayıp **İzinleri Değiştir → 600** yapın (yalnızca sahibi
+okusun). Parola cron satırına YAZILMIYOR; yazılsaydı hem crontab'da hem `ps`
+çıktısında açıkta dururdu.
+
+**2. Betiği çalıştırılabilir yapın.** Dosya Yöneticisi'nde
+`nakliye/scripts/yedek-cron.sh` → sağ tık → İzinleri Değiştir → **755**.
+
+**3. Cron'u ekleyin.** cPanel > **Cron Jobs** > Ortak Ayarlar: *Bir kez
+günde*. Komut:
+
+```
+/home/<CPANEL_USER>/nakliye/scripts/yedek-cron.sh
+```
+
+Saati gece 3'e alın (`0 3 * * *`) — trafik en düşükken.
+
+**4. Beklemeden test edin.** Cron'u geçici olarak "Her dakika" (`* * * * *`)
+yapın, bir dakika bekleyin, sonra Dosya Yöneticisi'nde şunlara bakın:
+
+```
+/home/<CPANEL_USER>/yedek.log        → "✔ Yedek alındı" satırı
+/home/<CPANEL_USER>/yedekler/        → .sql dosyası, ~1,5 MB
+```
+
+Görünce cron'u tekrar günlüğe çevirin. Bu adımı atlamayın: yedeklemenin en
+sinsi hatası, ihtiyaç duyulan güne kadar hiç çalışmadığının fark edilmemesidir.
+
+**Ayarlanabilirler** (gerekirse cron satırında `DEGISKEN=deger` ile öne
+yazılır): `YEDEK_KLASORU`, `ENV_DOSYASI`, `GUNLUK`, `UYGULAMA_KOKU`.
+
+Yedekler 30 gün tutulup eskiler otomatik siliniyor (`SAKLAMA_GUN`,
+`scripts/yedekle.mjs`).
+
+**Yedekler uygulama kökünün DIŞINDA** (`/home/<CPANEL_USER>/yedekler`) tutuluyor.
+İçeride olsalardı müşteri taleplerini içeren dump'lar web'den indirilebilir
+hâle gelebilirdi.
+
+**Ayda bir sunucudan dışarı indirin.** Sunucu çökerse yedek de onunla gider;
+sunucudaki yedek yalnızca "yanlışlıkla sildim" senaryosunu kurtarır.
 
 **Yeni sürüm atarken:** yalnızca `.output` değişir. `yuklemeler/` klasörüne
 DOKUNMAYIN — panelden yüklenen tüm görseller orada.

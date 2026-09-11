@@ -62,6 +62,11 @@ useReveal(sectionRef)
       </div>
     </div>
 
+    <!-- `sizes`te ara kırılımlar (md/lg) zorunlu. Yalnızca "xs:100vw xl:1280px"
+         yazıldığında srcset 320w/640w/1280w'den ibaret kalıyor; 640 ile 1280
+         arasında aday olmadığı için mobil tarayıcı (412px × 1.75 DPR = 721px)
+         mecburen 1280w adayını, yani 2048.webp'yi (68 KB) indiriyor. md/lg
+         eklenince 768w adayı doğuyor ve 1024.webp (25 KB) seçiliyor. -->
     <figure v-if="teamImage" data-reveal="scale" class="about-figure mt-block">
       <NuxtImg
         :src="teamImage"
@@ -69,7 +74,7 @@ useReveal(sectionRef)
         class="about-figure__img"
         format="webp"
         quality="72"
-        sizes="xs:100vw xl:1280px"
+        sizes="xs:100vw md:100vw lg:100vw xl:1280px"
         loading="eager"
         decoding="async"
       />

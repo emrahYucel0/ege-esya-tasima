@@ -279,9 +279,29 @@ useHead(() => {
    */
   const aramaAciklamasi = data.metaDescription || data.excerpt || undefined
 
+  /**
+   * ARAMA BAŞLIĞI — panelden girilebilir, girilmezse otomatik.
+   *
+   * Otomatik biçim `başlık | marka` üç tür için de makul bir varsayılan
+   * üretiyor ("Yenimahalle Evden Eve Nakliyat | Marka"), ama iki durumda
+   * yetmiyor:
+   *
+   *   1. Uzun yazı başlıkları. "Taşınırken Eşya Sadeleştirme: Neyi
+   *      Götürmeli, Neyi Bırakmalı?" zaten 60 karakteri aşıyor; markayı
+   *      eklemek Google'ın kesme noktasını başlığın ortasına düşürüyor.
+   *   2. Anahtar kelime sırası. Sayfadaki H1 doğal okunmak ister, arama
+   *      başlığı ise aranan ifadeyi başa almak ister; ikisi her zaman aynı
+   *      cümle olmuyor.
+   *
+   * `metaTitle` doldurulmuşsa OLDUĞU GİBİ kullanılıyor — markayı ekleyip
+   * eklememek de yöneticinin kararı. Yarı otomatik bir birleştirme
+   * (örneğin markayı yine sona eklemek) alanın varlık sebebini ortadan
+   * kaldırırdı: karakter bütçesinin tamamı panelde görünmeli.
+   */
+  const aramaBasligi = data.metaTitle?.trim() || `${data.title} | ${brandName.value}`
+
   return {
-    // Başlık ARTIK gerçek başlıktan geliyor (bkz. dosya başındaki 1. madde).
-    title: `${data.title} | ${brandName.value}`,
+    title: aramaBasligi,
     meta: [
       { name: 'description', content: aramaAciklamasi },
       { name: 'author', content: brandName.value },
@@ -456,8 +476,26 @@ useHead({
 </script>
 
 <template>
+  <!--
+    ÜÇ GÖRÜNÜMÜN YALNIZ BİRİ KULLANILIYOR, ÜÇÜ BİRDEN İNİYORDU.
+
+    Bu dosya blog yazısı, bölge ve hizmet sayfalarının üçünü birden karşılıyor
+    ve `v-if` ile hangisinin basılacağına karar veriyor. Ama otomatik içe
+    aktarılan bileşenler STATİK olarak paketlendiği için istemci, hangi
+    sayfada olursa olsun üçünün de kodunu indiriyordu. Ölçüldü: /kadikoy,
+    /parca-esya-tasima ve bir blog yazısının üçünde de ön yüklenen JS
+    birebir aynıydı — 535 KB.
+
+    `Lazy` öneki bunu koşula bağlıyor: yalnız `v-if`i tutan dal indiriliyor.
+    Sunucu çıktısı değişmiyor, sayfa yine eksiksiz HTML olarak basılıyor.
+
+    Bu üçü sayfanın ANA İÇERİĞİ, o yüzden `hydrate-on-visible` VERİLMİYOR —
+    zaten ilk ekranda görünüyorlar. Yalnız kapanış çağrısı ekranın altında,
+    onda görünürlük ölçütü var (ana sayfadakiyle aynı 300px payı: `useReveal`
+    gizlemeyi eleman ekrana girmeden yapabilsin diye).
+  -->
   <main>
-    <article-post-view
+    <lazy-article-post-view
       v-if="post"
       :post="post"
       :previous="postNav.previous"
@@ -467,7 +505,7 @@ useHead({
       :related-regions="postRegions"
     />
 
-    <article-region-view
+    <lazy-article-region-view
       v-else-if="region"
       :region="region"
       :related="relatedRegions"
@@ -476,7 +514,7 @@ useHead({
       :next="regionNav.next"
     />
 
-    <article-service-view
+    <lazy-article-service-view
       v-else-if="service"
       :service="service"
       :regions="serviceRegions"
@@ -484,6 +522,6 @@ useHead({
       :next="serviceNav.next"
     />
 
-    <base-final-cta />
+    <lazy-base-final-cta :hydrate-on-visible="{ rootMargin: '300px' }" />
   </main>
 </template>

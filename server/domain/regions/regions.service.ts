@@ -2,6 +2,7 @@
 import { getSafeErrorMessage } from '../../utils/prismaError'
 import { ok, fail, type ServiceResult } from '../shared/response'
 import { regionsRepository } from './regions.repository'
+import { sanitizeContentFields } from '../../utils/sanitizeHtml'
 
 export interface PriceFactorInput {
   factor?: string
@@ -16,6 +17,7 @@ export interface RegionInput {
   slug: string
   content?: string
   excerpt?: string
+  metaTitle?: string
   metaDescription?: string
   image?: string
   imageAlt?: string
@@ -79,7 +81,7 @@ async function get(options: RegionGetOptions): Promise<ServiceResult<any>> {
       if (!options.includeInactive) whereClause.isActive = true
       const region = await regionsRepository.findUnique(whereClause)
       if (!region) return fail('Bölge bulunamadı veya erişim izni yok')
-      return ok(region)
+      return ok(sanitizeContentFields(region))
     }
 
     const whereClause: any = {}
@@ -100,10 +102,10 @@ async function get(options: RegionGetOptions): Promise<ServiceResult<any>> {
         regionsRepository.findMany(whereClause, { light: options.light, take: pageSize, skip: (page - 1) * pageSize }),
         regionsRepository.count(whereClause),
       ])
-      return ok({ items, total, page, pageSize, totalPages: Math.max(1, Math.ceil(total / pageSize)) })
+      return ok(sanitizeContentFields({ items, total, page, pageSize, totalPages: Math.max(1, Math.ceil(total / pageSize)) }))
     }
 
-    return ok(await regionsRepository.findMany(whereClause, { light: options.light }))
+    return ok(sanitizeContentFields(await regionsRepository.findMany(whereClause, { light: options.light })))
   } catch (error) {
     return fail(getSafeErrorMessage(error))
   }
@@ -118,6 +120,7 @@ async function create(body: RegionInput): Promise<ServiceResult<any>> {
       slug: body.slug,
       content: body.content || null,
       excerpt: body.excerpt || null,
+      metaTitle: body.metaTitle || null,
       metaDescription: body.metaDescription || null,
       image: body.image || null,
       imageAlt: body.imageAlt || null,
@@ -145,6 +148,7 @@ async function update(body: RegionInput): Promise<ServiceResult<any>> {
       shortTitle: metinAlani(body.shortTitle),
       content: metinAlani(body.content),
       excerpt: metinAlani(body.excerpt),
+      metaTitle: metinAlani(body.metaTitle),
       metaDescription: metinAlani(body.metaDescription),
       image: metinAlani(body.image),
       imageAlt: metinAlani(body.imageAlt),

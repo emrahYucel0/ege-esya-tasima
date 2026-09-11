@@ -1,27 +1,9 @@
 // server/domain/reviews/reviews.repository.ts
 import prisma from '../../utils/prisma'
 
-/**
- * Herkese açık uçlarda döndürülecek alanlar.
- *
- * `email` BİLEREK dışarıda: ziyaretçi doğrulama için bırakabiliyor, ama
- * yayınlanan yorumda görünmesi kişisel veri sızıntısı olurdu. Alan seçimi
- * beyaz liste olarak yapılıyor — modele yeni bir alan eklendiğinde kazara
- * dışarı açılmasın diye.
- */
-const HERKESE_ACIK_ALANLAR = {
-  id: true,
-  customerName: true,
-  customerImage: true,
-  rating: true,
-  comment: true,
-  date: true,
-  location: true,
-  serviceType: true,
-  serviceTypeIcon: true,
-  isFeatured: true,
-  order: true,
-} as const
+import { HERKESE_ACIK_ALANLAR } from './reviews.public-fields'
+
+export { HERKESE_ACIK_ALANLAR }
 
 export const reviewsRepository = {
   /** Sitede gösterilecek yorumlar: hem aktif hem ONAYLI olanlar. */

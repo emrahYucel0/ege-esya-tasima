@@ -152,16 +152,38 @@ useHead({
 </script>
 
 <template>
+  <!--
+    GECİKMELİ HİDRASYON — ölçülmüş bir soruna karşılık.
+
+    Canlı Lighthouse'ta 2.040 ms'de başlayan 727 ms'lik tek bir uzun görev
+    vardı: sayfadaki ON bölümün HEPSİNİN aynı anda hidrate edilmesi. Oysa
+    mobilde ilk ekranda yalnızca hero var; kalan dokuzunun JS'i, kullanıcı
+    oraya kaydırana kadar hiç çalışmak zorunda değil.
+
+    `Lazy` öneki bileşeni ayrı bir parçaya alıyor, `hydrate-on-visible` ise
+    hidrasyonu görünürlüğe bağlıyor. SUNUCU ÇIKTISI DEĞİŞMİYOR: HTML yine
+    eksiksiz basılıyor, SEO ve JS-kapalı davranışı aynı kalıyor. Değişen
+    tek şey "ne zaman canlanacağı".
+
+    `rootMargin: 300px` KEYFİ DEĞİL: bu bölümlerin hepsi `useReveal`
+    kullanıyor ve o, `onMounted`'da `.is-hidden` sınıfını ekliyor. Hidrasyon
+    tam görünürlük anında olsaydı sıra şöyle işlerdi — eleman görünür →
+    hidrate olur → gizlenir → animasyonla geri gelir; yani göz kırpma.
+    300px erken hidrate edilince gizleme, eleman daha ekrana girmeden
+    yapılıyor ve animasyon normal akışında oynuyor.
+
+    Hero BİLEREK dışarıda: ilk ekranda ve parallax'ı imleci hemen izlemeli.
+  -->
   <main class="flex flex-col">
     <base-hero />
-    <base-trust-bar />
-    <base-region-finder />
-    <base-help />
-    <base-process />
-    <base-choose />
-    <base-testimonial />
-    <base-pricing />
-    <base-faq />
-    <base-final-cta />
+    <lazy-base-trust-bar :hydrate-on-visible="{ rootMargin: '300px' }" />
+    <lazy-base-region-finder :hydrate-on-visible="{ rootMargin: '300px' }" />
+    <lazy-base-help :hydrate-on-visible="{ rootMargin: '300px' }" />
+    <lazy-base-process :hydrate-on-visible="{ rootMargin: '300px' }" />
+    <lazy-base-choose :hydrate-on-visible="{ rootMargin: '300px' }" />
+    <lazy-base-testimonial :hydrate-on-visible="{ rootMargin: '300px' }" />
+    <lazy-base-pricing :hydrate-on-visible="{ rootMargin: '300px' }" />
+    <lazy-base-faq :hydrate-on-visible="{ rootMargin: '300px' }" />
+    <lazy-base-final-cta :hydrate-on-visible="{ rootMargin: '300px' }" />
   </main>
 </template>

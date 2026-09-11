@@ -303,10 +303,20 @@
   transition-delay: calc(var(--reveal-i, 0) * var(--stagger));
 }
 
+/* `will-change: opacity, transform` BİLEREK KALDIRILDI.
+   Bu kural sayfadaki TÜM gizli öğelere uygulanıyor: ana sayfada 69
+   `[data-reveal]` var, yani 650 elemanlık DOM'un %10'u. `will-change` her
+   birini ayrı bir compositor katmanına terfi ettiriyordu; üstelik `once:false`
+   olduğu için öğeler ekrandan çıkınca yeniden gizleniyor ve katmanlar sürekli
+   kurulup yıkılıyordu. Canlı Lighthouse ölçümünde ana iş parçacığının en
+   büyük kalemi buydu: Style & Layout 1.344 ms.
+   Zaten `opacity` ve `transform` compositor'da çalışan özellikler; ipucu
+   olmadan da 60 FPS veriyorlar. `will-change` animasyondan HEMEN ÖNCE tek bir
+   öğeye konulduğunda anlamlı, kalıcı olarak onlarca öğede tutulduğunda
+   Chrome'un açıkça uyardığı anti-desen. */
 [data-reveal].is-hidden {
   opacity: 0;
   transform: translate3d(0, var(--reveal-y), 0);
-  will-change: opacity, transform;
 }
 
 [data-reveal="fade"].is-hidden {

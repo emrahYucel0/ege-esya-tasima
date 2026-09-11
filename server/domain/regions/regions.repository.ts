@@ -31,6 +31,7 @@ const AGIR_SUTUNLAR = {
   content: true,
   // Yalnızca detay sayfasının <head>'inde kullanılıyor (o da findUnique ile
   // çekiliyor). Listeye konsaydı 120 × ~150 bayt boşuna taşınırdı.
+  metaTitle: true,
   metaDescription: true,
   faqs: true,
   facts: true,
